@@ -4,7 +4,7 @@
 ![](./Documentation/Diagramas/img/image.png)
 
 ```
-streaming-platform/
+(app) streaming-platform/
 │
 ├── proto/                          <-- CONTRATOS COMPARTIDOS 
 │   ├── auth/
