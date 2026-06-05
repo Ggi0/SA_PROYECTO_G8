@@ -1,3 +1,18 @@
+Gestionar comunicaciones por correo.
+
+Maneja
+* Correo de registro
+* Correo de compra
+* Correo de nuevas publicaciones
+
+Se comunica con
+```
+Auth Service
+Catalog Service
+Subscription Service
+```
+
+```
 streaming-platform/
 │
 ├── proto/
@@ -44,3 +59,5 @@ streaming-platform/
 │
 ├── .gitignore                     <-- Incluye todos los .env
 └── README.md
+
+```

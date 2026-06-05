@@ -1,3 +1,19 @@
+Gestionar conversiones monetarias.
+
+Maneja
+* USD
+* EUR
+* GTQ
+* MXN
+* etc
+
+Se comunica con
+```
+    API externa de divisas
+    Redis
+    Subscription Service
+```
+```
 streaming-platform/
 │
 ├── proto/
@@ -41,3 +57,5 @@ streaming-platform/
 │
 ├── .gitignore                     <-- Incluye todos los .env
 └── README.md
+
+```
