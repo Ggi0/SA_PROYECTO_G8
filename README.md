@@ -121,18 +121,61 @@
 │   ├── .env
 │   └── requirements.txt
 │
-├── fx-notification-service/        <-- Python + FastAPI | Puerto 50055
+├── fx-service/                            <-- Python | gRPC | 50055
 │   ├── app/
 │   │   ├── main.py
-│   │   ├── fx/
+│   │   │
+│   │   ├── exchange_rates/
 │   │   │   ├── handler.py
-│   │   │   ├── service.py          <-- Consulta API externa de divisas
-│   │   │   └── redis_cache.py      <-- Lógica de caché con TTL
+│   │   │   ├── service.py
+│   │   │   ├── repository.py
+│   │   │   └── provider_client.py
+│   │   │
+│   │   ├── redis/
+│   │   │   ├── redis_client.py
+│   │   │   └── cache_service.py
+│   │   │
+│   │   ├── database/
+│   │   │   ├── migrations/
+│   │   │   ├── procedures/
+│   │   │   ├── functions/
+│   │   │   ├── views/
+│   │   │   └── triggers/
+│   │   │
+│   │   └── proto/
+│   │
+│   ├── Dockerfile
+│   ├── .env
+│   └── requirements.txt
+│
+├── notification-service/                  <-- Python | gRPC | 50056
+│   ├── app/
+│   │   ├── main.py
+│   │   │
 │   │   ├── notifications/
 │   │   │   ├── handler.py
-│   │   │   ├── service.py          <-- Envío de correos (SMTP)
-│   │   │   └── templates/          <-- Templates HTML de emails
+│   │   │   ├── service.py
+│   │   │   └── repository.py
+│   │   │
+│   │   ├── email/
+│   │   │   ├── smtp_client.py
+│   │   │   ├── template_engine.py
+│   │   │   └── sender.py
+│   │   │
+│   │   ├── templates/
+│   │   │   ├── welcome.html
+│   │   │   ├── purchase_receipt.html
+│   │   │   └── new_content.html
+│   │   │
+│   │   ├── database/
+│   │   │   ├── migrations/
+│   │   │   ├── procedures/
+│   │   │   ├── functions/
+│   │   │   ├── views/
+│   │   │   └── triggers/
+│   │   │
 │   │   └── proto/
+│   │
 │   ├── Dockerfile
 │   ├── .env
 │   └── requirements.txt

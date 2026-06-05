@@ -1,3 +1,28 @@
+
+Gestionar monetización.
+
+Maneja
+* Planes
+* Suscripciones
+* Pagos
+* Historial de compras
+* Cancelaciones
+
+Se comunica con
+```
+    FX Service
+    Notification Service
+```
+
+Flujo
+```
+    Obtiene tipo de cambio
+    Procesa compra
+    Envía recibo
+```
+
+
+```
 streaming-platform/
 │
 ├── proto/
@@ -32,3 +57,5 @@ streaming-platform/
 │
 ├── .gitignore                     <-- Incluye todos los .env
 └── README.md
+
+```

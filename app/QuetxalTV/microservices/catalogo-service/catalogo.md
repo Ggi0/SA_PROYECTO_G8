@@ -1,3 +1,27 @@
+
+Gestionar contenido multimedia.
+
+Maneja
+* Películas
+* Series
+* Episodios
+* Actores
+* Géneros
+* Búsquedas
+* Calificaciones
+* Porcentaje de recomendación
+
+Se comunica con
+```
+    Notification Service
+```
+
+para:
+```
+    Nuevas publicaciones
+```
+
+```
 streaming-platform/
 │
 ├── proto/
@@ -25,3 +49,5 @@ streaming-platform/
 │   ├── .env
 │   └── go.mod
 │
+
+```
