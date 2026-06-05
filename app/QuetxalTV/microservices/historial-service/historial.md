@@ -1,3 +1,18 @@
+Guardar progreso de visualización.
+
+Maneja
+* Continue Watching
+* Progreso de películas
+* Progreso de series
+* Último episodio visto
+* Minuto actual
+
+Se comunica con
+```
+    nadie
+```
+
+```
 streaming-platform/
 │
 ├── proto/
@@ -25,3 +40,5 @@ streaming-platform/
 │
 ├── .gitignore                     <-- Incluye todos los .env
 └── README.md
+
+```

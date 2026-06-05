@@ -1,3 +1,28 @@
+
+Gestionar identidad y acceso.
+
+Maneja:
+* Usuarios
+* Perfiles
+* Login
+* Logout
+* JWT
+* OAuth
+* Session Cookies
+* Cambio de contraseña
+
+Se comunica con
+```
+    Notification Service
+```
+
+para:
+```
+    Confirmación de registro
+    Recuperación de contraseña
+```
+
+```
 streaming-platform/
 │
 ├── proto/
@@ -28,3 +53,5 @@ streaming-platform/
 │   ├── .env
 │   ├── package.json
 │   └── tsconfig.json
+
+```
