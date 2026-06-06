@@ -1,221 +1,294 @@
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+DROP SCHEMA IF EXISTS subscription CASCADE;
+CREATE SCHEMA subscription;
+SET search_path TO subscription;
 
-CREATE TABLE IF NOT EXISTS plans (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(50) NOT NULL UNIQUE,
-    description TEXT,
-    price_usd DECIMAL(10, 2) NOT NULL CHECK (price_usd >= 0),
-    max_profiles INT NOT NULL DEFAULT 1 CHECK (max_profiles > 0),
-    max_streams INT NOT NULL DEFAULT 1 CHECK (max_streams > 0),
-    video_quality VARCHAR(20) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE plans (
+    plan_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    slug VARCHAR(50) NOT NULL UNIQUE,
+    price_usd NUMERIC(10,2) NOT NULL CHECK (price_usd >= 0),
+    max_profiles SMALLINT NOT NULL DEFAULT 1,
+    max_streams SMALLINT NOT NULL DEFAULT 1,
+    video_quality VARCHAR(10) NOT NULL DEFAULT 'SD',
+    features JSONB NOT NULL DEFAULT '[]',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS subscriptions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE subscriptions (
+    subscription_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
-    plan_id UUID NOT NULL REFERENCES plans(id),
-    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'expired', 'pending')),
-    start_date TIMESTAMP NOT NULL DEFAULT NOW(),
-    end_date TIMESTAMP,
-    renewal_date TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '30 days'),
-    cancelled_at TIMESTAMP,
-    cancellation_reason TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    plan_id INT NOT NULL REFERENCES plans(plan_id),
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+        CHECK (status IN ('ACTIVE', 'CANCELLED', 'EXPIRED', 'PAST_DUE')),
+    current_period_start TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    current_period_end TIMESTAMPTZ NOT NULL,
+    cancel_at TIMESTAMPTZ,
+    cancelled_at TIMESTAMPTZ,
+    auto_renew BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
-CREATE UNIQUE INDEX IF NOT EXISTS ux_subscriptions_one_active_per_user ON subscriptions(user_id) WHERE status = 'active';
-
-CREATE TABLE IF NOT EXISTS payments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
+CREATE TABLE payments (
+    payment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    subscription_id UUID NOT NULL REFERENCES subscriptions(subscription_id),
     user_id UUID NOT NULL,
-    plan_id UUID NOT NULL REFERENCES plans(id),
-    amount_usd DECIMAL(10, 2) NOT NULL CHECK (amount_usd >= 0),
-    amount_local DECIMAL(10, 2) NOT NULL CHECK (amount_local >= 0),
-    currency VARCHAR(10) NOT NULL DEFAULT 'USD',
-    exchange_rate DECIMAL(12, 6) NOT NULL DEFAULT 1.0 CHECK (exchange_rate > 0),
-    status VARCHAR(20) NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
+    plan_id INT NOT NULL REFERENCES plans(plan_id),
+    amount_usd NUMERIC(10,2) NOT NULL,
+    display_currency VARCHAR(3),
+    display_amount NUMERIC(10,2),
+    status VARCHAR(20) NOT NULL DEFAULT 'COMPLETED'
+        CHECK (status IN ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED')),
+    gateway_ref VARCHAR(255),
     payment_method VARCHAR(50),
-    transaction_ref VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    period_start TIMESTAMPTZ NOT NULL,
+    period_end TIMESTAMPTZ NOT NULL,
+    paid_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
-CREATE INDEX IF NOT EXISTS idx_payments_subscription_id ON payments(subscription_id);
-
-CREATE TABLE IF NOT EXISTS subscription_audit_log (
-    id BIGSERIAL PRIMARY KEY,
-    subscription_id UUID NOT NULL,
-    user_id UUID NOT NULL,
-    action VARCHAR(50) NOT NULL,
-    old_status VARCHAR(20),
-    new_status VARCHAR(20),
-    old_plan_id UUID,
-    new_plan_id UUID,
-    performed_at TIMESTAMP NOT NULL DEFAULT NOW()
+CREATE TABLE audit_log (
+    log_id BIGSERIAL PRIMARY KEY,
+    user_id UUID,
+    subscription_id UUID,
+    event_type VARCHAR(100) NOT NULL,
+    old_data JSONB,
+    new_data JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO plans (name, description, price_usd, max_profiles, max_streams, video_quality) VALUES
-    ('Basic', 'Disfruta contenido en SD con un perfil.', 5.99, 1, 1, 'SD'),
-    ('Standard', 'Hasta 2 perfiles y calidad Full HD.', 9.99, 2, 2, 'Full HD'),
-    ('Premium', 'Hasta 5 perfiles, 4K y descargas ilimitadas.', 15.99, 5, 4, '4K')
-ON CONFLICT (name) DO UPDATE SET
-    description = EXCLUDED.description,
-    price_usd = EXCLUDED.price_usd,
-    max_profiles = EXCLUDED.max_profiles,
-    max_streams = EXCLUDED.max_streams,
-    video_quality = EXCLUDED.video_quality,
-    is_active = true,
-    updated_at = NOW();
+CREATE INDEX idx_subscriptions_user ON subscriptions(user_id);
+CREATE INDEX idx_subscriptions_status ON subscriptions(status) WHERE status = 'ACTIVE';
+CREATE INDEX idx_subscriptions_expiry ON subscriptions(current_period_end) WHERE status = 'ACTIVE';
+CREATE INDEX idx_payments_subscription ON payments(subscription_id);
+CREATE INDEX idx_payments_user ON payments(user_id);
+CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_audit_log_user ON audit_log(user_id);
+CREATE INDEX idx_audit_log_created ON audit_log(created_at DESC);
 
-CREATE OR REPLACE VIEW v_plans_overview AS
-SELECT
-    p.id,
-    p.name,
-    p.description,
-    p.price_usd,
-    p.max_profiles,
-    p.max_streams,
-    p.video_quality,
-    p.is_active,
-    COUNT(s.id) AS active_subscribers,
-    p.created_at
-FROM plans p
-LEFT JOIN subscriptions s ON s.plan_id = p.id AND s.status = 'active'
-WHERE p.is_active = true
-GROUP BY p.id
-ORDER BY p.price_usd ASC;
+CREATE OR REPLACE FUNCTION fn_get_active_subscription(p_user_id UUID)
+RETURNS TABLE (
+    subscription_id UUID,
+    plan_name VARCHAR,
+    video_quality VARCHAR,
+    max_streams SMALLINT,
+    period_end TIMESTAMPTZ,
+    status VARCHAR
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN QUERY
+    SELECT s.subscription_id, p.name, p.video_quality, p.max_streams, s.current_period_end, s.status
+    FROM subscriptions s
+    JOIN plans p ON s.plan_id = p.plan_id
+    WHERE s.user_id = p_user_id AND s.status = 'ACTIVE'
+    LIMIT 1;
+END;
+$$;
 
-CREATE OR REPLACE VIEW v_user_subscriptions AS
-SELECT
-    s.id AS subscription_id,
-    s.user_id,
-    s.status,
-    s.start_date,
-    s.end_date,
-    s.renewal_date,
-    s.cancelled_at,
-    s.cancellation_reason,
-    GREATEST(0, EXTRACT(DAY FROM (s.renewal_date - NOW()))::INT) AS days_remaining,
-    p.id AS plan_id,
-    p.name AS plan_name,
-    p.description AS plan_description,
-    p.price_usd,
-    p.max_profiles,
-    p.max_streams,
-    p.video_quality
-FROM subscriptions s
-INNER JOIN plans p ON s.plan_id = p.id;
-
-CREATE OR REPLACE FUNCTION fn_has_active_subscription(p_user_id UUID)
+CREATE OR REPLACE FUNCTION fn_can_access_content(p_user_id UUID)
 RETURNS BOOLEAN
 LANGUAGE plpgsql AS $$
 DECLARE
-    v_count INT;
+    v_count INTEGER;
 BEGIN
     SELECT COUNT(*) INTO v_count
     FROM subscriptions
-    WHERE user_id = p_user_id
-      AND status = 'active'
-      AND renewal_date > NOW();
-
+    WHERE user_id = p_user_id AND status = 'ACTIVE' AND current_period_end > NOW();
     RETURN v_count > 0;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_calculate_local_price(p_price_usd DECIMAL, p_exchange_rate DECIMAL)
-RETURNS DECIMAL
+CREATE OR REPLACE FUNCTION fn_has_active_subscription(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN fn_can_access_content(p_user_id);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_calculate_local_price(p_price_usd NUMERIC, p_exchange_rate NUMERIC)
+RETURNS NUMERIC
 LANGUAGE plpgsql AS $$
 BEGIN
     RETURN ROUND(p_price_usd * p_exchange_rate, 2);
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION fn_update_timestamp()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_one_active_subscription()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+    v_active_count INTEGER;
+BEGIN
+    IF NEW.status = 'ACTIVE' THEN
+        SELECT COUNT(*) INTO v_active_count
+        FROM subscriptions
+        WHERE user_id = NEW.user_id AND status = 'ACTIVE';
+
+        IF v_active_count > 0 THEN
+            RAISE EXCEPTION 'El usuario % ya tiene una suscripción activa. Cancélela antes de crear una nueva.', NEW.user_id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_one_active_subscription
+    BEFORE INSERT ON subscriptions
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_one_active_subscription();
+
+CREATE OR REPLACE FUNCTION fn_audit_subscription_change()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log(user_id, subscription_id, event_type, old_data, new_data)
+        VALUES (
+            NEW.user_id,
+            NEW.subscription_id,
+            'SUBSCRIPTION_CREATED',
+            NULL,
+            jsonb_build_object('status', NEW.status, 'plan_id', NEW.plan_id)
+        );
+        RETURN NEW;
+    END IF;
+
+    IF OLD.status IS DISTINCT FROM NEW.status OR OLD.plan_id IS DISTINCT FROM NEW.plan_id THEN
+        INSERT INTO audit_log(user_id, subscription_id, event_type, old_data, new_data)
+        VALUES (
+            NEW.user_id,
+            NEW.subscription_id,
+            CASE
+                WHEN OLD.status = 'ACTIVE' AND NEW.status = 'CANCELLED' THEN 'SUBSCRIPTION_CANCELLED'
+                WHEN OLD.plan_id != NEW.plan_id THEN 'PLAN_CHANGED'
+                WHEN NEW.status = 'EXPIRED' THEN 'SUBSCRIPTION_EXPIRED'
+                ELSE 'SUBSCRIPTION_UPDATED'
+            END,
+            jsonb_build_object('status', OLD.status, 'plan_id', OLD.plan_id),
+            jsonb_build_object('status', NEW.status, 'plan_id', NEW.plan_id)
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_audit_subscription_change
+    AFTER INSERT OR UPDATE ON subscriptions
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_subscription_change();
+
+CREATE TRIGGER trg_subscriptions_updated_at
+    BEFORE UPDATE ON subscriptions
+    FOR EACH ROW EXECUTE FUNCTION fn_update_timestamp();
+
+CREATE OR REPLACE PROCEDURE sp_create_subscription(
+    p_user_id UUID,
+    p_plan_id INT,
+    p_amount_usd NUMERIC(10,2),
+    p_display_currency VARCHAR,
+    p_display_amount NUMERIC(10,2),
+    p_gateway_ref VARCHAR,
+    p_payment_method VARCHAR,
+    OUT p_subscription_id UUID,
+    OUT p_payment_id UUID
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_period_end TIMESTAMPTZ;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM plans WHERE plan_id = p_plan_id AND is_active = TRUE) THEN
+        RAISE EXCEPTION 'El plan % no existe o no está disponible.', p_plan_id;
+    END IF;
+
+    v_period_end := NOW() + INTERVAL '1 month';
+
+    INSERT INTO subscriptions(user_id, plan_id, status, current_period_start, current_period_end)
+    VALUES (p_user_id, p_plan_id, 'ACTIVE', NOW(), v_period_end)
+    RETURNING subscription_id INTO p_subscription_id;
+
+    INSERT INTO payments(subscription_id, user_id, plan_id, amount_usd, display_currency, display_amount, status, gateway_ref, payment_method, period_start, period_end)
+    VALUES (p_subscription_id, p_user_id, p_plan_id, p_amount_usd, p_display_currency, p_display_amount, 'COMPLETED', p_gateway_ref, p_payment_method, NOW(), v_period_end)
+    RETURNING payment_id INTO p_payment_id;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_cancel_subscription(p_user_id UUID)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_sub_id UUID;
+    v_period_end TIMESTAMPTZ;
+BEGIN
+    SELECT subscription_id, current_period_end INTO v_sub_id, v_period_end
+    FROM subscriptions
+    WHERE user_id = p_user_id AND status = 'ACTIVE'
+    LIMIT 1;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'No se encontró suscripción activa para el usuario %.', p_user_id;
+    END IF;
+
+    UPDATE subscriptions
+    SET status = 'CANCELLED', cancelled_at = NOW(), cancel_at = v_period_end, auto_renew = FALSE
+    WHERE subscription_id = v_sub_id;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION fn_process_subscription(
     p_user_id UUID,
-    p_plan_id UUID,
-    p_currency VARCHAR,
-    p_exchange_rate DECIMAL,
+    p_plan_id INT,
+    p_display_currency VARCHAR,
+    p_exchange_rate NUMERIC,
     p_payment_method VARCHAR
 )
 RETURNS TABLE(p_subscription_id UUID, p_payment_id UUID, p_result_status VARCHAR, p_error_message VARCHAR)
 LANGUAGE plpgsql AS $$
 DECLARE
-    v_plan_price_usd DECIMAL;
-    v_local_price DECIMAL;
-    v_existing_sub_id UUID;
-    v_transaction_ref VARCHAR;
+    v_plan_price NUMERIC(10,2);
+    v_display_amount NUMERIC(10,2);
+    v_gateway_ref VARCHAR;
 BEGIN
-    SELECT price_usd INTO v_plan_price_usd
-    FROM plans
-    WHERE id = p_plan_id AND is_active = true;
+    SELECT price_usd INTO v_plan_price FROM plans WHERE plan_id = p_plan_id AND is_active = TRUE;
 
-    IF v_plan_price_usd IS NULL THEN
-        p_subscription_id := NULL;
-        p_payment_id := NULL;
+    IF NOT FOUND THEN
         p_result_status := 'ERROR';
         p_error_message := 'Plan no encontrado o inactivo';
         RETURN NEXT;
         RETURN;
     END IF;
 
-    v_local_price := fn_calculate_local_price(v_plan_price_usd, p_exchange_rate);
+    v_display_amount := fn_calculate_local_price(v_plan_price, p_exchange_rate);
+    v_gateway_ref := 'TXN-' || UPPER(SUBSTRING(uuid_generate_v4()::TEXT, 1, 16));
 
-    SELECT id INTO v_existing_sub_id
-    FROM subscriptions
-    WHERE user_id = p_user_id AND status = 'active'
-    FOR UPDATE;
+    UPDATE subscriptions
+    SET status = 'CANCELLED', cancelled_at = NOW(), cancel_at = current_period_end, auto_renew = FALSE
+    WHERE user_id = p_user_id AND status = 'ACTIVE';
 
-    IF v_existing_sub_id IS NOT NULL THEN
-        UPDATE subscriptions
-        SET status = 'cancelled',
-            cancelled_at = NOW(),
-            cancellation_reason = 'Cambio de plan',
-            updated_at = NOW()
-        WHERE id = v_existing_sub_id;
-    END IF;
-
-    INSERT INTO subscriptions (user_id, plan_id, status, start_date, renewal_date)
-    VALUES (p_user_id, p_plan_id, 'active', NOW(), NOW() + INTERVAL '30 days')
-    RETURNING id INTO p_subscription_id;
-
-    v_transaction_ref := 'TXN-' || UPPER(SUBSTRING(gen_random_uuid()::TEXT, 1, 16));
-
-    INSERT INTO payments (
-        subscription_id,
-        user_id,
-        plan_id,
-        amount_usd,
-        amount_local,
-        currency,
-        exchange_rate,
-        status,
-        payment_method,
-        transaction_ref
-    ) VALUES (
-        p_subscription_id,
+    CALL sp_create_subscription(
         p_user_id,
         p_plan_id,
-        v_plan_price_usd,
-        v_local_price,
-        COALESCE(NULLIF(UPPER(p_currency), ''), 'USD'),
-        p_exchange_rate,
-        'completed',
-        p_payment_method,
-        v_transaction_ref
-    )
-    RETURNING id INTO p_payment_id;
+        v_plan_price,
+        COALESCE(NULLIF(UPPER(p_display_currency), ''), 'USD'),
+        v_display_amount,
+        v_gateway_ref,
+        COALESCE(NULLIF(p_payment_method, ''), 'card'),
+        p_subscription_id,
+        p_payment_id
+    );
 
     p_result_status := 'SUCCESS';
     p_error_message := '';
     RETURN NEXT;
-
 EXCEPTION WHEN OTHERS THEN
     p_subscription_id := NULL;
     p_payment_id := NULL;
@@ -225,73 +298,87 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_process_subscription(
-    IN p_user_id UUID,
-    IN p_plan_id UUID,
-    IN p_currency VARCHAR,
-    IN p_exchange_rate DECIMAL,
-    IN p_payment_method VARCHAR,
-    OUT p_subscription_id UUID,
-    OUT p_payment_id UUID,
-    OUT p_result_status VARCHAR,
-    OUT p_error_message VARCHAR
-)
-LANGUAGE plpgsql AS $$
-BEGIN
-    SELECT r.p_subscription_id, r.p_payment_id, r.p_result_status, r.p_error_message
-    INTO p_subscription_id, p_payment_id, p_result_status, p_error_message
-    FROM fn_process_subscription(p_user_id, p_plan_id, p_currency, p_exchange_rate, p_payment_method) r;
-END;
-$$;
+CREATE OR REPLACE VIEW v_user_subscription_detail AS
+SELECT
+    s.subscription_id,
+    s.user_id,
+    s.plan_id,
+    p.name AS plan_name,
+    p.slug AS plan_slug,
+    p.price_usd,
+    p.video_quality,
+    p.max_streams,
+    p.max_profiles,
+    p.features,
+    s.status,
+    s.current_period_start,
+    s.current_period_end,
+    s.auto_renew,
+    s.cancel_at,
+    s.cancelled_at,
+    GREATEST(0, EXTRACT(DAY FROM (s.current_period_end - NOW()))::INT) AS days_remaining
+FROM subscriptions s
+JOIN plans p ON s.plan_id = p.plan_id
+WHERE s.status IN ('ACTIVE', 'CANCELLED');
 
-CREATE OR REPLACE FUNCTION fn_subscription_audit_trigger()
-RETURNS TRIGGER
-LANGUAGE plpgsql AS $$
-DECLARE
-    v_action VARCHAR(50);
-BEGIN
-    IF TG_OP = 'INSERT' THEN
-        v_action := 'created';
-        INSERT INTO subscription_audit_log (subscription_id, user_id, action, new_status, new_plan_id)
-        VALUES (NEW.id, NEW.user_id, v_action, NEW.status, NEW.plan_id);
-    ELSIF TG_OP = 'UPDATE' THEN
-        IF OLD.status IS DISTINCT FROM NEW.status OR OLD.plan_id IS DISTINCT FROM NEW.plan_id THEN
-            IF NEW.status = 'cancelled' THEN
-                v_action := 'cancelled';
-            ELSIF NEW.plan_id IS DISTINCT FROM OLD.plan_id THEN
-                v_action := 'plan_changed';
-            ELSIF NEW.status = 'expired' THEN
-                v_action := 'expired';
-            ELSE
-                v_action := 'status_changed';
-            END IF;
+CREATE OR REPLACE VIEW v_payment_history AS
+SELECT
+    pay.payment_id,
+    pay.user_id,
+    pay.subscription_id,
+    pl.name AS plan_name,
+    pay.amount_usd,
+    pay.display_currency,
+    pay.display_amount,
+    pay.status,
+    pay.payment_method,
+    pay.gateway_ref,
+    pay.period_start,
+    pay.period_end,
+    pay.paid_at
+FROM payments pay
+JOIN plans pl ON pay.plan_id = pl.plan_id
+ORDER BY pay.paid_at DESC;
 
-            INSERT INTO subscription_audit_log (
-                subscription_id,
-                user_id,
-                action,
-                old_status,
-                new_status,
-                old_plan_id,
-                new_plan_id
-            ) VALUES (
-                NEW.id,
-                NEW.user_id,
-                v_action,
-                OLD.status,
-                NEW.status,
-                OLD.plan_id,
-                NEW.plan_id
-            );
-        END IF;
-    END IF;
+CREATE OR REPLACE VIEW v_plans_overview AS
+SELECT
+    p.plan_id,
+    p.name,
+    p.slug,
+    p.price_usd,
+    p.max_profiles,
+    p.max_streams,
+    p.video_quality,
+    p.features,
+    p.is_active,
+    COUNT(s.subscription_id) AS active_subscribers,
+    p.created_at
+FROM plans p
+LEFT JOIN subscriptions s ON s.plan_id = p.plan_id AND s.status = 'ACTIVE'
+WHERE p.is_active = TRUE
+GROUP BY p.plan_id
+ORDER BY p.price_usd ASC;
 
-    RETURN NEW;
-END;
-$$;
+CREATE OR REPLACE VIEW v_user_subscriptions AS
+SELECT
+    s.subscription_id,
+    s.user_id,
+    s.plan_id,
+    p.name AS plan_name,
+    p.price_usd,
+    s.status,
+    s.current_period_start AS start_date,
+    s.current_period_end AS renewal_date,
+    GREATEST(0, EXTRACT(DAY FROM (s.current_period_end - NOW()))::INT) AS days_remaining,
+    p.max_profiles,
+    p.max_streams,
+    p.video_quality
+FROM subscriptions s
+JOIN plans p ON s.plan_id = p.plan_id;
 
-DROP TRIGGER IF EXISTS tr_subscription_audit ON subscriptions;
-CREATE TRIGGER tr_subscription_audit
-    AFTER INSERT OR UPDATE ON subscriptions
-    FOR EACH ROW
-    EXECUTE FUNCTION fn_subscription_audit_trigger();
+INSERT INTO plans (name, slug, price_usd, max_profiles, max_streams, video_quality, features)
+VALUES
+    ('Básico', 'basic', 7.99, 1, 1, 'SD', '["Resolución SD (480p)", "1 pantalla simultánea", "1 perfil"]'),
+    ('Estándar', 'standard', 13.99, 3, 2, 'HD', '["Resolución HD (1080p)", "2 pantallas simultáneas", "Hasta 3 perfiles"]'),
+    ('Premium', 'premium', 19.99, 5, 4, 'UHD', '["Resolución 4K UHD", "4 pantallas simultáneas", "Hasta 5 perfiles"]')
+ON CONFLICT DO NOTHING;

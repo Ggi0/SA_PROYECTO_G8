@@ -46,12 +46,22 @@ func NewRepository(db *sql.DB) Repository {
 func (r *postgresRepository) FindActiveByUserID(ctx context.Context, userID string) (*Subscription, error) {
 	var s Subscription
 	err := r.db.QueryRowContext(ctx, `
-		SELECT subscription_id::TEXT, user_id::TEXT, plan_id::TEXT, plan_name,
-		       price_usd, status, start_date::TEXT, renewal_date::TEXT,
-		       days_remaining, max_profiles, max_streams, video_quality
-		FROM v_user_subscriptions
-		WHERE user_id = $1 AND status = 'active' AND renewal_date > NOW()
-		ORDER BY renewal_date DESC
+		SELECT s.subscription_id::TEXT,
+		       s.user_id::TEXT,
+		       s.plan_id::TEXT,
+		       p.name,
+		       p.price_usd,
+		       s.status,
+		       s.current_period_start::TEXT,
+		       s.current_period_end::TEXT,
+		       GREATEST(0, EXTRACT(DAY FROM (s.current_period_end - NOW()))::INT),
+		       p.max_profiles::INT,
+		       p.max_streams::INT,
+		       p.video_quality
+		FROM subscriptions s
+		INNER JOIN plans p ON s.plan_id = p.plan_id
+		WHERE s.user_id = $1 AND s.status = 'ACTIVE' AND s.current_period_end > NOW()
+		ORDER BY s.current_period_end DESC
 		LIMIT 1
 	`, userID).Scan(
 		&s.ID, &s.UserID, &s.PlanID, &s.PlanName,
@@ -71,7 +81,7 @@ func (r *postgresRepository) ProcessSubscription(ctx context.Context, userID, pl
 	var result ProcessResult
 	err := r.db.QueryRowContext(ctx, `
 		SELECT p_subscription_id::TEXT, p_payment_id::TEXT, p_result_status, p_error_message
-		FROM fn_process_subscription($1, $2, $3, $4, $5)
+		FROM fn_process_subscription($1, $2::INT, $3, $4, $5)
 	`, userID, planID, currency, exchangeRate, paymentMethod).Scan(
 		&result.SubscriptionID, &result.PaymentID, &result.Status, &result.ErrorMessage,
 	)
@@ -86,21 +96,10 @@ func (r *postgresRepository) CancelByUserID(ctx context.Context, userID, reason 
 		reason = "Cancelled by user"
 	}
 
-	result, err := r.db.ExecContext(ctx, `
-		UPDATE subscriptions
-		SET status = 'cancelled', cancelled_at = NOW(), cancellation_reason = $2, updated_at = NOW()
-		WHERE user_id = $1 AND status = 'active'
-	`, userID, reason)
+	_, err := r.db.ExecContext(ctx, `CALL sp_cancel_subscription($1)`, userID)
 	if err != nil {
 		return fmt.Errorf("cancel subscription: %w", err)
 	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("cancel subscription rows affected: %w", err)
-	}
-	if rows == 0 {
-		return fmt.Errorf("active subscription not found")
-	}
+	_ = reason
 	return nil
 }

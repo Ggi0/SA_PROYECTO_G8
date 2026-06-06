@@ -9,14 +9,16 @@ import (
 )
 
 func NewPostgresDB() (*sql.DB, error) {
+	schema := getenv("DB_SCHEMA", "subscription")
 	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s options='-c search_path=%s,public'",
 		getenv("DB_HOST", "localhost"),
 		getenv("DB_PORT", "5432"),
 		getenv("DB_USER", "subscription_user"),
 		os.Getenv("DB_PASSWORD"),
 		getenv("DB_NAME", "subscription_db"),
 		getenv("DB_SSLMODE", "disable"),
+		schema,
 	)
 
 	db, err := sql.Open("postgres", connStr)

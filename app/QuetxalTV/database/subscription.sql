@@ -167,6 +167,29 @@ BEGIN
 END;
 $$;
 
+-- Alias usado por otros servicios para consultar acceso activo con el nombre
+-- estándar del documento técnico del módulo de suscripciones.
+CREATE OR REPLACE FUNCTION fn_has_active_subscription(p_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN fn_can_access_content(p_user_id);
+END;
+$$;
+
+-- FUNCIÓN: fn_calculate_local_price
+-- Calcula el monto visible en moneda local con el rate obtenido del FX Service.
+CREATE OR REPLACE FUNCTION fn_calculate_local_price(
+    p_price_usd NUMERIC,
+    p_exchange_rate NUMERIC
+)
+RETURNS NUMERIC
+LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN ROUND(p_price_usd * p_exchange_rate, 2);
+END;
+$$;
+
 
 -- FUNCIÓN: fn_update_timestamp()
 CREATE OR REPLACE FUNCTION fn_update_timestamp()
@@ -207,12 +230,26 @@ CREATE TRIGGER trg_one_active_subscription
 
 
 -- TRIGGER: trg_audit_subscription_change
--- TABLA:   subscriptions | EVENTO: AFTER UPDATE
--- Registra en audit_log cualquier cambio de estado o plan.
--- Captura snapshot del estado anterior y nuevo.
+-- TABLA:   subscriptions | EVENTO: AFTER INSERT OR UPDATE
+-- Registra en audit_log altas, cancelaciones y cambios de plan/estado.
 CREATE OR REPLACE FUNCTION fn_audit_subscription_change()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log(user_id, subscription_id, event_type, old_data, new_data)
+        VALUES (
+            NEW.user_id,
+            NEW.subscription_id,
+            'SUBSCRIPTION_CREATED',
+            NULL,
+            jsonb_build_object(
+                'status', NEW.status,
+                'plan_id', NEW.plan_id
+            )
+        );
+        RETURN NEW;
+    END IF;
+
     -- Solo auditamos si cambia algo relevante
     IF OLD.status IS DISTINCT FROM NEW.status
     OR OLD.plan_id IS DISTINCT FROM NEW.plan_id THEN
@@ -241,7 +278,7 @@ END;
 $$;
 
 CREATE TRIGGER trg_audit_subscription_change
-    AFTER UPDATE ON subscriptions
+    AFTER INSERT OR UPDATE ON subscriptions
     FOR EACH ROW
     EXECUTE FUNCTION fn_audit_subscription_change();
 
@@ -264,10 +301,10 @@ CREATE OR REPLACE PROCEDURE sp_create_subscription(
     p_user_id        UUID,
     p_plan_id        INT,
     p_amount_usd     NUMERIC(10,2),
-    p_display_currency VARCHAR DEFAULT 'USD',
-    p_display_amount   NUMERIC(10,2) DEFAULT NULL,
-    p_gateway_ref    VARCHAR DEFAULT NULL,
-    p_payment_method VARCHAR DEFAULT 'card',
+    p_display_currency VARCHAR,
+    p_display_amount   NUMERIC(10,2),
+    p_gateway_ref    VARCHAR,
+    p_payment_method VARCHAR,
     OUT p_subscription_id UUID,
     OUT p_payment_id UUID
 )
@@ -351,6 +388,75 @@ BEGIN
 END;
 $$;
 
+-- FUNCIÓN: fn_process_subscription
+-- Wrapper transaccional compatible con lib/pq para el Subscription Service Go.
+-- Mantiene user_id como UUID proveniente de auth.users.user_id y plan_id como INT
+-- según el catálogo canónico de este schema.
+CREATE OR REPLACE FUNCTION fn_process_subscription(
+    p_user_id UUID,
+    p_plan_id INT,
+    p_display_currency VARCHAR,
+    p_exchange_rate NUMERIC,
+    p_payment_method VARCHAR
+)
+RETURNS TABLE(
+    p_subscription_id UUID,
+    p_payment_id UUID,
+    p_result_status VARCHAR,
+    p_error_message VARCHAR
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_plan_price NUMERIC(10,2);
+    v_display_amount NUMERIC(10,2);
+    v_gateway_ref VARCHAR;
+BEGIN
+    SELECT price_usd INTO v_plan_price
+    FROM plans
+    WHERE plan_id = p_plan_id AND is_active = TRUE;
+
+    IF NOT FOUND THEN
+        p_result_status := 'ERROR';
+        p_error_message := 'Plan no encontrado o inactivo';
+        RETURN NEXT;
+        RETURN;
+    END IF;
+
+    v_display_amount := fn_calculate_local_price(v_plan_price, p_exchange_rate);
+    v_gateway_ref := 'TXN-' || UPPER(SUBSTRING(uuid_generate_v4()::TEXT, 1, 16));
+
+    -- Cambio de plan: se cancela la suscripción activa anterior antes de crear la nueva.
+    UPDATE subscriptions
+    SET status = 'CANCELLED',
+        cancelled_at = NOW(),
+        cancel_at = current_period_end,
+        auto_renew = FALSE
+    WHERE user_id = p_user_id AND status = 'ACTIVE';
+
+    CALL sp_create_subscription(
+        p_user_id,
+        p_plan_id,
+        v_plan_price,
+        COALESCE(NULLIF(UPPER(p_display_currency), ''), 'USD'),
+        v_display_amount,
+        v_gateway_ref,
+        COALESCE(NULLIF(p_payment_method, ''), 'card'),
+        p_subscription_id,
+        p_payment_id
+    );
+
+    p_result_status := 'SUCCESS';
+    p_error_message := '';
+    RETURN NEXT;
+EXCEPTION WHEN OTHERS THEN
+    p_subscription_id := NULL;
+    p_payment_id := NULL;
+    p_result_status := 'ERROR';
+    p_error_message := SQLERRM;
+    RETURN NEXT;
+END;
+$$;
+
 
 --                                  VISTAS
 
@@ -399,6 +505,43 @@ SELECT
 FROM payments pay
 JOIN plans pl ON pay.plan_id = pl.plan_id
 ORDER BY pay.paid_at DESC;
+
+-- Vistas de compatibilidad usadas en documentación y consultas de revisión técnica.
+CREATE OR REPLACE VIEW v_plans_overview AS
+SELECT
+    p.plan_id,
+    p.name,
+    p.slug,
+    p.price_usd,
+    p.max_profiles,
+    p.max_streams,
+    p.video_quality,
+    p.features,
+    p.is_active,
+    COUNT(s.subscription_id) AS active_subscribers,
+    p.created_at
+FROM plans p
+LEFT JOIN subscriptions s ON s.plan_id = p.plan_id AND s.status = 'ACTIVE'
+WHERE p.is_active = TRUE
+GROUP BY p.plan_id
+ORDER BY p.price_usd ASC;
+
+CREATE OR REPLACE VIEW v_user_subscriptions AS
+SELECT
+    s.subscription_id,
+    s.user_id,
+    s.plan_id,
+    p.name AS plan_name,
+    p.price_usd,
+    s.status,
+    s.current_period_start AS start_date,
+    s.current_period_end AS renewal_date,
+    GREATEST(0, EXTRACT(DAY FROM (s.current_period_end - NOW()))::INT) AS days_remaining,
+    p.max_profiles,
+    p.max_streams,
+    p.video_quality
+FROM subscriptions s
+JOIN plans p ON s.plan_id = p.plan_id;
 
 
 -- DATOS INICIALES ---> esto es opcional si quieres lo borras, pal que este haciendo esto

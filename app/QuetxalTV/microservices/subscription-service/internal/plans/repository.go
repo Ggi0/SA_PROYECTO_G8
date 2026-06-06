@@ -32,9 +32,11 @@ func NewRepository(db *sql.DB) Repository {
 
 func (r *postgresRepository) FindAll(ctx context.Context) ([]Plan, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT id::TEXT, name, COALESCE(description, ''), price_usd,
-		       max_profiles, max_streams, video_quality, is_active
-		FROM v_plans_overview
+		SELECT plan_id::TEXT, name, features::TEXT, price_usd,
+		       max_profiles::INT, max_streams::INT, video_quality, is_active
+		FROM plans
+		WHERE is_active = TRUE
+		ORDER BY price_usd ASC
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("find all plans: %w", err)
@@ -59,10 +61,10 @@ func (r *postgresRepository) FindAll(ctx context.Context) ([]Plan, error) {
 func (r *postgresRepository) FindByID(ctx context.Context, id string) (*Plan, error) {
 	var p Plan
 	err := r.db.QueryRowContext(ctx, `
-		SELECT id::TEXT, name, COALESCE(description, ''), price_usd,
-		       max_profiles, max_streams, video_quality, is_active
+		SELECT plan_id::TEXT, name, features::TEXT, price_usd,
+		       max_profiles::INT, max_streams::INT, video_quality, is_active
 		FROM plans
-		WHERE id = $1 AND is_active = true
+		WHERE plan_id = $1::INT AND is_active = TRUE
 	`, id).Scan(&p.ID, &p.Name, &p.Description, &p.PriceUSD, &p.MaxProfiles, &p.MaxStreams, &p.VideoQuality, &p.IsActive)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("plan %s not found", id)

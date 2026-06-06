@@ -28,6 +28,7 @@ services:
       DB_PASSWORD: subscription_pass
       DB_NAME: subscription_db
       DB_SSLMODE: disable
+      DB_SCHEMA: subscription
       GRPC_PORT: 50053
       FX_SERVICE_HOST: fx-service:50055
       NOTIFICATION_SERVICE_HOST: notification-service:50056
@@ -47,7 +48,7 @@ services:
       POSTGRES_DB: subscription_db
     volumes:
       - subscription_db_data:/var/lib/postgresql/data
-      - ./microservices/subscription-service/internal/database/migrations:/docker-entrypoint-initdb.d:ro
+      - ./database/subscription.sql:/docker-entrypoint-initdb.d/001_subscription.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U subscription_user -d subscription_db"]
       interval: 10s
