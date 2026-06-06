@@ -26,9 +26,11 @@ CREATE TABLE users (
     -- Para login con OAuth no hay password, se guarda el proveedor
     oauth_provider VARCHAR(50),   -- 'google', 'github', NULL si es local
     oauth_sub      VARCHAR(255),  -- ID único del proveedor OAuth
+    role          VARCHAR(20) NOT NULL DEFAULT 'client'
+                  CHECK (role IN ('client', 'admin')),
     is_active    BOOLEAN NOT NULL DEFAULT TRUE,
     created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 );
 
 
@@ -257,6 +259,7 @@ CREATE OR REPLACE PROCEDURE sp_register_user(
     p_email        VARCHAR,
     p_password     VARCHAR,   -- Contraseña en texto plano (se hashea aquí)
     p_display_name VARCHAR,
+    p_role           VARCHAR DEFAULT 'client',
     p_oauth_provider VARCHAR DEFAULT NULL,
     p_oauth_sub      VARCHAR DEFAULT NULL,
     OUT p_user_id  UUID,
@@ -326,10 +329,10 @@ CREATE OR REPLACE VIEW v_user_profiles_summary AS
 SELECT
     u.user_id,
     u.email,
+    u.role,
     u.oauth_provider,
     u.is_active,
     u.created_at AS member_since,
-    -- Agrupamos los perfiles como JSON array para evitar múltiples queries
     COALESCE(
         json_agg(
             json_build_object(
