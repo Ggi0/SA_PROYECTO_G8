@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package subscription;
+
+option go_package = "subscription-service/proto/subscription;subscription";
+
+service SubscriptionService {
+  rpc GetPlans(GetPlansRequest) returns (GetPlansResponse);
+  rpc GetPlanById(GetPlanByIdRequest) returns (Plan);
+  rpc GetPlansWithRates(GetPlansWithRatesRequest) returns (GetPlansWithRatesResponse);
+  rpc Subscribe(SubscribeRequest) returns (SubscribeResponse);
+  rpc CancelSubscription(CancelSubscriptionRequest) returns (CancelSubscriptionResponse);
+  rpc GetUserSubscription(GetUserSubscriptionRequest) returns (UserSubscriptionResponse);
+  rpc GetPaymentHistory(GetPaymentHistoryRequest) returns (GetPaymentHistoryResponse);
+}
+
+message Plan {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price_usd = 4;
+  int32 max_profiles = 5;
+  int32 max_streams = 6;
+  string video_quality = 7;
+  bool is_active = 8;
+}
+
+message PlanWithRate {
+  Plan plan = 1;
+  double local_price = 2;
+  string currency = 3;
+  double exchange_rate = 4;
+}
+
+message GetPlansRequest {}
+
+message GetPlansResponse {
+  repeated Plan plans = 1;
+}
+
+message GetPlanByIdRequest {
+  string plan_id = 1;
+}
+
+message GetPlansWithRatesRequest {
+  string currency = 1;
+  string user_id = 2;
+}
+
+message GetPlansWithRatesResponse {
+  repeated PlanWithRate plans = 1;
+  string currency = 2;
+}
+
+message SubscribeRequest {
+  string user_id = 1;
+  string plan_id = 2;
+  string currency = 3;
+  string payment_method = 4;
+}
+
+message SubscribeResponse {
+  bool success = 1;
+  string subscription_id = 2;
+  string payment_id = 3;
+  string message = 4;
+}
+
+message CancelSubscriptionRequest {
+  string user_id = 1;
+  string reason = 2;
+}
+
+message CancelSubscriptionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetUserSubscriptionRequest {
+  string user_id = 1;
+}
+
+message UserSubscriptionResponse {
+  bool has_active_subscription = 1;
+  string subscription_id = 2;
+  string plan_id = 3;
+  string plan_name = 4;
+  double plan_price_usd = 5;
+  string status = 6;
+  string start_date = 7;
+  string renewal_date = 8;
+  int32 days_remaining = 9;
+  int32 max_profiles = 10;
+  int32 max_streams = 11;
+  string video_quality = 12;
+}
+
+message Payment {
+  string id = 1;
+  string subscription_id = 2;
+  string plan_name = 3;
+  double amount_usd = 4;
+  double amount_local = 5;
+  string currency = 6;
+  double exchange_rate = 7;
+  string status = 8;
+  string payment_method = 9;
+  string transaction_ref = 10;
+  string created_at = 11;
+}
+
+message GetPaymentHistoryRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message GetPaymentHistoryResponse {
+  repeated Payment payments = 1;
+  int32 total = 2;
+}

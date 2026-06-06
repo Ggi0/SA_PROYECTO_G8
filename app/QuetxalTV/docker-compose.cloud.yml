@@ -1,0 +1,71 @@
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - path: ./api-gateway/.env
+        required: false
+    environment:
+      NODE_ENV: production
+      SUBSCRIPTION_SERVICE_URL: subscription-service:50053
+    depends_on:
+      - subscription-service
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  subscription-service:
+    build:
+      context: ./microservices/subscription-service
+      dockerfile: Dockerfile
+    env_file:
+      - path: ./microservices/subscription-service/.env
+        required: false
+    environment:
+      DB_HOST: subscription-db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-subscription_user}
+      DB_PASSWORD: ${DB_PASSWORD:-subscription_pass}
+      DB_NAME: ${DB_NAME:-subscription_db}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
+      GRPC_PORT: 50053
+      FX_SERVICE_HOST: fx-service:50055
+      NOTIFICATION_SERVICE_HOST: notification-service:50056
+    depends_on:
+      subscription-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  subscription-db:
+    image: postgres:16-alpine
+    env_file:
+      - path: ./microservices/subscription-service/.env
+        required: false
+    environment:
+      POSTGRES_USER: ${DB_USER:-subscription_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-subscription_pass}
+      POSTGRES_DB: ${DB_NAME:-subscription_db}
+    volumes:
+      - subscription_db_data:/var/lib/postgresql/data
+      - ./microservices/subscription-service/internal/database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+volumes:
+  subscription_db_data:
+    driver: local
+
+networks:
+  quetxal-network:
+    driver: bridge
