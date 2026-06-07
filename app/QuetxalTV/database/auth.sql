@@ -257,8 +257,8 @@ CREATE OR REPLACE PROCEDURE sp_register_user(
     p_email        VARCHAR,
     p_password     VARCHAR,   -- Contraseña en texto plano (se hashea aquí)
     p_display_name VARCHAR,
-    p_oauth_provider VARCHAR DEFAULT NULL,
-    p_oauth_sub      VARCHAR DEFAULT NULL,
+    p_oauth_provider VARCHAR,
+    p_oauth_sub      VARCHAR,
     OUT p_user_id  UUID,
     OUT p_profile_id UUID
 )
