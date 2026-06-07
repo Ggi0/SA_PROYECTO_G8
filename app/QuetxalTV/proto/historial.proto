@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package historial;
+
+service HistorialService {
+  rpc GuardarProgreso (GuardarProgresoRequest) returns (GuardarProgresoResponse);
+  rpc ObtenerContinuarViendo (ContinuarViendoRequest) returns (ContinuarViendoResponse);
+  rpc ObtenerHistorialPorPerfil (HistorialPorPerfilRequest) returns (HistorialPorPerfilResponse);
+}
+
+message GuardarProgresoRequest {
+  string profile_id = 1;
+  string content_id = 2;
+  string content_type = 3; // MOVIE o SERIES
+
+  int32 minute_reached = 4;
+  int32 total_duration_min = 5;
+
+  // Solo para series
+  string season_id = 6;
+  string episode_id = 7;
+  int32 season_num = 8;
+  int32 episode_num = 9;
+}
+
+message GuardarProgresoResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ContinuarViendoRequest {
+  string profile_id = 1;
+  int32 limit = 2;
+}
+
+message HistorialPorPerfilRequest {
+  string profile_id = 1;
+}
+
+message ProgresoItem {
+  string progress_id = 1;
+  string profile_id = 2;
+  string content_id = 3;
+  string content_type = 4;
+
+  int32 minute_reached = 5;
+  int32 total_duration_min = 6;
+  double completion_pct = 7;
+  bool is_completed = 8;
+  string last_watched_at = 9;
+
+  string last_episode_id = 10;
+  int32 last_season_num = 11;
+  int32 last_episode_num = 12;
+  int32 last_ep_minute = 13;
+}
+
+message ContinuarViendoResponse {
+  repeated ProgresoItem items = 1;
+}
+
+message HistorialPorPerfilResponse {
+  repeated ProgresoItem items = 1;
+}
