@@ -10,13 +10,14 @@ class HistorialRepository:
 
     def get_connection(self):
         return psycopg2.connect(
-            host=self.config.DB_HOST,
-            port=self.config.DB_PORT,
-            dbname=self.config.DB_NAME,
-            user=self.config.DB_USER,
-            password=self.config.DB_PASSWORD,
-            cursor_factory=RealDictCursor
-        )
+        host=self.config.DB_HOST,
+        port=self.config.DB_PORT,
+        dbname=self.config.DB_NAME,
+        user=self.config.DB_USER,
+        password=self.config.DB_PASSWORD,
+        cursor_factory=RealDictCursor,
+        options="-c search_path=playback,public"
+    )
 
     def guardar_progreso_pelicula(self, data):
         query = """
@@ -41,16 +42,16 @@ class HistorialRepository:
     def guardar_progreso_serie(self, data):
         query = """
             CALL playback.sp_update_episode_progress(
-                %s::uuid,
-                %s::uuid,
-                %s::uuid,
-                %s::uuid,
-                %s,
-                %s,
-                %s,
-                %s
-            );
-        """
+            %s::uuid,
+            %s::uuid,
+            %s::uuid,
+            %s::uuid,
+            %s::smallint,
+            %s::smallint,
+            %s::integer,
+            %s::integer
+        );
+    """
 
         with self.get_connection() as conn:
             with conn.cursor() as cursor:

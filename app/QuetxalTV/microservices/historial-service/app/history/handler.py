@@ -28,13 +28,15 @@ class HistorialHandler(historial_pb2_grpc.HistorialServiceServicer):
             )
 
         except Exception as error:
+            print(f"ERROR AL GUARDAR PROGRESO: {str(error)}")
+
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details("Error interno al guardar el progreso")
 
-            return historial_pb2.GuardarProgresoResponse(
-                success=False,
-                message=f"Error interno: {str(error)}"
-            )
+        return historial_pb2.GuardarProgresoResponse(
+        success=False,
+        message="Error interno al guardar el progreso"
+    )
 
     def ObtenerContinuarViendo(self, request, context):
         try:
