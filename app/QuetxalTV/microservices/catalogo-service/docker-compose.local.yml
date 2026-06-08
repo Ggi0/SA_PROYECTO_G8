@@ -1,0 +1,40 @@
+services:
+
+  catalog-db:
+    image: postgres:16-alpine
+    container_name: catalog-db
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - catalog-db-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  catalog-service:
+    build: .
+    container_name: catalog-service
+    ports:
+      - "50052:50052"
+    environment:
+      DB_HOST: catalog-db
+      DB_PORT: 5432
+      DB_USER: catalog_user
+      DB_PASSWORD: catalog_pass
+      DB_NAME: catalog_db
+      DB_SSLMODE: disable
+      GRPC_PORT: 50052
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+
+volumes:
+  catalog-db-data:
