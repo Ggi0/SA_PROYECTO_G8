@@ -255,7 +255,7 @@ CREATE OR REPLACE PROCEDURE sp_queue_notification(
     p_recipient_email VARCHAR,
     p_recipient_name  VARCHAR,
     p_type_code       VARCHAR,
-    p_template_data   JSONB DEFAULT '{}',
+    p_template_data   JSONB,
     OUT p_notification_id UUID
 )
 LANGUAGE plpgsql AS $$

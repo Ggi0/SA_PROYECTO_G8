@@ -12,6 +12,18 @@ env/
 
 # ─── Variables de entorno ────────────────────────────────
 .env
+node_modules/
+dist/
+*.exe
+docker-compose.gcp-db.yml
+app/QuetxalTV/docker-compose.gcp-db.yml
+
+# Archivos generados
+*.js.map
+*.jsx.js
+*.jsx.js.map
+*.d.ts
+build/
 
 
 # ─── Tests ───────────────────────────────────────────────
