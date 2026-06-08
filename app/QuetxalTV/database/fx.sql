@@ -130,6 +130,36 @@ CREATE TRIGGER trg_cleanup_old_rates
     EXECUTE FUNCTION fn_cleanup_old_rates();
 
 
+-- FUNCION: fn_cache_hit_ratio
+-- Calcula el porcentaje de peticiones atendidas desde cache para una divisa.
+
+CREATE OR REPLACE FUNCTION fn_cache_hit_ratio(
+    p_target_currency CHAR(3),
+    p_hours INT DEFAULT 24
+)
+RETURNS NUMERIC(5, 2)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_total INT;
+    v_hits INT;
+BEGIN
+    SELECT
+        COUNT(*),
+        COUNT(*) FILTER (WHERE cache_hit = TRUE)
+    INTO v_total, v_hits
+    FROM rate_request_log
+    WHERE target_currency = p_target_currency
+      AND requested_at > NOW() - (p_hours || ' hours')::INTERVAL;
+
+    IF v_total = 0 THEN
+        RETURN 0;
+    END IF;
+
+    RETURN ROUND((v_hits::NUMERIC / v_total::NUMERIC) * 100, 2);
+END;
+$$;
+
+
 --                                  PROCEDIMIENTOS ALMACENADOS
 
 -- PROCEDIMIENTO: sp_save_rate
