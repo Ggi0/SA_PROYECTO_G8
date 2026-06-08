@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package fx;
+
+option go_package = "subscription-service/proto/fx;fx";
+
+service FXService {
+  rpc GetExchangeRate(GetExchangeRateRequest) returns (GetExchangeRateResponse);
+}
+
+message GetExchangeRateRequest {
+  string from_currency = 1;
+  string to_currency = 2;
+}
+
+message GetExchangeRateResponse {
+  double rate = 1;
+  string from_currency = 2;
+  string to_currency = 3;
+}

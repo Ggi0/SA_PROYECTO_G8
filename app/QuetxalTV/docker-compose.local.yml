@@ -1,0 +1,65 @@
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      JWT_SECRET: local_dev_secret
+      SUBSCRIPTION_SERVICE_URL: subscription-service:50053
+    depends_on:
+      - subscription-service
+    networks:
+      - quetxal-network
+
+  subscription-service:
+    build:
+      context: ./microservices/subscription-service
+      dockerfile: Dockerfile
+    ports:
+      - "50053:50053"
+    environment:
+      DB_HOST: subscription-db
+      DB_PORT: 5432
+      DB_USER: subscription_user
+      DB_PASSWORD: subscription_pass
+      DB_NAME: subscription_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: subscription
+      GRPC_PORT: 50053
+      FX_SERVICE_HOST: fx-service:50055
+      NOTIFICATION_SERVICE_HOST: notification-service:50056
+    depends_on:
+      subscription-db:
+        condition: service_healthy
+    networks:
+      - quetxal-network
+
+  subscription-db:
+    image: postgres:16-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: subscription_user
+      POSTGRES_PASSWORD: subscription_pass
+      POSTGRES_DB: subscription_db
+    volumes:
+      - subscription_db_data:/var/lib/postgresql/data
+      - ./database/subscription.sql:/docker-entrypoint-initdb.d/001_subscription.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U subscription_user -d subscription_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+volumes:
+  subscription_db_data:
+
+networks:
+  quetxal-network:
+    driver: bridge
