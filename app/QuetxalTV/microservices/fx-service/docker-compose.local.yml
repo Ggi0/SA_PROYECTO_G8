@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # ─── Redis (caché local) ───────────────────────────────
+  redis:
+    image: redis:alpine
+    container_name: fx-redis-local
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # ─── FX Service ───────────────────────────────────────
+  fx-service:
+    build: .
+    container_name: fx-service-local
+    ports:
+      - "50054:50054"
+    environment:
+      - GRPC_PORT=50054
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_TTL=3600
+      - EXCHANGE_API_KEY=${EXCHANGE_API_KEY}
+      - EXCHANGE_API_URL=${EXCHANGE_API_URL}
+    depends_on:
+      - redis
+    restart: unless-stopped
