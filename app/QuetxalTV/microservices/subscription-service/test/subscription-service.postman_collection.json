@@ -1,0 +1,466 @@
+{
+  "info": {
+    "_postman_id": "a7c8a9d4-8e53-4e26-9a43-3c1c1a4f7f01",
+    "name": "Quetxal TV - Subscription Service",
+    "description": "Coleccion para probar el flujo completo del servicio de suscripciones via API Gateway. El JWT local se genera automaticamente con jwtSecret=local_dev_secret.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "function base64Url(input) {",
+          "  return CryptoJS.enc.Base64.stringify(input)",
+          "    .replace(/=+$/, '')",
+          "    .replace(/\\+/g, '-')",
+          "    .replace(/\\//g, '_');",
+          "}",
+          "",
+          "function signJwt(payload, secret) {",
+          "  const header = { alg: 'HS256', typ: 'JWT' };",
+          "  const encodedHeader = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(header)));",
+          "  const encodedPayload = base64Url(CryptoJS.enc.Utf8.parse(JSON.stringify(payload)));",
+          "  const data = encodedHeader + '.' + encodedPayload;",
+          "  const signature = base64Url(CryptoJS.HmacSHA256(data, secret));",
+          "  return data + '.' + signature;",
+          "}",
+          "",
+          "const userId = pm.collectionVariables.get('userId') || '11111111-1111-1111-1111-111111111111';",
+          "const userEmail = pm.collectionVariables.get('userEmail') || 'angel@test.com';",
+          "const jwtSecret = pm.collectionVariables.get('jwtSecret') || 'local_dev_secret';",
+          "const now = Math.floor(Date.now() / 1000);",
+          "const token = signJwt({ sub: userId, email: userEmail, iat: now, exp: now + 3600 }, jwtSecret);",
+          "pm.collectionVariables.set('jwtToken', token);"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "jwtSecret",
+      "value": "local_dev_secret"
+    },
+    {
+      "key": "jwtToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": "11111111-1111-1111-1111-111111111111"
+    },
+    {
+      "key": "userEmail",
+      "value": "angel@test.com"
+    },
+    {
+      "key": "planId",
+      "value": "1"
+    },
+    {
+      "key": "newPlanId",
+      "value": "2"
+    },
+    {
+      "key": "currency",
+      "value": "GTQ"
+    },
+    {
+      "key": "paymentMethod",
+      "value": "card"
+    },
+    {
+      "key": "subscriptionId",
+      "value": ""
+    },
+    {
+      "key": "paymentId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Listar planes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/subscriptions/plans",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "subscriptions",
+            "plans"
+          ]
+        },
+        "description": "Endpoint publico. Devuelve los planes disponibles. Usa el id 1, 2 o 3 para las pruebas siguientes."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('Tiene planes', () => pm.expect(json.plans.length).to.be.above(0));",
+              "if (json.plans && json.plans.length) pm.collectionVariables.set('planId', json.plans[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Obtener plan por id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/subscriptions/plans/{{planId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "subscriptions",
+            "plans",
+            "{{planId}}"
+          ]
+        },
+        "description": "Endpoint publico. Usa la variable planId, por defecto 1."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Plan correcto', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('planId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Planes con moneda local",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwtToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/subscriptions/plans/with-rates?currency={{currency}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "subscriptions",
+            "plans",
+            "with-rates"
+          ],
+          "query": [
+            {
+              "key": "currency",
+              "value": "{{currency}}"
+            }
+          ]
+        },
+        "description": "Endpoint protegido. El token se genera automaticamente antes de cada request."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Devuelve planes', () => pm.expect(pm.response.json().plans.length).to.be.above(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Suscribirse a plan",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwtToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"planId\": \"{{planId}}\",\n  \"currency\": \"{{currency}}\",\n  \"paymentMethod\": \"{{paymentMethod}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/subscriptions/subscribe",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "subscriptions",
+            "subscribe"
+          ]
+        },
+        "description": "Crea una suscripcion y un pago. Si ya existe una activa, el servicio cancela la anterior y crea la nueva."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('Success true', () => pm.expect(json.success).to.eql(true));",
+              "pm.collectionVariables.set('subscriptionId', json.subscriptionId);",
+              "pm.collectionVariables.set('paymentId', json.paymentId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Consultar mi suscripcion",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwtToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/subscriptions/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "subscriptions",
+            "me"
+          ]
+        },
+        "description": "Devuelve la suscripcion activa del usuario del JWT."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "if (json.subscriptionId) pm.collectionVariables.set('subscriptionId', json.subscriptionId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Historial de pagos",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwtToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/subscriptions/payments?limit=10&offset=0",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "subscriptions",
+            "payments"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "Lista los pagos del usuario autenticado."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('Tiene total', () => pm.expect(json).to.have.property('total'));",
+              "if (json.payments && json.payments.length) pm.collectionVariables.set('paymentId', json.payments[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Cambiar de plan",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwtToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"planId\": \"{{newPlanId}}\",\n  \"currency\": \"USD\",\n  \"paymentMethod\": \"paypal\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/subscriptions/subscribe",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "subscriptions",
+            "subscribe"
+          ]
+        },
+        "description": "Simula modificar la suscripcion actual. Cancela la activa anterior y crea una nueva."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('Cambio exitoso', () => pm.expect(json.success).to.eql(true));",
+              "pm.collectionVariables.set('subscriptionId', json.subscriptionId);",
+              "pm.collectionVariables.set('paymentId', json.paymentId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Cancelar suscripcion",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwtToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Prueba desde Postman\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/subscriptions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "subscriptions"
+          ]
+        },
+        "description": "Cancela la suscripcion activa del usuario autenticado."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Cancelacion exitosa', () => pm.expect(pm.response.json().success).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
