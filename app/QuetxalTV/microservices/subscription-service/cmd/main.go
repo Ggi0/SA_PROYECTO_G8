@@ -9,6 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	"subscription-service/internal/clients"
 	"subscription-service/internal/database"
@@ -100,6 +101,7 @@ func main() {
 		subsHandler:     subscriptions.NewHandler(subSvc),
 		paymentsHandler: payments.NewHandler(paySvc),
 	})
+	reflection.Register(grpcServer)
 
 	log.Printf("Subscription Service listening on :%s", port)
 	if err := grpcServer.Serve(listener); err != nil {
