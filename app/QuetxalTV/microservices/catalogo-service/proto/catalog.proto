@@ -1,0 +1,257 @@
+syntax = "proto3";
+
+package catalog;
+
+option go_package = "github.com/quetxaltv/catalog-service/proto/catalog";
+
+// ---------------------------------------------------------------------------
+// MENSAJES COMUNES
+// ---------------------------------------------------------------------------
+
+message Genre {
+  int32  genre_id = 1;
+  string name     = 2;
+  string slug     = 3;
+}
+
+message Person {
+  string person_id   = 1;
+  string full_name   = 2;
+  string photo_url   = 3;
+  string role_type   = 4; // ACTOR, DIRECTOR, WRITER
+  string character_name = 5;
+  int32  billing_order  = 6;
+}
+
+// Tarjeta resumida para la cartelera/catálogo
+message ContentCard {
+  string         content_id         = 1;
+  string         content_type       = 2; // MOVIE | SERIES
+  string         title              = 3;
+  int32          release_year       = 4;
+  int32          duration_min       = 5;
+  string         rating_class       = 6;
+  string         poster_url         = 7;
+  repeated Genre genres             = 8;
+  double         recommendation_pct = 9;
+  double         avg_stars          = 10;
+  int64          total_votes        = 11;
+}
+
+// Ficha técnica completa
+message ContentDetail {
+  string         content_id         = 1;
+  string         content_type       = 2;
+  string         title              = 3;
+  string         original_title     = 4;
+  string         synopsis           = 5;
+  int32          release_year       = 6;
+  int32          duration_min       = 7;
+  string         rating_class       = 8;
+  string         poster_url         = 9;
+  string         trailer_url        = 10;
+  string         video_ref          = 11;
+  string         video_source       = 12;
+  repeated Genre genres             = 13;
+  repeated Person cast_and_crew     = 14;
+  double         recommendation_pct = 15;
+  double         avg_stars          = 16;
+}
+
+message Episode {
+  string episode_id  = 1;
+  int32  episode_num = 2;
+  string title       = 3;
+  string synopsis    = 4;
+  int32  duration_min = 5;
+  string video_ref   = 6;
+  string video_source = 7;
+}
+
+message Season {
+  string           season_id    = 1;
+  int32            season_num   = 2;
+  string           title        = 3;
+  int32            release_year = 4;
+  repeated Episode episodes     = 5;
+}
+
+// ---------------------------------------------------------------------------
+// CATÁLOGO — listar y buscar contenido
+// ---------------------------------------------------------------------------
+
+message GetCatalogRequest {
+  string content_type = 1; // "MOVIE", "SERIES", o vacío para ambos
+  int32  genre_id     = 2; // 0 = sin filtro
+  int32  page         = 3;
+  int32  page_size    = 4;
+}
+
+message GetCatalogResponse {
+  repeated ContentCard items = 1;
+  int32                total = 2;
+}
+
+message GetContentDetailRequest {
+  string content_id = 1;
+}
+
+message GetSeriesStructureRequest {
+  string content_id = 1;
+}
+
+message GetSeriesStructureResponse {
+  string          content_id    = 1;
+  string          series_title  = 2;
+  repeated Season seasons       = 3;
+}
+
+message SearchContentRequest {
+  string query        = 1;
+  string content_type = 2; // "MOVIE", "SERIES", o vacío
+}
+
+message SearchContentResponse {
+  repeated ContentCard results = 1;
+}
+
+// ---------------------------------------------------------------------------
+// GÉNEROS
+// ---------------------------------------------------------------------------
+
+message ListGenresRequest {}
+
+message ListGenresResponse {
+  repeated Genre genres = 1;
+}
+
+// ---------------------------------------------------------------------------
+// ACTORES / PERSONAS
+// ---------------------------------------------------------------------------
+
+message GetPersonRequest {
+  string person_id = 1;
+}
+
+message PersonDetail {
+  string person_id   = 1;
+  string full_name   = 2;
+  string birth_date  = 3;
+  string nationality = 4;
+  string bio         = 5;
+  string photo_url   = 6;
+}
+
+// ---------------------------------------------------------------------------
+// CALIFICACIONES
+// ---------------------------------------------------------------------------
+
+message RateContentRequest {
+  string content_id = 1;
+  string profile_id = 2; // extraído del JWT por el API Gateway
+  string thumb      = 3; // "UP", "DOWN", o vacío
+  int32  stars      = 4; // 1-5, o 0 si no aplica
+}
+
+message RateContentResponse {
+  bool   success            = 1;
+  double recommendation_pct = 2;
+  double avg_stars          = 3;
+}
+
+message GetUserRatingRequest {
+  string content_id = 1;
+  string profile_id = 2;
+}
+
+message UserRating {
+  string content_id = 1;
+  string profile_id = 2;
+  string thumb      = 3;
+  int32  stars      = 4;
+}
+
+// ---------------------------------------------------------------------------
+// ADMIN — crear y publicar contenido
+// ---------------------------------------------------------------------------
+
+message CreateContentRequest {
+  string content_type    = 1;
+  string title           = 2;
+  string original_title  = 3;
+  string synopsis        = 4;
+  int32  release_year    = 5;
+  int32  duration_min    = 6;
+  string rating_class    = 7;
+  string poster_url      = 8;
+  string trailer_url     = 9;
+  string video_ref       = 10;
+  string video_source    = 11;
+  repeated int32 genre_ids = 12;
+}
+
+message UpdateContentRequest {
+  string content_id      = 1;
+  string title           = 2;
+  string synopsis        = 3;
+  string poster_url      = 4;
+  string trailer_url     = 5;
+  string video_ref       = 6;
+  repeated int32 genre_ids = 7;
+}
+
+message PublishContentRequest {
+  string content_id = 1;
+}
+
+message PublishContentResponse {
+  bool   success      = 1;
+  string published_at = 2;
+}
+
+message AddPersonToContentRequest {
+  string content_id      = 1;
+  string person_id       = 2;
+  string role_type       = 3; // ACTOR, DIRECTOR, WRITER
+  string character_name  = 4;
+  int32  billing_order   = 5;
+}
+
+message AddPersonToContentResponse {
+  bool success = 1;
+}
+
+message CreatePersonRequest {
+  string full_name   = 1;
+  string birth_date  = 2;
+  string nationality = 3;
+  string bio         = 4;
+  string photo_url   = 5;
+}
+
+// ---------------------------------------------------------------------------
+// SERVICIO
+// ---------------------------------------------------------------------------
+
+service CatalogService {
+  // Catálogo público
+  rpc GetCatalog           (GetCatalogRequest)           returns (GetCatalogResponse);
+  rpc GetContentDetail     (GetContentDetailRequest)     returns (ContentDetail);
+  rpc GetSeriesStructure   (GetSeriesStructureRequest)   returns (GetSeriesStructureResponse);
+  rpc SearchContent        (SearchContentRequest)        returns (SearchContentResponse);
+
+  // Géneros y personas
+  rpc ListGenres           (ListGenresRequest)           returns (ListGenresResponse);
+  rpc GetPerson            (GetPersonRequest)            returns (PersonDetail);
+
+  // Calificaciones
+  rpc RateContent          (RateContentRequest)          returns (RateContentResponse);
+  rpc GetUserRating        (GetUserRatingRequest)        returns (UserRating);
+
+  // Admin
+  rpc CreateContent        (CreateContentRequest)        returns (ContentCard);
+  rpc UpdateContent        (UpdateContentRequest)        returns (ContentCard);
+  rpc PublishContent       (PublishContentRequest)       returns (PublishContentResponse);
+  rpc CreatePerson         (CreatePersonRequest)         returns (PersonDetail);
+  rpc AddPersonToContent   (AddPersonToContentRequest)   returns (AddPersonToContentResponse);
+}
