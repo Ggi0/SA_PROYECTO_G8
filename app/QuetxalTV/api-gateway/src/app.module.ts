@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { FxModule } from './fx/fx.module';
-import { AuthModule } from './auth/auth.module';
-
+import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
-  imports: [SubscriptionModule, FxModule, AuthModule],
+  imports: [SubscriptionModule, FxModule, CatalogModule],
 })
 export class AppModule {}
