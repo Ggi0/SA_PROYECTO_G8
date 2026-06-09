@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const API_BASE =
+  import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export const api = axios.create({
   baseURL: API_BASE,
@@ -11,14 +12,34 @@ export const api = axios.create({
 })
 
 export const authAPI = {
-  login: async (email: string, password: string) => {
-    const res = await api.post('/auth/login', { email, password })
+  register: async (
+    email: string,
+    password: string,
+    display_name: string,
+  ) => {
+    const res = await api.post('/auth/register', {
+      email,
+      password,
+      display_name,
+    })
+
     return res.data
   },
-  register: async (email: string, password: string, name: string) => {
-    const res = await api.post('/auth/register', { email, password, name })
+
+  login: async (
+    email: string,
+    password: string,
+  ) => {
+    const res = await api.post('/auth/login', {
+      email,
+      password,
+      device_info: navigator.userAgent,
+      ip_address: '127.0.0.1',
+    })
+
     return res.data
   },
+
   logout: async () => {
     const res = await api.post('/auth/logout')
     return res.data
