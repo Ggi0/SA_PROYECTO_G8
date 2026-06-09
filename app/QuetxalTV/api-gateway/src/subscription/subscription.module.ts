@@ -6,15 +6,17 @@ import { SubscriptionService } from './subscription.service';
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'SUBSCRIPTION_PACKAGE',
-        transport: Transport.GRPC,
-        options: {
-          package: 'subscription',
-          protoPath: join(__dirname, '../proto/subscription.proto'),
-          url: process.env.SUBSCRIPTION_SERVICE_URL || 'subscription-service:50053',
-        },
+        useFactory: () => ({
+          transport: Transport.GRPC,
+          options: {
+            package: 'subscription',
+            protoPath: join(__dirname, '../proto/subscription.proto'),
+            url: process.env.SUBSCRIPTION_SERVICE_URL || 'localhost:50053',
+          },
+        }),
       },
     ]),
   ],
