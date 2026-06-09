@@ -43,3 +43,7 @@ __pycache__/
 .vscode/
 .idea/
 *.iml
+
+# Frontend build
+app/frontend/dist/
+app/frontend/tsconfig.tsbuildinfo
