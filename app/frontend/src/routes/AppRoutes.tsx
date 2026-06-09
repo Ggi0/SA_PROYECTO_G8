@@ -8,6 +8,9 @@ import HomePage from '@/pages/HomePage'
 import MovieDetailPage from '@/pages/MovieDetailPage'
 import PlansPage from '@/pages/PlansPage'
 import AccountPage from '@/pages/AccountPage'
+import CheckoutPage from '@/pages/CheckoutPage'
+
+// dentro de Routes agregá:
 
 export default function AppRoutes() {
   return (
@@ -24,7 +27,7 @@ export default function AppRoutes() {
       <Route path="/movie/:id" element={<MovieDetailPage />} />
       <Route path="/plans" element={<PlansPage />} />
       <Route path="/account" element={<AccountPage />} />
-
+      <Route path="/checkout" element={<CheckoutPage />} />
       {/* Redirect por defecto */}
       <Route path="/" element={<Navigate to="/login" />} />
     </Routes>

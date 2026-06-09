@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from grpc import aio
 from dotenv import load_dotenv
 from src.grpc import fx_pb2_grpc
-from src.grpc.fx_server import FxServiceServicer
+from src.grpc.fx_server import FXServiceServicer
 
 load_dotenv()
 
@@ -17,7 +17,7 @@ async def serve():
     server = aio.server()
 
     # Registrar el servicio
-    fx_pb2_grpc.add_FxServiceServicer_to_server(FxServiceServicer(), server)
+    fx_pb2_grpc.add_FxServiceServicer_to_server(FXServiceServicer(), server)
 
     # Escuchar en el puerto
     listen_addr = f"0.0.0.0:{port}"

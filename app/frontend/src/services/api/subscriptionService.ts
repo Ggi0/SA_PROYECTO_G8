@@ -2,6 +2,12 @@ import axios from 'axios'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+// ─── Token de autenticación ──────────────────────────────
+const getAuthHeader = () => {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 // ─── Tipos ───────────────────────────────────────────────
 export interface Plan {
   id: string
@@ -25,45 +31,50 @@ export interface PlanWithRates extends Plan {
 // ─── Servicio de suscripciones ───────────────────────────
 export const subscriptionAPI = {
 
-  // Obtener todos los planes
- getPlans: async (): Promise<Plan[]> => {
-    const res = await axios.get(`${API_BASE}/subscriptions/plans`)
-    // Devuelve { plans: [...] }
-    return res.data.plans ?? res.data ?? []
+  getPlans: async (): Promise<Plan[]> => {
+    const res = await axios.get(`${API_BASE}/subscriptions/plans`, {
+      headers: getAuthHeader()
+    })
+    return Array.isArray(res.data) ? res.data : res.data.plans ?? res.data.data ?? []
   },
 
-  // Obtener planes con tipos de cambio incluidos
- getPlansWithRates: async (currency: string): Promise<PlanWithRates[]> => {
-  const res = await axios.get(`${API_BASE}/subscriptions/plans/with-rates`, {
-    params: { currency }
-  })
-  return res.data
-},
-  // Suscribirse a un plan
+  getPlansWithRates: async (currency: string): Promise<PlanWithRates[]> => {
+    const res = await axios.get(`${API_BASE}/subscriptions/plans/with-rates`, {
+      params: { currency },
+      headers: getAuthHeader()
+    })
+    return Array.isArray(res.data) ? res.data : res.data.plans ?? res.data.data ?? []
+  },
+
   subscribe: async (planId: number, currency: string, paymentMethod: string) => {
     const res = await axios.post(`${API_BASE}/subscriptions/subscribe`, {
-      plan_id: planId,
-      display_currency: currency,
-      payment_method: paymentMethod,
+      planId: String(planId),
+      currency,
+      paymentMethod,
+    }, {
+      headers: getAuthHeader()
     })
     return res.data
   },
 
-  // Obtener suscripción actual del usuario
   getMySubscription: async () => {
-    const res = await axios.get(`${API_BASE}/subscriptions/me`)
+    const res = await axios.get(`${API_BASE}/subscriptions/me`, {
+      headers: getAuthHeader()
+    })
     return res.data
   },
 
-  // Cancelar suscripción
   cancelSubscription: async () => {
-    const res = await axios.delete(`${API_BASE}/subscriptions`)
+    const res = await axios.delete(`${API_BASE}/subscriptions`, {
+      headers: getAuthHeader()
+    })
     return res.data
   },
 
-  // Obtener historial de pagos
   getPaymentHistory: async () => {
-    const res = await axios.get(`${API_BASE}/subscriptions/payments`)
+    const res = await axios.get(`${API_BASE}/subscriptions/payments`, {
+      headers: getAuthHeader()
+    })
     return res.data
   },
 }

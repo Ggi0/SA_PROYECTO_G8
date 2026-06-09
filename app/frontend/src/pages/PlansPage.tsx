@@ -14,22 +14,8 @@ export default function PlansPage() {
 // ─── Estado ──────────────────────────────────────────────
 const [subscribing, setSubscribing] = useState<string | null>(null)
 const navigate = useNavigate()
-const handleSubscribe = async (plan: Plan) => {
-  setSubscribing(plan.id)
-  try {
-    await subscriptionAPI.subscribe(
-      parseInt(plan.id),
-      'GTQ',
-      'card'
-    )
-    alert(`¡Te suscribiste al plan ${plan.name}!`)
-    navigate('/account')
-  } catch (error) {
-    console.error('Error al suscribirse:', error)
-    alert('No se pudo procesar la suscripción')
-  } finally {
-    setSubscribing(null)
-  }
+const handleSubscribe = (plan: Plan) => {
+  navigate('/checkout', { state: { plan } })
 }
  useEffect(() => {
   const fetchData = async () => {

@@ -3,13 +3,11 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { join } from 'path';
 
-// ─── Cliente gRPC para FX Service ───────────────────────
 @Injectable()
 export class FxService implements OnModuleInit {
   private fxClient: any;
 
   onModuleInit() {
-    // Cargar el proto
     const packageDef = protoLoader.loadSync(
       join(__dirname, '../../../proto/fx.proto'),
       {
@@ -23,53 +21,57 @@ export class FxService implements OnModuleInit {
 
     const proto = grpc.loadPackageDefinition(packageDef) as any;
 
-    // Conectar al FX Service
+    // ─── Usar FX_SERVICE_HOST del .env ──────────────────
+    const fxUrl = process.env.FX_SERVICE_HOST || 'localhost:50054'
+    console.log(`[FX Gateway] Conectando a FX Service en ${fxUrl}`)
+
     this.fxClient = new proto.fx.FxService(
-      process.env.FX_SERVICE_URL || 'localhost:50054',
+      fxUrl,
       grpc.credentials.createInsecure()
     );
   }
-
-  // ─── Obtener tipo de cambio ────────────────────────────
-  getExchangeRate(currency: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.fxClient.GetExchangeRate(
-        { target_currency: currency, requested_by: 'api-gateway' },
-        (error: any, response: any) => {
-          if (error) reject(error);
-          else resolve(response);
+getExchangeRate(currency: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    this.fxClient.GetExchangeRate(
+      { target_currency: currency, requested_by: 'api-gateway' },
+      (error: any, response: any) => {
+        if (error) {
+          console.error(`[FX Gateway] Error gRPC para ${currency}:`, error)
+          reject(error)
+        } else {
+          console.log(`[FX Gateway] Respuesta para ${currency}:`, response)
+          resolve(response)
         }
-      );
-    });
-  }
+      }
+    )
+  })
+}
 
-  // ─── Obtener todos los rates ───────────────────────────
   getAllRates(): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.fxClient.GetAllRates(
-        { requested_by: 'api-gateway' },
-        (error: any, response: any) => {
-          if (error) reject(error);
-          else resolve(response);
-        }
-      );
-    });
+    // Obtenemos rates para todas las divisas soportadas
+    const currencies = ['GTQ', 'MXN', 'EUR', 'COP', 'BRL', 'HNL', 'CRC']
+    return Promise.all(
+      currencies.map(currency =>
+        new Promise((resolve, reject) => {
+          this.fxClient.GetExchangeRate(
+            { from_currency: 'USD', to_currency: currency },
+            (error: any, response: any) => {
+              if (error) resolve(null)
+              else resolve({ ...response, currency_code: currency })
+            }
+          )
+        })
+      )
+    ).then(results => results.filter(Boolean))
   }
 
-  // ─── Convertir monto ───────────────────────────────────
   convertAmount(amount: number, currency: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.fxClient.ConvertAmount(
-        {
-          amount,
-          target_currency: currency,
-          requested_by: 'api-gateway'
-        },
-        (error: any, response: any) => {
-          if (error) reject(error);
-          else resolve(response);
-        }
-      );
-    });
+    return this.getExchangeRate(currency).then(rate => ({
+      original_amount: amount,
+      converted_amount: (amount * rate.rate).toFixed(2),
+      currency_code: currency,
+      rate: rate.rate,
+      success: true
+    }))
   }
 }

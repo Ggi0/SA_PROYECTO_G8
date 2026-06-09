@@ -7,23 +7,23 @@ export class FxController {
 
   constructor(private readonly fxService: FxService) {}
 
-  // GET /fx/rates — todos los tipos de cambio
-  @Get('rates')
-  async getAllRates() {
-    try {
-      const response = await this.fxService.getAllRates();
-      return {
-        success: true,
-        data: response.rates,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'No se pudieron obtener los tipos de cambio',
-      };
+@Get('rates')
+async getAllRates() {
+  try {
+    const rates = await this.fxService.getAllRates()
+    console.log('[FX Controller] rates:', rates)
+    return {
+      success: true,
+      data: rates,
+    }
+  } catch (error) {
+    console.error('[FX Controller] error:', error)
+    return {
+      success: false,
+      error: 'No se pudieron obtener los tipos de cambio',
     }
   }
-
+}
   // GET /fx/rates/:currency — tipo de cambio de una divisa
   @Get('rates/:currency')
   async getExchangeRate(@Param('currency') currency: string) {
