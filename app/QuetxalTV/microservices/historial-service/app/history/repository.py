@@ -15,8 +15,9 @@ class HistorialRepository:
         dbname=self.config.DB_NAME,
         user=self.config.DB_USER,
         password=self.config.DB_PASSWORD,
+        sslmode=self.config.DB_SSLMODE,
         cursor_factory=RealDictCursor,
-        options="-c search_path=playback,public"
+        options=f"-c search_path={self.config.DB_SCHEMA},public"
     )
 
     def guardar_progreso_pelicula(self, data):

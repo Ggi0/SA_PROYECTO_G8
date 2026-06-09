@@ -12,3 +12,5 @@ class Config:
     DB_NAME = os.getenv("DB_NAME", "quetxaltv_historial")
     DB_USER = os.getenv("DB_USER", "postgres")
     DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
+    DB_SSLMODE = os.getenv("DB_SSLMODE", "disable")
+    DB_SCHEMA = os.getenv("DB_SCHEMA", "playback")
