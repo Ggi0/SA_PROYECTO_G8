@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+
+  rpc Register(RegisterRequest)
+      returns (RegisterResponse);
+
+  rpc Login(LoginRequest)
+      returns (LoginResponse);
+
+  rpc ValidateToken(ValidateTokenRequest)
+      returns (ValidateTokenResponse);
+
+  rpc Logout(LogoutRequest)
+      returns (LogoutResponse);
+
+  rpc ChangePassword(ChangePasswordRequest)
+      returns (ChangePasswordResponse);
+
+  rpc RequestPasswordReset(RequestPasswordResetRequest)
+      returns (RequestPasswordResetResponse);
+
+  rpc ResetPassword(ResetPasswordRequest)
+      returns (ResetPasswordResponse);
+
+  rpc CreateProfile(CreateProfileRequest)
+      returns (CreateProfileResponse);
+
+  rpc GetProfiles(GetProfilesRequest)
+      returns (GetProfilesResponse);
+
+}
+
+//////////////////////////////////////////////////////
+// AUTH
+//////////////////////////////////////////////////////
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  string user_id = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message ValidateTokenRequest {
+  string access_token = 1;
+}
+
+message ValidateTokenResponse {
+  string user_id = 1;
+  bool valid = 2;
+}
+
+message LogoutRequest {
+  string user_id = 1;
+}
+
+message LogoutResponse {
+  bool success = 1;
+}
+
+//////////////////////////////////////////////////////
+// PASSWORD
+//////////////////////////////////////////////////////
+
+message ChangePasswordRequest {
+  string user_id = 1;
+  string old_password = 2;
+  string new_password = 3;
+}
+
+message ChangePasswordResponse {
+  bool success = 1;
+}
+
+message RequestPasswordResetRequest {
+  string email = 1;
+}
+
+message RequestPasswordResetResponse {
+  bool success = 1;
+}
+
+message ResetPasswordRequest {
+  string token = 1;
+  string new_password = 2;
+}
+
+message ResetPasswordResponse {
+  bool success = 1;
+}
+
+//////////////////////////////////////////////////////
+// PROFILES
+//////////////////////////////////////////////////////
+
+message CreateProfileRequest {
+  string user_id = 1;
+  string name = 2;
+}
+
+message CreateProfileResponse {
+  string profile_id = 1;
+}
+
+message GetProfilesRequest {
+  string user_id = 1;
+}
+
+message Profile {
+  string id = 1;
+  string name = 2;
+}
+
+message GetProfilesResponse {
+  repeated Profile profiles = 1;
+}
