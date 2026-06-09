@@ -1,7 +1,33 @@
-.vscode
+# ─── Python ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
 
+# ─── Virtual environment ─────────────────────────────────
+venv/
+env/
+.venv/
+
+# ─── Variables de entorno ────────────────────────────────
 .env
+node_modules/
+dist/
+*.exe
+docker-compose.gcp-db.yml
+app/QuetxalTV/docker-compose.gcp-db.yml
 
+# Archivos generados
+*.js.map
+*.jsx.js
+*.jsx.js.map
+*.d.ts
+build/
+
+
+# ─── Tests ───────────────────────────────────────────────
+test_*.py
 
 # Python
 venv/
@@ -13,3 +39,7 @@ __pycache__/
 # Variables de entorno
 .env
 **/.env
+# ─── IDE ─────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
