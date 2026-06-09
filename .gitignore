@@ -29,7 +29,21 @@ build/
 # ─── Tests ───────────────────────────────────────────────
 test_*.py
 
+# Python
+venv/
+**/venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Variables de entorno
+.env
+**/.env
 # ─── IDE ─────────────────────────────────────────────────
 .vscode/
 .idea/
 *.iml
+
+# Frontend build
+app/frontend/dist/
+app/frontend/tsconfig.tsbuildinfo
