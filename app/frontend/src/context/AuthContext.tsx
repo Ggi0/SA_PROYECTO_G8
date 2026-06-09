@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { User, Profile } from '@/types'
 
 // ─── Tipos del contexto ─────────────────────────────────
@@ -21,21 +21,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentProfile, setCurrentProfileState] = useState<Profile | null>(null)
   const [token, setToken] = useState<string | null>(null)
 
-  const setUser = (user: User, token: string) => {
-    setUserState(user)
-    setToken(token)
-  }
-
+ const setUser = (user: User, token: string) => {
+  setUserState(user)
+  setToken(token)
+  localStorage.setItem('token', token)
+}
   const setCurrentProfile = (profile: Profile) => {
     setCurrentProfileState(profile)
   }
 
-  const logout = () => {
-    setUserState(null)
-    setToken(null)
-    setCurrentProfileState(null)
+ const logout = () => {
+  setUserState(null)
+  setToken(null)
+  setCurrentProfileState(null)
+  localStorage.removeItem('token')
+}
+// ─── Restaurar sesión al recargar ───────────────────────
+useEffect(() => {
+  const savedToken = localStorage.getItem('token')
+  if (savedToken) {
+    setToken(savedToken)
+    // El user se restaurará cuando el auth service esté listo
+    // Por ahora marcamos como autenticado si hay token
   }
-
+}, [])
   return (
     <AuthContext.Provider
       value={{
