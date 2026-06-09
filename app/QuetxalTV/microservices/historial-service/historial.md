@@ -131,6 +131,236 @@ El servicio expone los siguientes métodos:
 
 ---
 
+
+## Rutas propuestas para el API Gateway
+
+La comunicación con el frontend debe realizarse únicamente a través del **API Gateway**.
+El frontend no consume directamente el microservicio `historial-service`, ya que la comunicación interna entre servicios se realiza mediante gRPC.
+
+El flujo esperado es:
+
+```txt
+Frontend → API Gateway → Historial Service
+```
+
+Para mostrar información enriquecida del contenido, el API Gateway puede consultar el `historial-service` para obtener el progreso y el `content_id`, y posteriormente consultar el `catalog-service` mediante el método:
+
+```proto
+rpc GetContentDetail (GetContentDetailRequest) returns (ContentDetail);
+```
+
+De esta manera, el API Gateway puede unir la información del historial con los datos del catálogo antes de responder al frontend.
+
+---
+
+### Endpoints REST propuestos
+
+| Método HTTP | Ruta propuesta                              | Método gRPC asociado    | Descripción                                             |
+| ----------- | ------------------------------------------- | ----------------------- | ------------------------------------------------------- |
+| `POST`      | `/historial/movie-progress`                 | `UpdateMovieProgress`   | Guarda o actualiza el progreso de una película          |
+| `POST`      | `/historial/episode-progress`               | `UpdateEpisodeProgress` | Guarda o actualiza el progreso de un episodio de serie  |
+| `GET`       | `/historial/continue-watching/:profileId`   | `GetContinueWatching`   | Obtiene los contenidos pendientes para continuar viendo |
+| `GET`       | `/historial/progress/:profileId/:contentId` | `GetContentProgress`    | Obtiene el progreso de un contenido específico          |
+
+---
+
+### Ruta: POST `/historial/movie-progress`
+
+Esta ruta permite guardar o actualizar el progreso de reproducción de una película.
+
+Debe mapearse internamente al método gRPC:
+
+```proto
+rpc UpdateMovieProgress (UpdateMovieProgressRequest) returns (ProgressResponse);
+```
+
+Ejemplo de body esperado:
+
+```json
+{
+  "profileId": "11111111-1111-1111-1111-111111111111",
+  "contentId": "22222222-2222-2222-2222-222222222222",
+  "minuteReached": 40,
+  "totalDurationMin": 120
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+  "success": true,
+  "message": "Progreso de película guardado correctamente"
+}
+```
+
+---
+
+### Ruta: POST `/historial/episode-progress`
+
+Esta ruta permite guardar o actualizar el progreso de reproducción de un episodio de una serie.
+
+Debe mapearse internamente al método gRPC:
+
+```proto
+rpc UpdateEpisodeProgress (UpdateEpisodeProgressRequest) returns (ProgressResponse);
+```
+
+Ejemplo de body esperado:
+
+```json
+{
+  "profileId": "11111111-1111-1111-1111-111111111111",
+  "contentId": "33333333-3333-3333-3333-333333333333",
+  "seasonId": "44444444-4444-4444-4444-444444444444",
+  "episodeId": "55555555-5555-5555-5555-555555555555",
+  "seasonNum": 2,
+  "episodeNum": 4,
+  "minuteReached": 18,
+  "totalDurationMin": 45
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+  "success": true,
+  "message": "Progreso de serie guardado correctamente"
+}
+```
+
+---
+
+### Ruta: GET `/historial/continue-watching/:profileId`
+
+Esta ruta permite obtener los contenidos que el usuario puede continuar viendo.
+
+Debe mapearse internamente al método gRPC:
+
+```proto
+rpc GetContinueWatching (GetContinueWatchingRequest) returns (ContinueWatchingResponse);
+```
+
+Ejemplo:
+
+```txt
+GET /historial/continue-watching/11111111-1111-1111-1111-111111111111
+```
+
+Respuesta esperada:
+
+```json
+{
+  "items": [
+    {
+      "progressId": "c6d5dc0f-9d64-4608-a088-e85cd9bbb203",
+      "profileId": "11111111-1111-1111-1111-111111111111",
+      "contentId": "22222222-2222-2222-2222-222222222222",
+      "contentType": "MOVIE",
+      "minuteReached": 40,
+      "totalDurationMin": 120,
+      "completionPct": 33.33,
+      "isCompleted": false,
+      "lastWatchedAt": "2026-06-09T05:18:52.590600+00:00"
+    },
+    {
+      "progressId": "6663480e-5dd5-49f5-a205-f036bb575f42",
+      "profileId": "11111111-1111-1111-1111-111111111111",
+      "contentId": "33333333-3333-3333-3333-333333333333",
+      "contentType": "SERIES",
+      "minuteReached": 18,
+      "completionPct": 40,
+      "isCompleted": false,
+      "lastWatchedAt": "2026-06-09T05:20:51.869244+00:00",
+      "lastEpisodeId": "55555555-5555-5555-5555-555555555555",
+      "lastSeasonNum": 2,
+      "lastEpisodeNum": 4,
+      "lastEpMinute": 18
+    }
+  ]
+}
+```
+
+En el caso de series, esta respuesta permite mostrar en el frontend:
+
+```txt
+Temporada 2 · Episodio 4 · Minuto 18
+```
+
+---
+
+### Ruta: GET `/historial/progress/:profileId/:contentId`
+
+Esta ruta permite consultar el progreso específico de un contenido para un perfil determinado.
+
+Debe mapearse internamente al método gRPC:
+
+```proto
+rpc GetContentProgress (GetContentProgressRequest) returns (ProgressResponse);
+```
+
+Ejemplo:
+
+```txt
+GET /historial/progress/11111111-1111-1111-1111-111111111111/22222222-2222-2222-2222-222222222222
+```
+
+Respuesta esperada:
+
+```json
+{
+  "success": true,
+  "message": "Progreso obtenido correctamente",
+  "progress": {
+    "progressId": "c6d5dc0f-9d64-4608-a088-e85cd9bbb203",
+    "profileId": "11111111-1111-1111-1111-111111111111",
+    "contentId": "22222222-2222-2222-2222-222222222222",
+    "contentType": "MOVIE",
+    "minuteReached": 40,
+    "totalDurationMin": 120,
+    "completionPct": 33.33,
+    "isCompleted": false,
+    "lastWatchedAt": "2026-06-09T05:18:52.590600+00:00"
+  }
+}
+```
+
+---
+
+## Relación con Catalog Service
+
+El `historial-service` devuelve únicamente información relacionada con el progreso de reproducción:
+
+```txt
+content_id
+content_type
+minute_reached
+completion_pct
+last_episode_id
+last_season_num
+last_episode_num
+last_ep_minute
+last_watched_at
+```
+
+La información visual del contenido, como título, portada, descripción, año o duración oficial, debe ser enriquecida por el **API Gateway** consultando el `catalog-service`.
+
+El flujo recomendado para construir la sección "Continuar viendo" es:
+
+```txt
+1. Frontend solicita continuar viendo al API Gateway.
+2. API Gateway llama a Historial Service con GetContinueWatching.
+3. Historial Service devuelve content_id y progreso.
+4. API Gateway llama a Catalog Service con GetContentDetail(content_id).
+5. API Gateway une la información de historial + catálogo.
+6. API Gateway responde al frontend con la información lista para mostrar.
+```
+
+Este enfoque mantiene la comunicación del frontend únicamente con el API Gateway y evita acoplar el frontend directamente a los microservicios internos.
+
+
+
 ## Método: GuardarProgreso
 
 Este método registra o actualiza el avance de reproducción de un contenido.
