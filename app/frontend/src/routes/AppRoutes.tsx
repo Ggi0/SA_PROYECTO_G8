@@ -8,6 +8,7 @@ import HomePage from '@/pages/HomePage'
 import MovieDetailPage from '@/pages/MovieDetailPage'
 import PlansPage from '@/pages/PlansPage'
 import AccountPage from '@/pages/AccountPage'
+import CheckoutPage from '@/pages/CheckoutPage'
 
 export default function AppRoutes() {
   return (
@@ -23,6 +24,7 @@ export default function AppRoutes() {
       <Route path="/home" element={<HomePage />} />
       <Route path="/movie/:id" element={<MovieDetailPage />} />
       <Route path="/plans" element={<PlansPage />} />
+      <Route path="/checkout/:planId" element={<CheckoutPage />} />
       <Route path="/account" element={<AccountPage />} />
 
       {/* Redirect por defecto */}

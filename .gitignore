@@ -23,6 +23,7 @@ app/QuetxalTV/docker-compose.gcp-db.yml
 *.jsx.js
 *.jsx.js.map
 *.d.ts
+*.tsbuildinfo
 build/
 
 

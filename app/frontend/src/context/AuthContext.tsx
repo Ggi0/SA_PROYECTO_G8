@@ -17,13 +17,18 @@ const AuthContext = createContext<AuthContextType | null>(null)
 
 // ─── Provider ───────────────────────────────────────────
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<User | null>(null)
+  const [user, setUserState] = useState<User | null>(() => {
+    const stored = localStorage.getItem('authUser')
+    return stored ? JSON.parse(stored) as User : null
+  })
   const [currentProfile, setCurrentProfileState] = useState<Profile | null>(null)
-  const [token, setToken] = useState<string | null>(null)
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'))
 
   const setUser = (user: User, token: string) => {
     setUserState(user)
     setToken(token)
+    localStorage.setItem('authUser', JSON.stringify(user))
+    localStorage.setItem('authToken', token)
   }
 
   const setCurrentProfile = (profile: Profile) => {
@@ -34,6 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserState(null)
     setToken(null)
     setCurrentProfileState(null)
+    localStorage.removeItem('authUser')
+    localStorage.removeItem('authToken')
   }
 
   return (

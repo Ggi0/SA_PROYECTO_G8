@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package fx;
+
+service FxService {
+  rpc GetExchangeRate(GetExchangeRateRequest) returns (GetExchangeRateResponse);
+  rpc GetAllRates(GetAllRatesRequest) returns (GetAllRatesResponse);
+  rpc ConvertAmount(ConvertAmountRequest) returns (ConvertAmountResponse);
+}
+
+message GetExchangeRateRequest {
+  string target_currency = 1;
+  string requested_by = 2;
+}
+
+message GetExchangeRateResponse {
+  string base_currency = 1;
+  string target_currency = 2;
+  double rate = 3;
+  string source = 4;
+}
+
+message GetAllRatesRequest {
+  string requested_by = 1;
+}
+
+message GetAllRatesResponse {
+  repeated GetExchangeRateResponse rates = 1;
+}
+
+message ConvertAmountRequest {
+  double amount = 1;
+  string target_currency = 2;
+  string requested_by = 3;
+}
+
+message ConvertAmountResponse {
+  double original_amount = 1;
+  string base_currency = 2;
+  double converted_amount = 3;
+  string target_currency = 4;
+  double rate = 5;
+}

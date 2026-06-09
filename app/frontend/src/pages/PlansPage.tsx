@@ -1,11 +1,86 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
-import { mockPlans } from '@/services/mock/mockData'
-import { Check } from 'lucide-react'
+import { subscriptionAPI, SubscriptionPlan, SubscriptionPlanWithRate } from '@/api/subscription'
+import { useAuth } from '@/context/AuthContext'
+import { Check, RefreshCw } from 'lucide-react'
+
+const currency = 'GTQ'
+
+function planFeatures(plan: SubscriptionPlan) {
+  if (plan.description) {
+    try {
+      const parsed = JSON.parse(plan.description)
+      if (Array.isArray(parsed) && parsed.every((item) => typeof item === 'string')) {
+        return parsed
+      }
+    } catch {
+      return [plan.description]
+    }
+  }
+
+  return [
+    `${plan.maxProfiles} ${plan.maxProfiles === 1 ? 'perfil' : 'perfiles'}`,
+    `${plan.maxStreams} ${plan.maxStreams === 1 ? 'pantalla simultánea' : 'pantallas simultáneas'}`,
+    `Calidad ${plan.videoQuality}`,
+  ]
+}
+
+function formatMoney(value: number, code: string) {
+  return new Intl.NumberFormat('es-GT', {
+    style: 'currency',
+    currency: code,
+  }).format(value)
+}
 
 export default function PlansPage() {
   const navigate = useNavigate()
+  const { token } = useAuth()
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([])
+  const [rates, setRates] = useState<Record<string, SubscriptionPlanWithRate>>({})
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadPlans() {
+      setLoading(true)
+      setError('')
+      try {
+        const data = await subscriptionAPI.getPlans()
+        if (cancelled) return
+        setPlans(data)
+
+        if (token) {
+          const ratedPlans = await subscriptionAPI.getPlansWithRates(currency)
+          if (cancelled) return
+          setRates(Object.fromEntries(ratedPlans.map((item) => [item.plan.id, item])))
+        }
+      } catch {
+        if (!cancelled) setError('No se pudieron cargar los planes de suscripción.')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    loadPlans()
+
+    return () => {
+      cancelled = true
+    }
+  }, [token])
+
+  const handleChoosePlan = (planId: string) => {
+    if (!token) {
+      setError('Iniciá sesión para contratar o cambiar tu suscripción.')
+      navigate('/login')
+      return
+    }
+
+    navigate(`/checkout/${planId}`)
+  }
 
   return (
     <MainLayout>
@@ -28,10 +103,25 @@ export default function PlansPage() {
           </p>
         </div>
 
+        {error && (
+          <div className="mb-6 bg-curtain/20 border border-curtain/50 text-red-300 px-4 py-3 rounded font-mono text-sm">
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex items-center justify-center gap-3 text-silver font-mono text-sm py-16">
+            <RefreshCw size={16} className="animate-spin text-spotlight" />
+            Cargando planes desde Subscription Service...
+          </div>
+        )}
+
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {mockPlans.map((plan) => {
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {plans.map((plan) => {
             const isPopular = plan.name === 'Estándar'
+            const ratedPlan = rates[plan.id]
 
             return (
               <div
@@ -60,17 +150,21 @@ export default function PlansPage() {
                 {/* Precio */}
                 <div className="mb-2">
                   <span className="font-display text-5xl font-bold text-spotlight">
-                    ${plan.priceUSD}
+                    ${plan.priceUsd.toFixed(2)}
                   </span>
                   <span className="text-silver/60 font-mono text-sm"> /mes</span>
                 </div>
                 <p className="text-silver/40 font-mono text-xs mb-8">
-                  Precio en GTQ disponible próximamente
+                  {ratedPlan
+                    ? `${formatMoney(ratedPlan.localPrice, ratedPlan.currency)} aprox. · tasa ${ratedPlan.exchangeRate.toFixed(2)}`
+                    : token
+                      ? 'Precio local no disponible por el momento'
+                      : 'Iniciá sesión para ver precio en GTQ'}
                 </p>
 
                 {/* Features */}
                 <ul className="space-y-3 flex-1 mb-8">
-                  {plan.features.map((feature) => (
+                  {planFeatures(plan).map((feature) => (
                     <li key={feature} className="flex items-center gap-3 text-silver font-mono text-sm">
                       <Check size={14} className="text-spotlight shrink-0" />
                       {feature}
@@ -79,7 +173,8 @@ export default function PlansPage() {
                 </ul>
 
                 <Button
-                  onClick={() => navigate('/account')}
+                  onClick={() => handleChoosePlan(plan.id)}
+                  disabled={!plan.isActive}
                   className={`w-full font-mono tracking-widest uppercase text-sm h-11 ${
                     isPopular
                       ? 'bg-spotlight hover:bg-spotlight/80 text-film'
@@ -87,12 +182,13 @@ export default function PlansPage() {
                   }`}
                   variant={isPopular ? 'default' : 'outline'}
                 >
-                  Elegir {plan.name}
+                  Continuar al pago
                 </Button>
               </div>
             )
           })}
-        </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   )
