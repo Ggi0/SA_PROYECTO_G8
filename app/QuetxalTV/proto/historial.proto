@@ -3,41 +3,51 @@ syntax = "proto3";
 package historial;
 
 service HistorialService {
-  rpc GuardarProgreso (GuardarProgresoRequest) returns (GuardarProgresoResponse);
-  rpc ObtenerContinuarViendo (ContinuarViendoRequest) returns (ContinuarViendoResponse);
-  rpc ObtenerHistorialPorPerfil (HistorialPorPerfilRequest) returns (HistorialPorPerfilResponse);
+  rpc UpdateMovieProgress (UpdateMovieProgressRequest) returns (ProgressResponse);
+  rpc UpdateEpisodeProgress (UpdateEpisodeProgressRequest) returns (ProgressResponse);
+  rpc GetContinueWatching (GetContinueWatchingRequest) returns (ContinueWatchingResponse);
+  rpc GetContentProgress (GetContentProgressRequest) returns (ProgressResponse);
 }
 
-message GuardarProgresoRequest {
+message UpdateMovieProgressRequest {
   string profile_id = 1;
   string content_id = 2;
-  string content_type = 3; // MOVIE o SERIES
-
-  int32 minute_reached = 4;
-  int32 total_duration_min = 5;
-
-  // Solo para series
-  string season_id = 6;
-  string episode_id = 7;
-  int32 season_num = 8;
-  int32 episode_num = 9;
+  int32 minute_reached = 3;
+  int32 total_duration_min = 4;
 }
 
-message GuardarProgresoResponse {
-  bool success = 1;
-  string message = 2;
+message UpdateEpisodeProgressRequest {
+  string profile_id = 1;
+  string content_id = 2;
+  string season_id = 3;
+  string episode_id = 4;
+  int32 season_num = 5;
+  int32 episode_num = 6;
+  int32 minute_reached = 7;
+  int32 total_duration_min = 8;
 }
 
-message ContinuarViendoRequest {
+message GetContinueWatchingRequest {
   string profile_id = 1;
   int32 limit = 2;
 }
 
-message HistorialPorPerfilRequest {
+message GetContentProgressRequest {
   string profile_id = 1;
+  string content_id = 2;
 }
 
-message ProgresoItem {
+message ProgressResponse {
+  bool success = 1;
+  string message = 2;
+  ProgressItem progress = 3;
+}
+
+message ContinueWatchingResponse {
+  repeated ProgressItem items = 1;
+}
+
+message ProgressItem {
   string progress_id = 1;
   string profile_id = 2;
   string content_id = 3;
@@ -53,12 +63,4 @@ message ProgresoItem {
   int32 last_season_num = 11;
   int32 last_episode_num = 12;
   int32 last_ep_minute = 13;
-}
-
-message ContinuarViendoResponse {
-  repeated ProgresoItem items = 1;
-}
-
-message HistorialPorPerfilResponse {
-  repeated ProgresoItem items = 1;
 }

@@ -39,39 +39,50 @@ class HistorialServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.GuardarProgreso = channel.unary_unary(
-                '/historial.HistorialService/GuardarProgreso',
-                request_serializer=historial__pb2.GuardarProgresoRequest.SerializeToString,
-                response_deserializer=historial__pb2.GuardarProgresoResponse.FromString,
+        self.UpdateMovieProgress = channel.unary_unary(
+                '/historial.HistorialService/UpdateMovieProgress',
+                request_serializer=historial__pb2.UpdateMovieProgressRequest.SerializeToString,
+                response_deserializer=historial__pb2.ProgressResponse.FromString,
                 _registered_method=True)
-        self.ObtenerContinuarViendo = channel.unary_unary(
-                '/historial.HistorialService/ObtenerContinuarViendo',
-                request_serializer=historial__pb2.ContinuarViendoRequest.SerializeToString,
-                response_deserializer=historial__pb2.ContinuarViendoResponse.FromString,
+        self.UpdateEpisodeProgress = channel.unary_unary(
+                '/historial.HistorialService/UpdateEpisodeProgress',
+                request_serializer=historial__pb2.UpdateEpisodeProgressRequest.SerializeToString,
+                response_deserializer=historial__pb2.ProgressResponse.FromString,
                 _registered_method=True)
-        self.ObtenerHistorialPorPerfil = channel.unary_unary(
-                '/historial.HistorialService/ObtenerHistorialPorPerfil',
-                request_serializer=historial__pb2.HistorialPorPerfilRequest.SerializeToString,
-                response_deserializer=historial__pb2.HistorialPorPerfilResponse.FromString,
+        self.GetContinueWatching = channel.unary_unary(
+                '/historial.HistorialService/GetContinueWatching',
+                request_serializer=historial__pb2.GetContinueWatchingRequest.SerializeToString,
+                response_deserializer=historial__pb2.ContinueWatchingResponse.FromString,
+                _registered_method=True)
+        self.GetContentProgress = channel.unary_unary(
+                '/historial.HistorialService/GetContentProgress',
+                request_serializer=historial__pb2.GetContentProgressRequest.SerializeToString,
+                response_deserializer=historial__pb2.ProgressResponse.FromString,
                 _registered_method=True)
 
 
 class HistorialServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def GuardarProgreso(self, request, context):
+    def UpdateMovieProgress(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def ObtenerContinuarViendo(self, request, context):
+    def UpdateEpisodeProgress(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def ObtenerHistorialPorPerfil(self, request, context):
+    def GetContinueWatching(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetContentProgress(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -80,20 +91,25 @@ class HistorialServiceServicer(object):
 
 def add_HistorialServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'GuardarProgreso': grpc.unary_unary_rpc_method_handler(
-                    servicer.GuardarProgreso,
-                    request_deserializer=historial__pb2.GuardarProgresoRequest.FromString,
-                    response_serializer=historial__pb2.GuardarProgresoResponse.SerializeToString,
+            'UpdateMovieProgress': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateMovieProgress,
+                    request_deserializer=historial__pb2.UpdateMovieProgressRequest.FromString,
+                    response_serializer=historial__pb2.ProgressResponse.SerializeToString,
             ),
-            'ObtenerContinuarViendo': grpc.unary_unary_rpc_method_handler(
-                    servicer.ObtenerContinuarViendo,
-                    request_deserializer=historial__pb2.ContinuarViendoRequest.FromString,
-                    response_serializer=historial__pb2.ContinuarViendoResponse.SerializeToString,
+            'UpdateEpisodeProgress': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateEpisodeProgress,
+                    request_deserializer=historial__pb2.UpdateEpisodeProgressRequest.FromString,
+                    response_serializer=historial__pb2.ProgressResponse.SerializeToString,
             ),
-            'ObtenerHistorialPorPerfil': grpc.unary_unary_rpc_method_handler(
-                    servicer.ObtenerHistorialPorPerfil,
-                    request_deserializer=historial__pb2.HistorialPorPerfilRequest.FromString,
-                    response_serializer=historial__pb2.HistorialPorPerfilResponse.SerializeToString,
+            'GetContinueWatching': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetContinueWatching,
+                    request_deserializer=historial__pb2.GetContinueWatchingRequest.FromString,
+                    response_serializer=historial__pb2.ContinueWatchingResponse.SerializeToString,
+            ),
+            'GetContentProgress': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetContentProgress,
+                    request_deserializer=historial__pb2.GetContentProgressRequest.FromString,
+                    response_serializer=historial__pb2.ProgressResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -107,7 +123,7 @@ class HistorialService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def GuardarProgreso(request,
+    def UpdateMovieProgress(request,
             target,
             options=(),
             channel_credentials=None,
@@ -120,9 +136,9 @@ class HistorialService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/historial.HistorialService/GuardarProgreso',
-            historial__pb2.GuardarProgresoRequest.SerializeToString,
-            historial__pb2.GuardarProgresoResponse.FromString,
+            '/historial.HistorialService/UpdateMovieProgress',
+            historial__pb2.UpdateMovieProgressRequest.SerializeToString,
+            historial__pb2.ProgressResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -134,7 +150,7 @@ class HistorialService(object):
             _registered_method=True)
 
     @staticmethod
-    def ObtenerContinuarViendo(request,
+    def UpdateEpisodeProgress(request,
             target,
             options=(),
             channel_credentials=None,
@@ -147,9 +163,9 @@ class HistorialService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/historial.HistorialService/ObtenerContinuarViendo',
-            historial__pb2.ContinuarViendoRequest.SerializeToString,
-            historial__pb2.ContinuarViendoResponse.FromString,
+            '/historial.HistorialService/UpdateEpisodeProgress',
+            historial__pb2.UpdateEpisodeProgressRequest.SerializeToString,
+            historial__pb2.ProgressResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -161,7 +177,7 @@ class HistorialService(object):
             _registered_method=True)
 
     @staticmethod
-    def ObtenerHistorialPorPerfil(request,
+    def GetContinueWatching(request,
             target,
             options=(),
             channel_credentials=None,
@@ -174,9 +190,36 @@ class HistorialService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/historial.HistorialService/ObtenerHistorialPorPerfil',
-            historial__pb2.HistorialPorPerfilRequest.SerializeToString,
-            historial__pb2.HistorialPorPerfilResponse.FromString,
+            '/historial.HistorialService/GetContinueWatching',
+            historial__pb2.GetContinueWatchingRequest.SerializeToString,
+            historial__pb2.ContinueWatchingResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetContentProgress(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/historial.HistorialService/GetContentProgress',
+            historial__pb2.GetContentProgressRequest.SerializeToString,
+            historial__pb2.ProgressResponse.FromString,
             options,
             channel_credentials,
             insecure,
