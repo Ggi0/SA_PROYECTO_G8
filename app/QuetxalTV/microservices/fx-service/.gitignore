@@ -1,0 +1,27 @@
+# ─── Python ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ─── Virtual environment ─────────────────────────────────
+venv/
+env/
+.venv/
+
+# ─── Variables de entorno ────────────────────────────────
+.env
+
+# ─── gRPC generados (se regeneran con el proto) ──────────
+src/grpc/fx_pb2.py
+src/grpc/fx_pb2.pyi
+src/grpc/fx_pb2_grpc.py
+
+# ─── Tests ───────────────────────────────────────────────
+test_*.py
+
+# ─── IDE ─────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
