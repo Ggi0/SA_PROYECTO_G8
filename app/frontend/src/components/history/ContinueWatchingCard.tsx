@@ -1,32 +1,32 @@
 import { useNavigate } from 'react-router-dom'
 import { Clock, Film, Play, Tv } from 'lucide-react'
-import { WatchHistory } from '@/types'
+import { SavedProgress } from '@/lib/progress'
 import MoviePoster from '@/components/shared/MoviePoster'
 
-interface ContinueWatchingCardProps {
-  item: WatchHistory
+interface Props {
+  item: SavedProgress
 }
 
-export default function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
+export default function ContinueWatchingCard({ item }: Props) {
   const navigate = useNavigate()
 
-  const isSeries = item.movie.type === 'series'
-
-  const progressPct = isSeries
-    ? 40
-    : Math.min(Math.round((item.progressMinutes / 120) * 100), 100)
+  const isSeries = item.contentType === 'SERIES'
+  const progressPct = Math.min(
+    Math.round((item.minuteReached / (item.totalDuration || 90)) * 100),
+    100,
+  )
 
   const subtitle = isSeries
-    ? `Temporada ${item.season ?? 1} · Episodio ${item.episode ?? 1} · Minuto ${item.progressMinutes}`
-    : `Minuto ${item.progressMinutes}`
+    ? `Temp. ${item.seasonNum} · Ep. ${item.episodeNum} · Min. ${item.minuteReached}`
+    : `Min. ${item.minuteReached}`
 
   return (
     <article
-      onClick={() => navigate(`/movie/${item.movie.id}`)}
+      onClick={() => navigate(`/movie/${item.contentId}`)}
       className="group cursor-pointer overflow-hidden rounded border border-[#3a2e1a] bg-[#1e1810] transition-all duration-300 hover:scale-[1.02] hover:border-spotlight hover:shadow-[0_0_20px_rgba(212,168,67,0.18)]"
     >
       <div className="relative h-40">
-        <MoviePoster src={item.movie.coverImage} alt={item.movie.title} />
+        <MoviePoster src={item.posterUrl} alt={item.title} />
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f0b04] via-[#0f0b04]/30 to-transparent" />
 
@@ -43,7 +43,7 @@ export default function ContinueWatchingCard({ item }: ContinueWatchingCardProps
 
         <div className="absolute bottom-0 left-0 right-0 p-3">
           <h3 className="line-clamp-1 font-display text-base font-semibold text-parchment">
-            {item.movie.title}
+            {item.title}
           </h3>
         </div>
       </div>

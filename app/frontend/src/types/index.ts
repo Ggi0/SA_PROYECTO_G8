@@ -27,6 +27,14 @@ export interface Movie {
   recommendationPct: number
   type: 'movie' | 'series'
   cast: Actor[]
+  // Campos adicionales del catalog service
+  originalTitle?: string
+  videoRef?: string
+  videoSource?: string
+  trailerUrl?: string
+  durationMin?: number
+  ratingClass?: string
+  totalVotes?: number
 }
 
 export interface Actor {
@@ -36,28 +44,46 @@ export interface Actor {
   photo: string
 }
 
-export interface Series extends Movie {
-  seasons: Season[]
+export interface Episode {
+  id: string
+  episodeNum: number
+  title: string
+  synopsis?: string
+  duration: number
+  videoRef?: string
+  videoSource?: string
 }
 
 export interface Season {
+  id: string
   number: number
+  title?: string
+  releaseYear?: number
   episodes: Episode[]
 }
 
-export interface Episode {
-  id: string
-  title: string
-  duration: number
-  thumbnail: string
+export interface SeriesStructure {
+  contentId: string
+  seriesTitle: string
+  seasons: Season[]
 }
 
 // ─── Subscriptions ──────────────────────────────────────
 export interface Plan {
   id: string
-  name: 'Básico' | 'Estándar' | 'Premium'
+  name: string
   priceUSD: number
   features: string[]
+  description?: string
+  maxProfiles?: number
+  maxStreams?: number
+  videoQuality?: string
+}
+
+export interface PlanWithRate extends Plan {
+  localPrice: number
+  currency: string
+  exchangeRate: number
 }
 
 // ─── Watch History ──────────────────────────────────────
