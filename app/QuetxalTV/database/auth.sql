@@ -1,115 +1,187 @@
+BEGIN;
 
-
--- Limpieza para re-ejecución en desarrollo
+-- =========================================================
+--  RECREACIÓN LIMPIA
+-- =========================================================
 DROP SCHEMA IF EXISTS auth CASCADE;
 CREATE SCHEMA auth;
-SET search_path TO auth;
+
+-- Muy importante:
+-- Las extensiones normalmente viven en public.
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto"  WITH SCHEMA public;
+
+-- Úsalo como apoyo, no como única forma de resolver objetos.
+SET search_path TO auth, public;
 
 
--- EXTENSIONES
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";   -- Para generar UUIDs
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";    -- Para hash de contraseñas con crypt()
+-- =========================================================
+--  TABLAS
+-- =========================================================
 
-
---                                                  TABLAS
-
-
-
--- TABLA: users
--- Representa una cuenta registrada en la plataforma.
--- Un usuario puede tener hasta 5 perfiles (se valida por trigger).
-CREATE TABLE users (
-    user_id      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email        VARCHAR(255) NOT NULL UNIQUE,
-    -- La contraseña se guarda hasheada con pgcrypto (crypt + gen_salt)
+-- ---------------------------------------------------------
+-- auth.users
+-- ---------------------------------------------------------
+CREATE TABLE auth.users (
+    user_id UUID PRIMARY KEY DEFAULT public.uuid_generate_v4(),
+    email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255),
-    -- Para login con OAuth no hay password, se guarda el proveedor
-    oauth_provider VARCHAR(50),   -- 'google', 'github', NULL si es local
-    oauth_sub      VARCHAR(255),  -- ID único del proveedor OAuth
-    is_active    BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    oauth_provider VARCHAR(50),
+    oauth_sub VARCHAR(255),
+
+    role VARCHAR(20) NOT NULL DEFAULT 'client'
+        CHECK (role IN ('client', 'admin')),
+
+    is_active BOOLEAN NOT NULL DEFAULT FALSE,
+    token_version INTEGER NOT NULL DEFAULT 1 CHECK (token_version >= 1),
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT ck_users_auth_method
+    CHECK (
+        (
+            password_hash IS NOT NULL
+            AND oauth_provider IS NULL
+            AND oauth_sub IS NULL
+        )
+        OR
+        (
+            password_hash IS NULL
+            AND oauth_provider IS NOT NULL
+            AND oauth_sub IS NOT NULL
+        )
+    )
 );
 
+COMMENT ON TABLE auth.users IS 'Cuenta principal del usuario.';
+COMMENT ON COLUMN auth.users.password_hash IS 'Hash bcrypt generado con pgcrypto.';
+COMMENT ON COLUMN auth.users.token_version IS 'Versión para invalidar JWTs previos.';
 
--- TABLA: profiles
--- Cada usuario puede tener hasta 5 perfiles independientes.
--- El trigger fn_limit_profiles_per_user valida el límite.
-CREATE TABLE profiles (
-    profile_id   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id      UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+
+-- ---------------------------------------------------------
+-- auth.profiles
+-- ---------------------------------------------------------
+CREATE TABLE auth.profiles (
+    profile_id UUID PRIMARY KEY DEFAULT public.uuid_generate_v4(),
+    user_id UUID NOT NULL
+        REFERENCES auth.users(user_id)
+        ON DELETE CASCADE,
+
     display_name VARCHAR(100) NOT NULL,
-    -- avatar_url puede ser una URL externa o un ID de imagen en el catálogo
-    avatar_url   VARCHAR(500),
-    -- Preferencias de contenido (lenguaje, clasificación máxima, etc.)
-    -- Guardado como JSONB para flexibilidad sin migración
-    preferences  JSONB NOT NULL DEFAULT '{}',
+    avatar_url VARCHAR(500),
+    preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
     is_kids_mode BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+COMMENT ON TABLE auth.profiles IS 'Perfiles del usuario. Máximo 5 por cuenta.';
 
--- TABLA: refresh_tokens
--- Almacena los refresh tokens activos para renovación de JWT.
--- El access token (JWT) es stateless, pero el refresh token se valida aquí.
 
-CREATE TABLE refresh_tokens (
-    token_id     UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id      UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    token_hash   VARCHAR(512) NOT NULL UNIQUE,  -- Hash del token, nunca el token raw
-    -- A qué dispositivo/sesión pertenece este token
-    device_info  VARCHAR(255),
-    ip_address   INET,
-    expires_at   TIMESTAMPTZ NOT NULL,
-    revoked      BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- ---------------------------------------------------------
+-- auth.refresh_tokens
+-- ---------------------------------------------------------
+CREATE TABLE auth.refresh_tokens (
+    token_id UUID PRIMARY KEY DEFAULT public.uuid_generate_v4(),
+    user_id UUID NOT NULL
+        REFERENCES auth.users(user_id)
+        ON DELETE CASCADE,
+
+    token_hash VARCHAR(512) NOT NULL UNIQUE,
+    device_info VARCHAR(255),
+    ip_address INET,
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+COMMENT ON TABLE auth.refresh_tokens IS 'Refresh tokens activos/inactivos por sesión.';
 
--- TABLA: audit_log
--- Registro automático de eventos de seguridad críticos.
--- Poblado EXCLUSIVAMENTE por triggers, no por la aplicación directamente.
 
-CREATE TABLE audit_log (
-    log_id       BIGSERIAL PRIMARY KEY,
-    user_id      UUID,                  -- NULL si el usuario ya no existe
-    event_type   VARCHAR(100) NOT NULL, -- 'PASSWORD_CHANGE', 'LOGIN_FAILED', etc.
-    description  TEXT,
-    ip_address   INET,
-    metadata     JSONB DEFAULT '{}',   -- Info adicional del evento
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- ---------------------------------------------------------
+-- auth.verification_tokens
+-- ---------------------------------------------------------
+CREATE TABLE auth.verification_tokens (
+    verification_token_id UUID PRIMARY KEY DEFAULT public.uuid_generate_v4(),
+    user_id UUID NOT NULL
+        REFERENCES auth.users(user_id)
+        ON DELETE CASCADE,
+
+    token_hash VARCHAR(512) NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-
--- ÍNDICES
-
-CREATE INDEX idx_users_email          ON users(email);
-CREATE INDEX idx_users_oauth          ON users(oauth_provider, oauth_sub) WHERE oauth_provider IS NOT NULL;
-CREATE INDEX idx_profiles_user_id     ON profiles(user_id);
-CREATE INDEX idx_refresh_tokens_user  ON refresh_tokens(user_id) WHERE revoked = FALSE;
-CREATE INDEX idx_refresh_tokens_hash  ON refresh_tokens(token_hash);
-CREATE INDEX idx_audit_log_user_id    ON audit_log(user_id);
-CREATE INDEX idx_audit_log_created    ON audit_log(created_at DESC);
+COMMENT ON TABLE auth.verification_tokens IS 'Tokens de verificación para activación o reset de contraseña.';
 
 
--- FUNCIONES (lógica modular reutilizable)
+-- ---------------------------------------------------------
+-- auth.audit_log
+-- ---------------------------------------------------------
+CREATE TABLE auth.audit_log (
+    log_id BIGSERIAL PRIMARY KEY,
+    user_id UUID NULL,
+    event_type VARCHAR(100) NOT NULL,
+    description TEXT,
+    ip_address INET,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE auth.audit_log IS 'Eventos críticos de seguridad y auditoría.';
+
+
+-- =========================================================
+--  ÍNDICES
+-- =========================================================
+
+-- users
+CREATE INDEX idx_users_email ON auth.users(email);
+
+CREATE UNIQUE INDEX idx_users_oauth_unique
+    ON auth.users(oauth_provider, oauth_sub)
+    WHERE oauth_provider IS NOT NULL AND oauth_sub IS NOT NULL;
+
+-- profiles
+CREATE INDEX idx_profiles_user_id ON auth.profiles(user_id);
+
+-- refresh_tokens
+CREATE INDEX idx_refresh_tokens_hash ON auth.refresh_tokens(token_hash);
+CREATE INDEX idx_refresh_tokens_user_revoked ON auth.refresh_tokens(user_id, revoked);
+CREATE INDEX idx_refresh_tokens_expires_at ON auth.refresh_tokens(expires_at);
+
+-- verification_tokens
+CREATE INDEX idx_verification_tokens_user ON auth.verification_tokens(user_id);
+CREATE INDEX idx_verification_tokens_hash ON auth.verification_tokens(token_hash);
+CREATE INDEX idx_verification_tokens_user_used ON auth.verification_tokens(user_id, used);
+CREATE INDEX idx_verification_tokens_expires_at ON auth.verification_tokens(expires_at);
+
+-- audit_log
+CREATE INDEX idx_audit_log_user_id ON auth.audit_log(user_id);
+CREATE INDEX idx_audit_log_created_at_desc ON auth.audit_log(created_at DESC);
 
 
 
--- FUNCIÓN: fn_count_profiles(p_user_id UUID) --> INTEGER
--- Retorna cuántos perfiles activos tiene un usuario.
--- Usada por el trigger de límite y por la aplicación para validaciones.
+-- =========================================================
+--  FUNCIONES AUXILIARES
+-- =========================================================
 
-CREATE OR REPLACE FUNCTION fn_count_profiles(p_user_id UUID)
+-- ---------------------------------------------------------
+-- Cuenta perfiles de un usuario
+-- ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION auth.fn_count_profiles(p_user_id UUID)
 RETURNS INTEGER
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_count INTEGER;
 BEGIN
-    SELECT COUNT(*) INTO v_count
-    FROM profiles
+    SELECT COUNT(*)
+    INTO v_count
+    FROM auth.profiles
     WHERE user_id = p_user_id;
 
     RETURN v_count;
@@ -117,13 +189,12 @@ END;
 $$;
 
 
--- FUNCIÓN: fn_verify_password(p_email VARCHAR, p_password VARCHAR) --> BOOLEAN
--- Verifica si la contraseña plana coincide con el hash almacenado.
--- Centraliza la lógica de verificación en la BD.
--- USO: SELECT fn_verify_password('user@mail.com', 'mipass123');
-
-CREATE OR REPLACE FUNCTION fn_verify_password(
-    p_email    VARCHAR,
+-- ---------------------------------------------------------
+-- Verifica contraseña usando pgcrypto
+-- Solo usuarios activos
+-- ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION auth.fn_verify_password(
+    p_email VARCHAR,
     p_password VARCHAR
 )
 RETURNS BOOLEAN
@@ -132,24 +203,25 @@ AS $$
 DECLARE
     v_hash VARCHAR;
 BEGIN
-    SELECT password_hash INTO v_hash
-    FROM users
-    WHERE email = p_email AND is_active = TRUE;
+    SELECT u.password_hash
+    INTO v_hash
+    FROM auth.users u
+    WHERE u.email = p_email
+      AND u.is_active = TRUE;
 
     IF v_hash IS NULL THEN
         RETURN FALSE;
     END IF;
 
-    -- crypt() de pgcrypto compara la contraseña con su propio hash
-    RETURN (v_hash = crypt(p_password, v_hash));
+    RETURN v_hash = public.crypt(p_password, v_hash);
 END;
 $$;
 
 
--- FUNCIÓN: fn_update_timestamp() --> TRIGGER
--- Actualiza automáticamente updated_at en cualquier tabla que la use.
-
-CREATE OR REPLACE FUNCTION fn_update_timestamp()
+-- ---------------------------------------------------------
+-- Actualiza updated_at automáticamente
+-- ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION auth.fn_update_timestamp()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -160,134 +232,234 @@ END;
 $$;
 
 
--- TRIGGERS
-
-
-
--- TRIGGER: trg_limit_profiles_per_user
--- TABLA:   profiles | EVENTO: BEFORE INSERT
--- Impide crear un 6to perfil. El enunciado dice máximo 5.
-
-CREATE OR REPLACE FUNCTION fn_limit_profiles_per_user()
+-- ---------------------------------------------------------
+-- Limita a máximo 5 perfiles por usuario
+-- ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION auth.fn_limit_profiles_per_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF fn_count_profiles(NEW.user_id) >= 5 THEN
+    IF auth.fn_count_profiles(NEW.user_id) >= 5 THEN
         RAISE EXCEPTION 'El usuario ya tiene el máximo de 5 perfiles permitidos.';
     END IF;
+
     RETURN NEW;
 END;
 $$;
 
-CREATE TRIGGER trg_limit_profiles_per_user
-    BEFORE INSERT ON profiles
-    FOR EACH ROW
-    EXECUTE FUNCTION fn_limit_profiles_per_user();
+
+-- ---------------------------------------------------------
+-- Evita eliminar el último perfil de un usuario
+-- Segunda línea de defensa a nivel DB
+-- ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION auth.fn_prevent_delete_last_profile()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF auth.fn_count_profiles(OLD.user_id) <= 1 THEN
+        RAISE EXCEPTION 'No se puede eliminar el único perfil del usuario.';
+    END IF;
+
+    RETURN OLD;
+END;
+$$;
 
 
--- TRIGGER: trg_audit_password_change
--- TABLA:   users | EVENTO: AFTER UPDATE
--- Registra en audit_log cuando cambia el hash de la contraseña.
--- La app NO necesita escribir en audit_log para esto, el trigger lo hace solo.
-
-CREATE OR REPLACE FUNCTION fn_audit_password_change()
+-- ---------------------------------------------------------
+-- Incrementa token_version cuando cambia la contraseña
+-- Esto invalida access tokens viejos automáticamente
+-- ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION auth.fn_bump_token_version_on_password_change()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
     IF OLD.password_hash IS DISTINCT FROM NEW.password_hash THEN
-        INSERT INTO audit_log(user_id, event_type, description)
-        VALUES (NEW.user_id, 'PASSWORD_CHANGE', 'El usuario cambió su contraseña.');
+        NEW.token_version = OLD.token_version + 1;
     END IF;
+
     RETURN NEW;
 END;
 $$;
 
-CREATE TRIGGER trg_audit_password_change
-    AFTER UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION fn_audit_password_change();
 
-
--- TRIGGER: trg_audit_account_deactivation
--- TABLA:   users | EVENTO: AFTER UPDATE
--- Registra cuando una cuenta es desactivada (soft delete).
-
-CREATE OR REPLACE FUNCTION fn_audit_account_deactivation()
+-- ---------------------------------------------------------
+-- Auditoría: cambio de contraseña
+-- ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION auth.fn_audit_password_change()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF OLD.is_active = TRUE AND NEW.is_active = FALSE THEN
-        INSERT INTO audit_log(user_id, event_type, description)
-        VALUES (NEW.user_id, 'ACCOUNT_DEACTIVATED', 'La cuenta fue desactivada.');
-    END IF;
+    INSERT INTO auth.audit_log(user_id, event_type, description)
+    VALUES (
+        NEW.user_id,
+        'PASSWORD_CHANGE',
+        'El usuario cambió su contraseña.'
+    );
+
     RETURN NEW;
 END;
 $$;
 
-CREATE TRIGGER trg_audit_account_deactivation
-    AFTER UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION fn_audit_account_deactivation();
+
+-- ---------------------------------------------------------
+-- Auditoría: desactivación de cuenta
+-- ---------------------------------------------------------
+CREATE OR REPLACE FUNCTION auth.fn_audit_account_deactivation()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO auth.audit_log(user_id, event_type, description)
+    VALUES (
+        NEW.user_id,
+        'ACCOUNT_DEACTIVATED',
+        'La cuenta fue desactivada.'
+    );
+
+    RETURN NEW;
+END;
+$$;
 
 
--- TRIGGERS: updated_at automático
 
+-- =========================================================
+--  TRIGGERS
+-- =========================================================
+
+-- ---------------------------------------------------------
+-- updated_at automático
+-- ---------------------------------------------------------
 CREATE TRIGGER trg_users_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION fn_update_timestamp();
+BEFORE UPDATE ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION auth.fn_update_timestamp();
 
 CREATE TRIGGER trg_profiles_updated_at
-    BEFORE UPDATE ON profiles
-    FOR EACH ROW EXECUTE FUNCTION fn_update_timestamp();
+BEFORE UPDATE ON auth.profiles
+FOR EACH ROW
+EXECUTE FUNCTION auth.fn_update_timestamp();
 
 
--- PROCEDIMIENTOS ALMACENADOS (flujos transaccionales completos)
+-- ---------------------------------------------------------
+-- bump token_version cuando cambia password
+-- ---------------------------------------------------------
+CREATE TRIGGER trg_users_bump_token_version_on_password_change
+BEFORE UPDATE OF password_hash ON auth.users
+FOR EACH ROW
+WHEN (OLD.password_hash IS DISTINCT FROM NEW.password_hash)
+EXECUTE FUNCTION auth.fn_bump_token_version_on_password_change();
+
+
+-- ---------------------------------------------------------
+-- limitar perfiles a 5
+-- ---------------------------------------------------------
+CREATE TRIGGER trg_limit_profiles_per_user
+BEFORE INSERT ON auth.profiles
+FOR EACH ROW
+EXECUTE FUNCTION auth.fn_limit_profiles_per_user();
+
+
+-- ---------------------------------------------------------
+-- impedir borrar el último perfil
+-- ---------------------------------------------------------
+CREATE TRIGGER trg_prevent_delete_last_profile
+BEFORE DELETE ON auth.profiles
+FOR EACH ROW
+EXECUTE FUNCTION auth.fn_prevent_delete_last_profile();
+
+
+-- ---------------------------------------------------------
+-- auditoría cambio de contraseña
+-- ---------------------------------------------------------
+CREATE TRIGGER trg_audit_password_change
+AFTER UPDATE OF password_hash ON auth.users
+FOR EACH ROW
+WHEN (OLD.password_hash IS DISTINCT FROM NEW.password_hash)
+EXECUTE FUNCTION auth.fn_audit_password_change();
+
+
+-- ---------------------------------------------------------
+-- auditoría desactivación de cuenta
+-- ---------------------------------------------------------
+CREATE TRIGGER trg_audit_account_deactivation
+AFTER UPDATE OF is_active ON auth.users
+FOR EACH ROW
+WHEN (OLD.is_active = TRUE AND NEW.is_active = FALSE)
+EXECUTE FUNCTION auth.fn_audit_account_deactivation();
 
 
 
--- PROCEDIMIENTO: sp_register_user
--- Registra un usuario nuevo con su perfil inicial por defecto en una sola
--- transacción. Si algo falla, hace rollback completo.
--- USO DESDE LA APP: CALL sp_register_user('mail@x.com', 'pass', 'Mi Perfil', NULL);
+-- =========================================================
+--  PROCEDIMIENTOS ALMACENADOS
+-- =========================================================
 
-CREATE OR REPLACE PROCEDURE sp_register_user(
-    p_email        VARCHAR,
-    p_password     VARCHAR,   -- Contraseña en texto plano (se hashea aquí)
-    p_display_name VARCHAR,
-    p_oauth_provider VARCHAR,
-    p_oauth_sub      VARCHAR,
-    OUT p_user_id  UUID,
+-- ---------------------------------------------------------
+-- Registro de usuario + perfil inicial + audit log
+-- Compatible con:
+-- CALL auth.sp_register_user($1, $2, $3, NULL, NULL, NULL, NULL)
+-- ---------------------------------------------------------
+CREATE OR REPLACE PROCEDURE auth.sp_register_user(
+    IN  p_email VARCHAR,
+    IN  p_password VARCHAR,
+    IN  p_display_name VARCHAR,
+    IN  p_oauth_provider VARCHAR,
+    IN  p_oauth_sub VARCHAR,
+    OUT p_user_id UUID,
     OUT p_profile_id UUID
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- 1. Insertar usuario. La contraseña se hashea con bcrypt (costo 12)
-    INSERT INTO users(email, password_hash, oauth_provider, oauth_sub)
+    -- Validación mínima de modo de autenticación
+    IF p_password IS NULL AND (p_oauth_provider IS NULL OR p_oauth_sub IS NULL) THEN
+        RAISE EXCEPTION 'Debe proporcionar contraseña o credenciales OAuth válidas.';
+    END IF;
+
+    IF p_password IS NOT NULL AND (p_oauth_provider IS NOT NULL OR p_oauth_sub IS NOT NULL) THEN
+        RAISE EXCEPTION 'No se puede registrar simultáneamente con contraseña y OAuth.';
+    END IF;
+
+    INSERT INTO auth.users (
+        email,
+        password_hash,
+        oauth_provider,
+        oauth_sub
+    )
     VALUES (
         p_email,
         CASE
-            WHEN p_password IS NOT NULL THEN crypt(p_password, gen_salt('bf', 12))
+            WHEN p_password IS NOT NULL
+                THEN public.crypt(p_password, public.gen_salt('bf', 12))
             ELSE NULL
         END,
         p_oauth_provider,
         p_oauth_sub
     )
-    RETURNING user_id INTO p_user_id;
+    RETURNING user_id
+    INTO p_user_id;
 
-    -- 2. Crear el perfil inicial (el trigger de límite no aplica aquí porque es el primero)
-    INSERT INTO profiles(user_id, display_name)
-    VALUES (p_user_id, p_display_name)
-    RETURNING profile_id INTO p_profile_id;
+    INSERT INTO auth.profiles (
+        user_id,
+        display_name
+    )
+    VALUES (
+        p_user_id,
+        p_display_name
+    )
+    RETURNING profile_id
+    INTO p_profile_id;
 
-    -- 3. Registrar en auditoría el registro exitoso
-    INSERT INTO audit_log(user_id, event_type, description)
-    VALUES (p_user_id, 'USER_REGISTERED', 'Nuevo usuario registrado en la plataforma.');
+    INSERT INTO auth.audit_log(user_id, event_type, description)
+    VALUES (
+        p_user_id,
+        'USER_REGISTERED',
+        'Nuevo usuario registrado en la plataforma.'
+    );
 
--- Si cualquier INSERT falla (ej: email duplicado), PostgreSQL hace rollback automático
 EXCEPTION
     WHEN unique_violation THEN
         RAISE EXCEPTION 'El correo % ya está registrado.', p_email;
@@ -295,41 +467,47 @@ END;
 $$;
 
 
--- PROCEDIMIENTO: sp_revoke_all_tokens
--- Invalida todos los refresh tokens de un usuario (logout en todos los dispositivos
--- o ante cambio de contraseña). Operación atómica.
-
-CREATE OR REPLACE PROCEDURE sp_revoke_all_tokens(
-    p_user_id UUID
+-- ---------------------------------------------------------
+-- Revoca todos los refresh tokens activos del usuario
+-- Compatible con tu AuthRepository.revokeAllTokens(...)
+-- ---------------------------------------------------------
+CREATE OR REPLACE PROCEDURE auth.sp_revoke_all_tokens(
+    IN p_user_id UUID
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE refresh_tokens
+    UPDATE auth.refresh_tokens
     SET revoked = TRUE
-    WHERE user_id = p_user_id AND revoked = FALSE;
+    WHERE user_id = p_user_id
+      AND revoked = FALSE;
 
-    INSERT INTO audit_log(user_id, event_type, description)
-    VALUES (p_user_id, 'ALL_TOKENS_REVOKED', 'Todas las sesiones fueron cerradas.');
+    INSERT INTO auth.audit_log(user_id, event_type, description)
+    VALUES (
+        p_user_id,
+        'ALL_TOKENS_REVOKED',
+        'Todas las sesiones fueron cerradas.'
+    );
 END;
 $$;
 
 
--- VISTAS
 
+-- =========================================================
+--  VISTAS
+-- =========================================================
 
-
--- VISTA: v_user_profiles_summary
--- Devuelve el resumen de un usuario con todos sus perfiles.
--- El Auth Service la usa para construir el JWT payload al hacer login.
-CREATE OR REPLACE VIEW v_user_profiles_summary AS
+-- ---------------------------------------------------------
+-- Resumen de usuario con perfiles
+-- Compatible con getUserProfilesSummary()
+-- ---------------------------------------------------------
+CREATE OR REPLACE VIEW auth.v_user_profiles_summary AS
 SELECT
     u.user_id,
     u.email,
     u.oauth_provider,
     u.is_active,
     u.created_at AS member_since,
-    -- Agrupamos los perfiles como JSON array para evitar múltiples queries
     COALESCE(
         json_agg(
             json_build_object(
@@ -337,20 +515,28 @@ SELECT
                 'display_name', p.display_name,
                 'avatar_url',   p.avatar_url,
                 'is_kids_mode', p.is_kids_mode
-            ) ORDER BY p.created_at
+            )
+            ORDER BY p.created_at
         ) FILTER (WHERE p.profile_id IS NOT NULL),
-        '[]'
+        '[]'::json
     ) AS profiles,
     COUNT(p.profile_id) AS profile_count
-FROM users u
-LEFT JOIN profiles p ON u.user_id = p.user_id
-GROUP BY u.user_id;
+FROM auth.users u
+LEFT JOIN auth.profiles p
+       ON p.user_id = u.user_id
+GROUP BY
+    u.user_id,
+    u.email,
+    u.oauth_provider,
+    u.is_active,
+    u.created_at;
 
 
--- VISTA: v_active_sessions
--- Muestra los refresh tokens activos por usuario (para el panel "mis dispositivos").
-
-CREATE OR REPLACE VIEW v_active_sessions AS
+-- ---------------------------------------------------------
+-- Sesiones activas
+-- Compatible con un panel tipo "mis dispositivos"
+-- ---------------------------------------------------------
+CREATE OR REPLACE VIEW auth.v_active_sessions AS
 SELECT
     rt.token_id,
     rt.user_id,
@@ -359,9 +545,11 @@ SELECT
     rt.ip_address,
     rt.expires_at,
     rt.created_at AS session_started
-FROM refresh_tokens rt
-JOIN users u ON rt.user_id = u.user_id
+FROM auth.refresh_tokens rt
+JOIN auth.users u
+  ON u.user_id = rt.user_id
 WHERE rt.revoked = FALSE
   AND rt.expires_at > NOW();
 
 
+COMMIT;
