@@ -1,32 +1,34 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { ConfigService } from '@nestjs/config';
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+import { DataSource } from 'typeorm';
 import { join } from 'path';
 
-
-
 async function bootstrap() {
-  // Creamos el contexto principal de Nest
-  const app = await NestFactory.create(AppModule);
+  const app =
+    await NestFactory.createMicroservice<MicroserviceOptions>(
+      AppModule,
+      {
+        transport: Transport.GRPC,
+        options: {
+          package: 'auth',
+          protoPath: join(process.cwd(), 'src/proto/auth.proto'),
+          url: '0.0.0.0:50051',
+        },
+      },
+    );
 
-  // Obtenemos variables del entorno
-  const configService = app.get(ConfigService);
+  const dataSource = app.get(DataSource);
 
-  // Convertimos la app en microservicio gRPC
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.GRPC,
-    options: {
-      package: 'auth',
-      protoPath: join(process.cwd(), 'src/proto/auth.proto'),      
-      url: `${configService.get<string>('GRPC_HOST')}:${configService.get<string>('GRPC_PORT')}`,
-    },
-  });
+  if (dataSource.isInitialized) {
+    console.log('PostgreSQL conectado correctamente');
+  } else {
+    console.log(' PostgreSQL no está inicializado');
+  }
 
-  // Iniciamos el microservicio
-  await app.startAllMicroservices();
+  await app.listen();
 
-  console.log('[microsevice] Auth Service gRPC vivo');
+  console.log('Auth Service gRPC escuchando en :50051');
 }
 
 bootstrap();

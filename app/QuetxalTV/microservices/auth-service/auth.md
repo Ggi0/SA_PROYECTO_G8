@@ -77,6 +77,8 @@ nota: paquete `Which package manager?`: npm
 dentro del microservicio: `cd auth-service`, para las dependencias de gRPC:
 ```
 npm install @nestjs/microservices @grpc/grpc-js @grpc/proto-loader
+
+npm install @nestjs/typeorm typeorm pg @nestjs/config
 ```
 
 
