@@ -36,6 +36,10 @@ export class AuthService {
   //  REGISTRO
   // ─────────────────────────────────────────────
   async register(req: RegisterRequest): Promise<RegisterResponse> {
+    console.log('MICROSERVICE REGISTER REQ=', JSON.stringify(req, null, 2));
+console.log('displayName=', (req as any).displayName);
+console.log('display_name=', (req as any).display_name);
+
     const exists = await this.authRepository.existsByEmail(req.email);
     if (exists) {
       throw new ConflictException('El correo ya está registrado.');

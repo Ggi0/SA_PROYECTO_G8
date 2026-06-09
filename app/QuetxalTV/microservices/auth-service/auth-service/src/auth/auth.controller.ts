@@ -31,8 +31,22 @@ export class AuthController {
   // ─────────────────────────────────────────────
 
   @GrpcMethod('AuthService', 'Register')
-  register(data: RegisterRequest) {
-    return this.authService.register(data);
+  register(data: any) {
+    console.log('RAW DATA RECEIVED:', JSON.stringify(data));  // agrega esto temporalmente
+    // NestJS gRPC convierte display_name → displayName automáticamente
+    // pero a veces dependiendo de la versión llega como display_name
+    // Usar ambos como fallback:
+
+    const displayName = 
+    data.displayName     ||   // camelCase (keepCase: false — default)
+    data.display_name    ||   // snake_case (keepCase: true)
+    '';
+
+    return this.authService.register({
+      email:       data.email,
+      password:    data.password,
+      displayName,
+    });
   }
 
   @GrpcMethod('AuthService', 'Login')
