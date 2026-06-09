@@ -285,6 +285,50 @@ export class AuthService {
     return { message: 'Contraseña actualizada correctamente.' };
   }
 
+
+  async getMe(userId: string, activeProfileId: string | null) {
+    const user = await this.authRepository.findById(userId);
+    if (!user) throw new NotFoundException('Usuario no encontrado.');
+    return {
+      user: {
+        userId: user.userId,
+        email:  user.email,
+        role:   user.role,
+      },
+      activeProfileId: activeProfileId ?? null,
+    };
+  }
+ 
+  async changePassword(params: {
+    userId:          string;
+    currentPassword: string;
+    newPassword:     string;
+  }): Promise<{ message: string }> {
+    const user = await this.authRepository.findByEmail(
+      (await this.authRepository.findById(params.userId))!.email,
+    );
+    if (!user) throw new NotFoundException('Usuario no encontrado.');
+ 
+    const valid = await this.authRepository.verifyPassword(
+      user.email,
+      params.currentPassword,
+    );
+    if (!valid) {
+      throw new UnauthorizedException('Contraseña actual incorrecta.');
+    }
+ 
+    // Hashear con pgcrypto en la DB — el trigger registra el cambio en audit_log
+    await this.authRepository.dataSourceQuery(
+      `UPDATE auth.users SET password_hash = crypt($1, gen_salt('bf', 12)) WHERE user_id = $2`,
+      [params.newPassword, params.userId],
+    );
+ 
+    // Revocar todas las sesiones activas por seguridad
+    await this.authRepository.revokeAllTokens(params.userId);
+ 
+    return { message: 'Contraseña actualizada correctamente.' };
+  }
+
   // ─────────────────────────────────────────────
   //  VALIDAR TOKEN  (usado por otros micros vía gRPC)
   // ─────────────────────────────────────────────

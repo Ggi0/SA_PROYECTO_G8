@@ -29,8 +29,15 @@
     @Column({ name: 'display_name', length: 100 })
     displayName: string;
   
-    @Column({ name: 'avatar_url', length: 500, nullable: true })
-    avatarUrl: string | null;
+    
+@Column({
+  name: 'avatar_url',
+  type: 'varchar',   
+  length: 500,
+  nullable: true,
+})
+avatarUrl: string | null;
+
   
     @Column({ type: 'jsonb', default: '{}' })
     preferences: Record<string, unknown>;

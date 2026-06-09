@@ -3,22 +3,210 @@ syntax = "proto3";
 package auth;
 
 // ─────────────────────────────────────────────
-//  AUTH SERVICE  (expuesto para otros micros)
+//  AUTH SERVICE  (expuesto para API Gateway y otros micros)
 // ─────────────────────────────────────────────
 
 service AuthService {
-  // Verificar un access token y devolver el payload
-  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
 
-  // Renovar access token a partir de un refresh token
-  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+  // ── Autenticación ──────────────────────────
+  rpc Register        (RegisterRequest)       returns (RegisterResponse);
+  rpc Login           (LoginRequest)          returns (LoginResponse);
+  rpc RefreshToken    (RefreshTokenRequest)   returns (RefreshTokenResponse);
+  rpc Logout          (LogoutRequest)         returns (LogoutResponse);
+  rpc LogoutAll       (LogoutAllRequest)      returns (LogoutAllResponse);
 
-  // Obtener datos básicos del usuario por ID
-  rpc GetUserById (GetUserByIdRequest) returns (UserResponse);
+  // ── Cuenta ─────────────────────────────────
+  rpc GetMe           (GetMeRequest)          returns (GetMeResponse);
+  rpc ChangePassword  (ChangePasswordRequest) returns (ChangePasswordResponse);
+  rpc ForgotPassword  (ForgotPasswordRequest) returns (ForgotPasswordResponse);
+  rpc ResetPassword   (ResetPasswordRequest)  returns (ResetPasswordResponse);
+
+  // ── Perfiles ───────────────────────────────
+  rpc ListProfiles    (ListProfilesRequest)   returns (ListProfilesResponse);
+  rpc CreateProfile   (CreateProfileRequest)  returns (CreateProfileResponse);
+  rpc UpdateProfile   (UpdateProfileRequest)  returns (UpdateProfileResponse);
+  rpc DeleteProfile   (DeleteProfileRequest)  returns (DeleteProfileResponse);
+  rpc SelectProfile   (SelectProfileRequest)  returns (SelectProfileResponse);
+
+  // ── Validación inter-servicios ─────────────
+  rpc ValidateToken   (ValidateTokenRequest)  returns (ValidateTokenResponse);
+  rpc GetUserById     (GetUserByIdRequest)    returns (GetUserByIdResponse);
 }
 
 // ─────────────────────────────────────────────
-//  MENSAJES — TOKEN
+//  MENSAJES COMPARTIDOS
+// ─────────────────────────────────────────────
+
+message ProfileMessage {
+  string profile_id   = 1;
+  string display_name = 2;
+  string avatar_url   = 3;
+  bool   is_kids_mode = 4;
+}
+
+// ─────────────────────────────────────────────
+//  AUTENTICACIÓN
+// ─────────────────────────────────────────────
+
+message RegisterRequest {
+  string email        = 1;
+  string password     = 2;
+  string display_name = 3;
+}
+
+message RegisterResponse {
+  string user_id    = 1;
+  string profile_id = 2;
+  string message    = 3;
+}
+
+message LoginRequest {
+  string email       = 1;
+  string password    = 2;
+  string device_info = 3;
+  string ip_address  = 4;
+}
+
+message UserInfo {
+  string user_id = 1;
+  string email   = 2;
+  string role    = 3;
+}
+
+message LoginResponse {
+  string                  access_token      = 1;
+  int32                   expires_in        = 2;
+  string                  refresh_token     = 3;
+  UserInfo                user              = 4;
+  repeated ProfileMessage profiles          = 5;
+  string                  active_profile_id = 6;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token      = 1;
+  int32  expires_in        = 2;
+  string active_profile_id = 3;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message LogoutResponse {
+  string message = 1;
+}
+
+message LogoutAllRequest {
+  string user_id = 1;
+}
+
+message LogoutAllResponse {
+  string message = 1;
+}
+
+// ─────────────────────────────────────────────
+//  CUENTA
+// ─────────────────────────────────────────────
+
+message GetMeRequest {
+  string user_id           = 1;
+  string active_profile_id = 2;
+}
+
+message GetMeResponse {
+  UserInfo user              = 1;
+  string   active_profile_id = 2;
+}
+
+message ChangePasswordRequest {
+  string user_id          = 1;
+  string current_password = 2;
+  string new_password     = 3;
+}
+
+message ChangePasswordResponse {
+  string message = 1;
+}
+
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ForgotPasswordResponse {
+  string message = 1;
+}
+
+message ResetPasswordRequest {
+  string token        = 1;
+  string new_password = 2;
+}
+
+message ResetPasswordResponse {
+  string message = 1;
+}
+
+// ─────────────────────────────────────────────
+//  PERFILES
+// ─────────────────────────────────────────────
+
+message ListProfilesRequest {
+  string user_id = 1;
+}
+
+message ListProfilesResponse {
+  repeated ProfileMessage profiles    = 1;
+  int32                   count       = 2;
+  int32                   max_allowed = 3;
+}
+
+message CreateProfileRequest {
+  string user_id      = 1;
+  string display_name = 2;
+  bool   is_kids_mode = 3;
+  string avatar_url   = 4;
+}
+
+message CreateProfileResponse {
+  ProfileMessage profile = 1;
+}
+
+message UpdateProfileRequest {
+  string user_id      = 1;
+  string profile_id   = 2;
+  string display_name = 3;
+  string avatar_url   = 4;
+  bool   is_kids_mode = 5;
+}
+
+message UpdateProfileResponse {
+  ProfileMessage profile = 1;
+}
+
+message DeleteProfileRequest {
+  string user_id    = 1;
+  string profile_id = 2;
+}
+
+message DeleteProfileResponse {
+  string message = 1;
+}
+
+message SelectProfileRequest {
+  string user_id    = 1;
+  string profile_id = 2;
+}
+
+message SelectProfileResponse {
+  string         access_token   = 1;
+  ProfileMessage active_profile = 2;
+}
+
+// ─────────────────────────────────────────────
+//  VALIDACIÓN INTER-SERVICIOS
 // ─────────────────────────────────────────────
 
 message ValidateTokenRequest {
@@ -30,28 +218,15 @@ message ValidateTokenResponse {
   string user_id           = 2;
   string email             = 3;
   string role              = 4;
-  string active_profile_id = 5;  // vacío si no hay perfil activo
+  string active_profile_id = 5;
+  int32  token_version     = 6;
 }
-
-message RefreshTokenRequest {
-  string refresh_token = 1;
-}
-
-message RefreshTokenResponse {
-  string access_token      = 1;
-  int32  expires_in        = 2;   // segundos
-  string active_profile_id = 3;
-}
-
-// ─────────────────────────────────────────────
-//  MENSAJES — USUARIO
-// ─────────────────────────────────────────────
 
 message GetUserByIdRequest {
   string user_id = 1;
 }
 
-message UserResponse {
+message GetUserByIdResponse {
   string user_id   = 1;
   string email     = 2;
   string role      = 3;
@@ -59,17 +234,34 @@ message UserResponse {
 }
 
 // ─────────────────────────────────────────────
-//  NOTIFICATION SERVICE  (futuro — cliente)
+//  NOTIFICATION SERVICE  (futuro — cliente gRPC)
 // ─────────────────────────────────────────────
 //
-//  El Auth Service invocará estos métodos cuando el
-//  Notification Service esté implementado.
-//  Por ahora quedan como referencia de contrato.
+//  PUNTOS DE INTEGRACIÓN — PERFIL:
+//
+//  perfil.service.ts → createProfile()
+//    BUSCAR: "INTEGRACIÓN FUTURA — Notification Service [createProfile]"
+//    → notificationClient.SendProfileCreated({ userId, email, profileName })
+//
+//  perfil.service.ts → deleteProfile()
+//    BUSCAR: "INTEGRACIÓN FUTURA — Notification Service [deleteProfile]"
+//    → notificationClient.SendSecurityAlert({ userId, email, eventType: 'PROFILE_DELETED' })
+//
+//  PUNTOS DE INTEGRACIÓN — AUTH:
+//
+//  auth.service.ts → register()
+//    BUSCAR: "INTEGRACIÓN FUTURA — Notification Service [register]"
+//    → notificationClient.SendWelcomeEmail({ userId, email, displayName })
+//
+//  auth.service.ts → forgotPassword()
+//    BUSCAR: "INTEGRACIÓN FUTURA — Notification Service [forgotPassword]"
+//    → notificationClient.SendPasswordReset({ userId, email, resetToken, expiresIn })
 //
 //  service NotificationService {
-//    rpc SendWelcomeEmail    (WelcomeEmailRequest)     returns (NotificationAck);
-//    rpc SendPasswordReset   (PasswordResetRequest)    returns (NotificationAck);
-//    rpc SendSecurityAlert   (SecurityAlertRequest)    returns (NotificationAck);
+//    rpc SendWelcomeEmail   (WelcomeEmailRequest)   returns (NotificationAck);
+//    rpc SendPasswordReset  (PasswordResetRequest)  returns (NotificationAck);
+//    rpc SendSecurityAlert  (SecurityAlertRequest)  returns (NotificationAck);
+//    rpc SendProfileCreated (ProfileCreatedRequest) returns (NotificationAck);
 //  }
 //
 //  message WelcomeEmailRequest {
@@ -77,39 +269,41 @@ message UserResponse {
 //    string email        = 2;
 //    string display_name = 3;
 //  }
-//
 //  message PasswordResetRequest {
 //    string user_id     = 1;
 //    string email       = 2;
-//    string reset_token = 3;   // token en texto plano (el svc lo usa para construir la URL)
-//    int32  expires_in  = 4;   // segundos hasta expiración
+//    string reset_token = 3;
+//    int32  expires_in  = 4;
 //  }
-//
 //  message SecurityAlertRequest {
 //    string user_id    = 1;
 //    string email      = 2;
-//    string event_type = 3;    // 'PASSWORD_CHANGE', 'NEW_DEVICE', etc.
+//    string event_type = 3;
 //    string ip_address = 4;
+//    string metadata   = 5;
 //  }
-//
+//  message ProfileCreatedRequest {
+//    string user_id      = 1;
+//    string email        = 2;
+//    string profile_name = 3;
+//  }
 //  message NotificationAck {
 //    bool   sent       = 1;
 //    string message_id = 2;
 //  }
 
 // ─────────────────────────────────────────────
-//  SUBSCRIPTION SERVICE  (futuro — cliente)
+//  SUBSCRIPTION SERVICE  (futuro — cliente gRPC)
 // ─────────────────────────────────────────────
 //
 //  service SubscriptionService {
-//    rpc CreateTrialSubscription (TrialSubscriptionRequest) returns (SubscriptionAck);
+//    rpc CreateTrialSubscription (TrialSubscriptionRequest)     returns (SubscriptionAck);
+//    rpc GetSubscriptionStatus   (SubscriptionStatusRequest)    returns (SubscriptionStatusResponse);
 //  }
-//
 //  message TrialSubscriptionRequest {
 //    string user_id = 1;
 //    string email   = 2;
 //  }
-//
 //  message SubscriptionAck {
 //    bool   created         = 1;
 //    string subscription_id = 2;

@@ -16,7 +16,9 @@ import { JwtModule } from '../JWT/jwt.module';
     JwtModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthRepository],
-  exports: [AuthService],
+  providers:   [AuthService, AuthRepository],
+  // AuthRepository se exporta para que PerfilModule pueda inyectarlo
+  // en PerfilService (necesario para selectProfile y futuras notificaciones)
+  exports:     [AuthService, AuthRepository],
 })
 export class AuthModule {}

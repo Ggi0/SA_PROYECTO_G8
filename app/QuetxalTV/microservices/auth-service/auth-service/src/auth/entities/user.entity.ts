@@ -22,14 +22,31 @@ import {
     @Column({ length: 255, unique: true })
     email: string;
   
-    @Column({ name: 'password_hash', length: 255, nullable: true })
+    @Column({
+      name: 'password_hash',
+      type: 'varchar',   
+      length: 255,
+      nullable: true,
+    })
     passwordHash: string | null;
   
-    @Column({ name: 'oauth_provider', length: 50, nullable: true })
+
+    @Column({
+      name: 'oauth_provider',
+      type: 'varchar',
+      length: 50,
+      nullable: true,
+    })
     oauthProvider: string | null;
-  
-    @Column({ name: 'oauth_sub', length: 255, nullable: true })
+    
+    @Column({
+      name: 'oauth_sub',
+      type: 'varchar',
+      length: 255,
+      nullable: true,
+    })
     oauthSub: string | null;
+    
   
     @Column({
       type: 'varchar',

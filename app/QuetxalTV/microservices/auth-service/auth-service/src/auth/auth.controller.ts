@@ -1,6 +1,6 @@
 // src/auth/auth.controller.ts
 
-import { Controller } from '@nestjs/common';
+import { Controller, NotFoundException } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
 import type {
@@ -64,4 +64,35 @@ export class AuthController {
   resetPassword(data: ResetPasswordRequest) {
     return this.authService.resetPassword(data);
   }
+
+
+  @GrpcMethod('AuthService', 'GetMe')
+  async getMe(data: { userId: string; activeProfileId: string }) {
+    return this.authService.getMe(data.userId, data.activeProfileId || null);
+  }
+ 
+  @GrpcMethod('AuthService', 'ChangePassword')
+  async changePassword(data: {
+    userId:          string;
+    currentPassword: string;
+    newPassword:     string;
+  }) {
+    return this.authService.changePassword(data);
+  }
+ 
+  @GrpcMethod('AuthService', 'GetUserById')
+  async getUserById(data: { userId: string }) {
+    const user = await this.authService['authRepository'].findById(data.userId);
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado.');
+    }
+    return {
+      userId:   user.userId,
+      email:    user.email,
+      role:     user.role,
+      isActive: user.isActive,
+    };
+  }
+
+
 }

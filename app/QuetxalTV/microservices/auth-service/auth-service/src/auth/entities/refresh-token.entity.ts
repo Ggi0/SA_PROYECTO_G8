@@ -30,8 +30,15 @@
     @Column({ name: 'token_hash', length: 512, unique: true })
     tokenHash: string;
   
-    @Column({ name: 'device_info', length: 255, nullable: true })
-    deviceInfo: string | null;
+    
+@Column({
+  name: 'device_info',
+  type: 'varchar',  
+  length: 255,
+  nullable: true,
+})
+deviceInfo: string | null;
+
   
     @Column({ name: 'ip_address', type: 'inet', nullable: true })
     ipAddress: string | null;
