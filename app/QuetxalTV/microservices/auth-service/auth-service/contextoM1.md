@@ -1509,3 +1509,386 @@ Si quieres, siguiente paso te puedo dar:
 * implementación real de JWT + guards en Gateway
 
 solo dime qué quieres construir ahora.
+
+
+# ACTUALIZACIÓN DEL FLUJO DE AUTENTICACIÓN Y PERFILES
+
+## Responsabilidades de Auth Service
+
+Gestionar:
+
+* autenticación
+* sesiones
+* perfiles de usuario
+* recuperación de cuenta
+* emisión y renovación de JWT
+* coordinación con otros microservicios relacionados con usuarios
+
+---
+
+# FLUJO DE REGISTRO
+
+El registro es una operación distribuida.
+
+El Auth Service es el punto de entrada, pero puede requerir coordinación con otros servicios.
+
+Flujo general:
+
+```text
+Frontend
+    ↓
+API Gateway
+    ↓
+Auth Service
+    ↓
+(Validaciones locales)
+    ↓
+[ Futuro ] Llamada gRPC a otros servicios
+    ↓
+Persistencia en auth_db
+    ↓
+Generación de respuesta
+```
+
+### Flujo detallado
+
+```text
+1. Usuario envía registro
+
+POST /auth/register
+
+2. Auth Service valida:
+   - formato de email
+   - longitud de contraseña
+   - unicidad del correo
+
+3. Auth Service crea usuario y perfil inicial
+
+4. [INTEGRACIÓN FUTURA]
+   Auth Service podrá invocar otros microservicios vía gRPC:
+
+   Notification Service
+       → envío de correo de bienvenida
+
+   Subscription Service
+       → creación de suscripción gratuita inicial
+
+   Analytics Service
+       → evento de nuevo usuario
+
+5. Si todas las operaciones requeridas son exitosas:
+
+   - se confirma la transacción
+   - se devuelve la respuesta al Gateway
+
+6. Gateway responde al Frontend
+```
+
+### Consideraciones
+
+Actualmente las llamadas gRPC externas NO están implementadas.
+
+La arquitectura debe dejar preparado un cliente gRPC para futuras integraciones.
+
+La ausencia temporal de dichos servicios NO debe impedir el registro.
+
+---
+
+# FLUJO DE LOGIN
+
+```text
+Frontend
+    ↓
+API Gateway
+    ↓
+Auth Service
+    ↓
+Validar credenciales
+    ↓
+Generar Access Token
+    ↓
+Generar Refresh Token
+    ↓
+Guardar Refresh Token
+    ↓
+Respuesta
+```
+
+Response:
+
+```json
+{
+  "access_token": "...",
+  "expires_in": 900,
+  "user": {
+    "user_id": "...",
+    "email": "...",
+    "role": "USER"
+  },
+  "profiles": [...],
+  "active_profile_id": null
+}
+```
+
+---
+
+# FLUJO DE ACTIVACIÓN DE PERFIL
+
+El usuario puede poseer múltiples perfiles.
+
+El perfil activo define el contexto de consumo.
+
+### Endpoint
+
+POST /auth/profiles/select
+
+Request:
+
+```json
+{
+  "profile_id": "..."
+}
+```
+
+### Flujo
+
+```text
+Usuario autenticado
+    ↓
+Selecciona perfil
+    ↓
+Auth Service valida:
+
+- perfil existe
+- perfil pertenece al usuario
+
+    ↓
+Genera nuevo JWT
+    ↓
+Actualiza active_profile_id
+    ↓
+Devuelve nuevo access token
+```
+
+### JWT anterior
+
+```json
+{
+  "sub": "user_id",
+  "email": "user@email.com",
+  "role": "USER",
+  "active_profile_id": null
+}
+```
+
+### JWT nuevo
+
+```json
+{
+  "sub": "user_id",
+  "email": "user@email.com",
+  "role": "USER",
+  "active_profile_id": "profile_id"
+}
+```
+
+Response:
+
+```json
+{
+  "access_token": "...",
+  "active_profile": {
+    "profile_id": "...",
+    "display_name": "Kids"
+  }
+}
+```
+
+---
+
+# FLUJO DE REFRESH TOKEN
+
+```text
+Frontend
+    ↓
+Refresh Token Cookie
+    ↓
+API Gateway
+    ↓
+Auth Service
+    ↓
+Validar refresh token
+    ↓
+Validar sesión activa
+    ↓
+Generar nuevo JWT
+    ↓
+Respuesta
+```
+
+---
+
+# FLUJO DE LOGOUT
+
+```text
+Frontend
+    ↓
+API Gateway
+    ↓
+Auth Service
+    ↓
+Revocar refresh token
+    ↓
+Eliminar cookie
+    ↓
+Respuesta
+```
+
+---
+
+# FLUJO DE LOGOUT GLOBAL
+
+```text
+Frontend
+    ↓
+API Gateway
+    ↓
+Auth Service
+    ↓
+Revocar todos los refresh tokens
+    ↓
+Cerrar todas las sesiones
+```
+
+---
+
+# FLUJO DE RECUPERACIÓN DE CONTRASEÑA
+
+## Solicitar recuperación
+
+POST /auth/password/forgot
+
+```text
+Usuario envía correo
+    ↓
+Auth Service
+    ↓
+Generar token temporal
+    ↓
+Guardar token
+    ↓
+[ Futuro ] Notification Service
+    ↓
+Enviar correo
+```
+
+---
+
+## Restablecer contraseña
+
+POST /auth/password/reset
+
+```text
+Usuario envía token
+    ↓
+Auth Service
+    ↓
+Validar token
+    ↓
+Actualizar contraseña
+    ↓
+Revocar sesiones activas
+    ↓
+Respuesta
+```
+
+---
+
+# INTEGRACIONES gRPC FUTURAS
+
+Actualmente el Auth Service expone gRPC.
+
+Posteriormente también consumirá otros servicios.
+
+## Notification Service
+
+Responsabilidades:
+
+* correo de bienvenida
+* recuperación de contraseña
+* notificaciones de seguridad
+
+gRPC futuro:
+
+```proto
+service NotificationService {
+  rpc SendWelcomeEmail(...)
+  rpc SendPasswordReset(...)
+}
+```
+
+---
+
+## Subscription Service
+
+Responsabilidades:
+
+* crear plan gratuito inicial
+* consultar estado de suscripción
+
+gRPC futuro:
+
+```proto
+service SubscriptionService {
+  rpc CreateTrialSubscription(...)
+}
+```
+
+---
+
+# REGLA DE DISEÑO
+
+Auth Service es dueño de:
+
+* usuarios
+* credenciales
+* JWT
+* refresh tokens
+* perfiles
+
+Otros servicios nunca modifican estos datos directamente.
+
+Toda interacción debe realizarse mediante gRPC.
+
+
+
+
+src/
+├── auth/
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── auth.repository.ts
+│   ├── auth.module.ts
+│   ├── auth.contract.ts
+│
+├── perfil/
+│   ├── perfil.controller.ts
+│   ├── perfil.service.ts
+│   ├── perfil.repository.ts
+│   ├── perfil.module.ts
+│   ├── perfil.contract.ts
+│
+├── database/
+│   └── database.module.ts
+│
+├── proto/
+│   └── auth.proto
+│
+├── common/
+│   └── constants.ts
+│
+├── JWT/
+│   └──  jwt.service.ts
+│
+├── app.module.ts
+└── main.ts

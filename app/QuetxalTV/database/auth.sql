@@ -26,7 +26,10 @@ CREATE TABLE users (
     -- Para login con OAuth no hay password, se guarda el proveedor
     oauth_provider VARCHAR(50),   -- 'google', 'github', NULL si es local
     oauth_sub      VARCHAR(255),  -- ID único del proveedor OAuth
-    is_active    BOOLEAN NOT NULL DEFAULT TRUE,
+    role VARCHAR(20) NOT NULL DEFAULT 'client'
+         CHECK (role IN ('client','admin')),
+    is_active BOOLEAN NOT NULL DEFAULT FALSE,
+    token_version INTEGER NOT NULL DEFAULT 1,
     created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -67,6 +70,20 @@ CREATE TABLE refresh_tokens (
 );
 
 
+CREATE TABLE verification_tokens (
+    verification_token_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    user_id UUID NOT NULL
+        REFERENCES users(user_id)
+        ON DELETE CASCADE,
+
+    token_hash VARCHAR(512) NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+
 -- TABLA: audit_log
 -- Registro automático de eventos de seguridad críticos.
 -- Poblado EXCLUSIVAMENTE por triggers, no por la aplicación directamente.
@@ -87,10 +104,16 @@ CREATE TABLE audit_log (
 CREATE INDEX idx_users_email          ON users(email);
 CREATE INDEX idx_users_oauth          ON users(oauth_provider, oauth_sub) WHERE oauth_provider IS NOT NULL;
 CREATE INDEX idx_profiles_user_id     ON profiles(user_id);
-CREATE INDEX idx_refresh_tokens_user  ON refresh_tokens(user_id) WHERE revoked = FALSE;
 CREATE INDEX idx_refresh_tokens_hash  ON refresh_tokens(token_hash);
 CREATE INDEX idx_audit_log_user_id    ON audit_log(user_id);
 CREATE INDEX idx_audit_log_created    ON audit_log(created_at DESC);
+
+
+CREATE INDEX idx_verification_tokens_user
+ON verification_tokens(user_id);
+
+CREATE INDEX idx_verification_tokens_hash
+ON verification_tokens(token_hash);
 
 
 -- FUNCIONES (lógica modular reutilizable)
@@ -363,5 +386,4 @@ FROM refresh_tokens rt
 JOIN users u ON rt.user_id = u.user_id
 WHERE rt.revoked = FALSE
   AND rt.expires_at > NOW();
-
 

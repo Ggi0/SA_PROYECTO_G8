@@ -1,320 +1,312 @@
+// src/auth/auth.service.ts
+
 import {
   Injectable,
+  Logger,
+  ConflictException,
   UnauthorizedException,
+  NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { randomBytes } from 'crypto';
 import { AuthRepository } from './auth.repository';
-import { JwtPayload } from '../common/types/jwt-payload.interface';
+import { JwtService } from '../JWT/jwt.service';
+import type {
+  RegisterRequest,
+  RegisterResponse,
+  LoginRequest,
+  LoginResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  ValidateTokenRequest,
+  ValidateTokenResponse,
+} from './auth.contract';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
 
-  /**
-   * Determina si el correo debe registrarse como admin.
-   * La lista de correos admin viene desde .env
-   */
-  private resolveRole(email: string): 'client' | 'admin' {
-    const adminEmails =
-      this.configService.get<string>('ADMIN_EMAILS')?.split(',').map((e) => e.trim()) ?? [];
+  // ─────────────────────────────────────────────
+  //  REGISTRO
+  // ─────────────────────────────────────────────
+  async register(req: RegisterRequest): Promise<RegisterResponse> {
+    const exists = await this.authRepository.existsByEmail(req.email);
+    if (exists) {
+      throw new ConflictException('El correo ya está registrado.');
+    }
 
-    return adminEmails.includes(email) ? 'admin' : 'client';
-  }
-
-  /**
-   * Genera el access token con payload estándar.
-   */
-  private generateAccessToken(payload: JwtPayload): string {
-    return this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-      expiresIn: parseInt(this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') ?? '900', 10),
+    // El stored procedure crea usuario + perfil inicial + audit_log en una tx
+    const { userId, profileId } = await this.authRepository.registerUser({
+      email:       req.email,
+      password:    req.password,
+      displayName: req.displayName,
     });
-  }
 
-  /**
-   * Genera refresh token.
-   * Aquí lo hacemos como un token aleatorio opaco.
-   * Se guarda hasheado en base de datos.
-   */
-  private generateRefreshToken(): string {
-    return randomBytes(48).toString('hex');
-  }
+    this.logger.log(`Usuario registrado: ${userId}`);
 
-  /**
-   * Convierte el tiempo JWT_REFRESH_EXPIRES_IN a una fecha aproximada.
-   * Aquí lo dejaremos fijo a 7 días para simplificar.
-   */
-  private getRefreshTokenExpirationDate(): Date {
-    const now = new Date();
-    now.setDate(now.getDate() + 7);
-    return now;
-  }
+    // ── INTEGRACIÓN FUTURA — Notification Service ────────────────
+    // Cuando el Notification Service esté disponible, reemplazar este
+    // bloque comentado por la llamada gRPC real:
+    //
+    // try {
+    //   await this.notificationClient.sendWelcomeEmail({
+    //     userId,
+    //     email:       req.email,
+    //     displayName: req.displayName,
+    //   });
+    // } catch (err) {
+    //   // No bloquear el registro si el email falla
+    //   this.logger.warn(`Email de bienvenida no enviado: ${err.message}`);
+    // }
+    // ────────────────────────────────────────────────────────────
 
-  /**
-   * Registro de usuario.
-   * Crea cuenta + perfil inicial + genera tokens.
-   */
-  async register(data: { email: string; password: string }) {
-    const { email, password } = data;
-
-    if (!email || !password) {
-      throw new BadRequestException('Email y password son obligatorios.');
-    }
-
-    const existingUser = await this.authRepository.findUserByEmail(email);
-    if (existingUser) {
-      throw new BadRequestException('El correo ya está registrado.');
-    }
-
-    // Si tu proto no recibe display_name, usamos uno por defecto derivado del email
-    const displayName = email.split('@')[0];
-
-    // El role se decide por configuración
-    const role = this.resolveRole(email);
-
-    const registeredUser = await this.authRepository.registerUser(
-      email,
-      password,
-      displayName,
-      role,
-    );
-
-    const payload: JwtPayload = {
-      sub: registeredUser.user_id,
-      email: registeredUser.email,
-      role,
-    };
-
-    const accessToken = this.generateAccessToken(payload);
-
-    const refreshToken = this.generateRefreshToken();
-
-    await this.authRepository.saveRefreshToken(
-      registeredUser.user_id,
-      refreshToken,
-      'initial-register',
-      undefined,
-      this.getRefreshTokenExpirationDate(),
-    );
+    // ── INTEGRACIÓN FUTURA — Subscription Service ────────────────
+    // try {
+    //   await this.subscriptionClient.createTrialSubscription({ userId, email: req.email });
+    // } catch (err) {
+    //   this.logger.warn(`Suscripción trial no creada: ${err.message}`);
+    // }
+    // ────────────────────────────────────────────────────────────
 
     return {
-      user_id: registeredUser.user_id,
-      access_token: accessToken,
-      refresh_token: refreshToken,
+      userId,
+      profileId,
+      message: 'Usuario registrado correctamente. Verifica tu correo para activar tu cuenta.',
     };
   }
 
-  /**
-   * Login:
-   * - busca usuario
-   * - verifica password
-   * - genera JWT
-   * - guarda refresh token
-   */
-  async login(data: { email: string; password: string }) {
-    const { email, password } = data;
-
-    if (!email || !password) {
-      throw new BadRequestException('Email y password son obligatorios.');
-    }
-
-    const user = await this.authRepository.findUserByEmail(email);
-    if (!user || !user.is_active) {
-      throw new UnauthorizedException('Credenciales inválidas.');
-    }
-
-    const isPasswordValid = await this.authRepository.verifyPassword(email, password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas.');
-    }
-
-    const summary = await this.authRepository.getUserSummaryByUserId(user.user_id);
-
-    const payload: JwtPayload = {
-      sub: user.user_id,
-      email: user.email,
-      role: user.role,
-    };
-
-    const accessToken = this.generateAccessToken(payload);
-    const refreshToken = this.generateRefreshToken();
-
-    await this.authRepository.saveRefreshToken(
-      user.user_id,
-      refreshToken,
-      'login-session',
-      undefined,
-      this.getRefreshTokenExpirationDate(),
+  // ─────────────────────────────────────────────
+  //  LOGIN
+  // ─────────────────────────────────────────────
+  async login(req: LoginRequest): Promise<LoginResponse> {
+    // 1. Verificar credenciales con fn_verify_password (pgcrypto en la DB)
+    const valid = await this.authRepository.verifyPassword(
+      req.email,
+      req.password,
     );
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
-  }
-
-  /**
-   * Valida un access token.
-   * Este método es útil para pruebas internas o escenarios concretos.
-   * Pero en producción el API Gateway idealmente validará el JWT localmente.
-   */
-  async validateToken(data: { access_token: string }) {
-    try {
-      const payload = this.jwtService.verify<JwtPayload>(data.access_token, {
-        secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-      });
-
-      return {
-        user_id: payload.sub,
-        valid: true,
-      };
-    } catch (error) {
-      return {
-        user_id: '',
-        valid: false,
-      };
-    }
-  }
-
-  /**
-   * Logout total.
-   * Revoca todos los refresh tokens del usuario.
-   */
-  async logout(data: { user_id: string }) {
-    await this.authRepository.revokeAllTokens(data.user_id);
-
-    return {
-      success: true,
-    };
-  }
-
-  /**
-   * Cambio de contraseña:
-   * - verifica password actual
-   * - cambia contraseña
-   * - revoca todas las sesiones
-   */
-  async changePassword(data: {
-    user_id: string;
-    old_password: string;
-    new_password: string;
-  }) {
-    const summary = await this.authRepository.getUserSummaryByUserId(data.user_id);
-    if (!summary) {
-      throw new UnauthorizedException('Usuario no encontrado.');
+    if (!valid) {
+      throw new UnauthorizedException('Credenciales incorrectas.');
     }
 
-    const validOldPassword = await this.authRepository.verifyPassword(
-      summary.email,
-      data.old_password,
-    );
-
-    if (!validOldPassword) {
-      throw new UnauthorizedException('La contraseña actual es incorrecta.');
+    // 2. Obtener usuario (necesitamos user_id, role, token_version)
+    const user = await this.authRepository.findByEmail(req.email);
+    if (!user) {
+      throw new UnauthorizedException('Credenciales incorrectas.');
     }
-
-    await this.authRepository.updatePassword(data.user_id, data.new_password);
-
-    // Al cambiar contraseña, cerramos sesiones activas
-    await this.authRepository.revokeAllTokens(data.user_id);
-
-    return {
-      success: true,
-    };
-  }
-
-  /**
-   * Solicita reset de contraseña usando JWT de propósito específico.
-   * Para no exponer si un correo existe o no, siempre retorna success: true.
-   *
-   * Más adelante este token se enviará por Notification Service.
-   */
-  async requestPasswordReset(data: { email: string }) {
-    const user = await this.authRepository.findUserByEmail(data.email);
-
-    if (user) {
-      const resetToken = this.jwtService.sign(
-        {
-          sub: user.user_id,
-          email: user.email,
-          purpose: 'password_reset',
-        },
-        {
-          secret: this.configService.get<string>('JWT_RESET_SECRET'),
-          expiresIn: parseInt(this.configService.get<string>('JWT_RESET_EXPIRES_IN') ?? '900', 10),        },
+    if (!user.isActive) {
+      throw new UnauthorizedException(
+        'Cuenta no activada. Revisa tu correo.',
       );
-
-      // En desarrollo lo mostramos en logs.
-      // Luego esto se reemplaza con llamada gRPC a Notification Service.
-      const logToken = this.configService.get<string>('LOG_RESET_TOKEN_IN_DEV') === 'true';
-      if (logToken) {
-        console.log('RESET TOKEN (solo desarrollo):', resetToken);
-      }
     }
 
-    return {
-      success: true,
-    };
-  }
+    // 3. Obtener resumen de perfiles desde la vista
+    const summary = await this.authRepository.getUserProfilesSummary(user.userId);
 
-  /**
-   * Resetea contraseña usando el reset token.
-   */
-  async resetPassword(data: { token: string; new_password: string }) {
-    try {
-      const payload = this.jwtService.verify<any>(data.token, {
-        secret: this.configService.get<string>('JWT_RESET_SECRET'),
+    // 4. Emitir tokens
+    const { accessToken, refreshToken, refreshTokenHash, expiresIn } =
+      this.jwtService.issueTokenPair({
+        sub:             user.userId,
+        email:           user.email,
+        role:            user.role,
+        tokenVersion:    user.tokenVersion,
+        activeProfileId: null,
       });
 
-      if (payload.purpose !== 'password_reset') {
-        throw new UnauthorizedException('Token inválido para reset.');
-      }
+    // 5. Persistir refresh token (solo el hash)
+    await this.authRepository.saveRefreshToken({
+      userId:     user.userId,
+      tokenHash:  refreshTokenHash,
+      expiresAt:  this.jwtService.refreshTokenExpiresAt(),
+      deviceInfo: req.deviceInfo,
+      ipAddress:  req.ipAddress,
+    });
 
-      await this.authRepository.updatePassword(payload.sub, data.new_password);
-      await this.authRepository.revokeAllTokens(payload.sub);
+    this.logger.log(`Login exitoso: ${user.userId}`);
+
+    return {
+      accessToken,
+      expiresIn,
+      refreshToken, // el gateway lo pone en cookie HttpOnly
+      user: {
+        userId: user.userId,
+        email:  user.email,
+        role:   user.role,
+      },
+      profiles:        summary?.profiles ?? [],
+      activeProfileId: null,
+    };
+  }
+
+  // ─────────────────────────────────────────────
+  //  REFRESH TOKEN
+  // ─────────────────────────────────────────────
+  async refreshToken(rawToken: string): Promise<{
+    accessToken: string;
+    expiresIn: number;
+    activeProfileId: string | null;
+  }> {
+    const tokenHash = this.jwtService.hashToken(rawToken);
+
+    const stored = await this.authRepository.findActiveRefreshToken(tokenHash);
+    if (!stored || stored.expiresAt < new Date()) {
+      throw new UnauthorizedException('Refresh token inválido o expirado.');
+    }
+
+    const user = await this.authRepository.findById(stored.userId);
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Usuario no disponible.');
+    }
+
+    // Rotación: invalidar el token actual y emitir uno nuevo
+    await this.authRepository.revokeRefreshToken(tokenHash);
+
+    const { accessToken, refreshToken: newRaw, refreshTokenHash, expiresIn } =
+      this.jwtService.issueTokenPair({
+        sub:             user.userId,
+        email:           user.email,
+        role:            user.role,
+        tokenVersion:    user.tokenVersion,
+        activeProfileId: null, // el perfil activo lo refresca el frontend llamando a /perfil/select
+      });
+
+    await this.authRepository.saveRefreshToken({
+      userId:    user.userId,
+      tokenHash: refreshTokenHash,
+      expiresAt: this.jwtService.refreshTokenExpiresAt(),
+      ipAddress: stored.ipAddress ?? undefined,
+    });
+
+    return { accessToken, expiresIn, activeProfileId: null };
+  }
+
+  // ─────────────────────────────────────────────
+  //  LOGOUT (sesión individual)
+  // ─────────────────────────────────────────────
+  async logout(rawToken: string): Promise<{ message: string }> {
+    const tokenHash = this.jwtService.hashToken(rawToken);
+    await this.authRepository.revokeRefreshToken(tokenHash);
+    return { message: 'Sesión cerrada.' };
+  }
+
+  // ─────────────────────────────────────────────
+  //  LOGOUT GLOBAL (todos los dispositivos)
+  // ─────────────────────────────────────────────
+  async logoutAll(userId: string): Promise<{ message: string }> {
+    // sp_revoke_all_tokens hace UPDATE + audit_log en una sola tx
+    await this.authRepository.revokeAllTokens(userId);
+    // Incrementar token_version invalida todos los JWT emitidos hasta ahora
+    await this.authRepository.incrementTokenVersion(userId);
+    return { message: 'Todas las sesiones cerradas.' };
+  }
+
+  // ─────────────────────────────────────────────
+  //  FORGOT PASSWORD
+  // ─────────────────────────────────────────────
+  async forgotPassword(
+    req: ForgotPasswordRequest,
+  ): Promise<ForgotPasswordResponse> {
+    // Respuesta siempre igual para no revelar si el email existe
+    const SAFE_RESPONSE = {
+      message: 'Si el correo está registrado, recibirás las instrucciones.',
+    };
+
+    const user = await this.authRepository.findByEmail(req.email);
+    if (!user) return SAFE_RESPONSE;
+
+    // Invalidar tokens anteriores para evitar múltiples válidos
+    await this.authRepository.invalidatePreviousVerificationTokens(user.userId);
+
+    const { raw, hash } = this.jwtService.generateVerificationToken();
+    await this.authRepository.saveVerificationToken({
+      userId:    user.userId,
+      tokenHash: hash,
+      expiresAt: this.jwtService.verificationTokenExpiresAt(),
+    });
+
+    // ── INTEGRACIÓN FUTURA — Notification Service ────────────────
+    // try {
+    //   await this.notificationClient.sendPasswordReset({
+    //     userId:    user.userId,
+    //     email:     user.email,
+    //     resetToken: raw,          // el svc construye la URL con este token
+    //     expiresIn: 86400,         // 24 horas
+    //   });
+    // } catch (err) {
+    //   this.logger.error(`Error enviando email de reset: ${err.message}`);
+    // }
+    //
+    // Por ahora: loguear el token raw para desarrollo local.
+    // REMOVER en producción.
+    this.logger.debug(`[DEV] Token de reset para ${user.email}: ${raw}`);
+    // ────────────────────────────────────────────────────────────
+
+    return SAFE_RESPONSE;
+  }
+
+  // ─────────────────────────────────────────────
+  //  RESET PASSWORD
+  // ─────────────────────────────────────────────
+  async resetPassword(req: ResetPasswordRequest): Promise<ResetPasswordResponse> {
+    const tokenHash = this.jwtService.hashToken(req.token);
+
+    const vt = await this.authRepository.findValidVerificationToken(tokenHash);
+    if (!vt) {
+      throw new BadRequestException('Token inválido o expirado.');
+    }
+
+    // La función fn_verify_password de la DB hashea con pgcrypto.
+    // Aquí necesitamos pasar la contraseña en plano para que updatePassword
+    // la hashee via la función de la DB.
+    // NOTA: updatePassword llama directamente a un UPDATE de TypeORM,
+    // pero la password ya hasheda es responsabilidad del SP.
+    // Hacemos el hash aquí usando la función de la DB para consistencia:
+    const user = await this.authRepository.findById(vt.userId);
+    if (!user) throw new NotFoundException('Usuario no encontrado.');
+
+    // Actualizar password — el trigger trg_audit_password_change registra el evento
+    // El hash se genera usando pgcrypto en la DB directamente
+    await this.authRepository.dataSourceQuery(
+      `UPDATE auth.users SET password_hash = crypt($1, gen_salt('bf', 12)) WHERE user_id = $2`,
+      [req.newPassword, user.userId],
+    );
+
+    // Marcar token como usado
+    await this.authRepository.markVerificationTokenUsed(tokenHash);
+
+    // Revocar todas las sesiones activas (buena práctica tras reset de contraseña)
+    await this.authRepository.revokeAllTokens(user.userId);
+
+    return { message: 'Contraseña actualizada correctamente.' };
+  }
+
+  // ─────────────────────────────────────────────
+  //  VALIDAR TOKEN  (usado por otros micros vía gRPC)
+  // ─────────────────────────────────────────────
+  validateToken(req: ValidateTokenRequest): ValidateTokenResponse {
+    try {
+      const payload = this.jwtService.verifyAccessToken(req.accessToken);
 
       return {
-        success: true,
+        valid:           true,
+        userId:          payload.sub,
+        email:           payload.email,
+        role:            payload.role,
+        activeProfileId: payload.activeProfileId,
       };
-    } catch (error) {
-      throw new UnauthorizedException('Token de recuperación inválido o expirado.');
+    } catch {
+      return {
+        valid:           false,
+        userId:          '',
+        email:           '',
+        role:            '',
+        activeProfileId: null,
+      };
     }
-  }
-
-  /**
-   * Crea perfil adicional.
-   * La BD se encarga de impedir más de 5 mediante trigger.
-   */
-  async createProfile(data: { user_id: string; name: string }) {
-    if (!data.user_id || !data.name) {
-      throw new BadRequestException('user_id y name son obligatorios.');
-    }
-
-    const profile = await this.authRepository.createProfile(data.user_id, data.name);
-
-    return {
-      profile_id: profile.profile_id,
-    };
-  }
-
-  /**
-   * Devuelve todos los perfiles del usuario.
-   */
-  async getProfiles(data: { user_id: string }) {
-    const profiles = await this.authRepository.getProfiles(data.user_id);
-
-    return {
-      profiles: profiles.map((profile) => ({
-        id: profile.profile_id,
-        name: profile.display_name,
-      })),
-    };
   }
 }

@@ -1,69 +1,67 @@
+// src/auth/auth.controller.ts
+
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
+import type {
+  RegisterRequest,
+  LoginRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  ValidateTokenRequest,
+} from './auth.contract';
 
+// El nombre del servicio debe coincidir exactamente con auth.proto → service AuthService
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // =========================
-  // AUTH
-  // =========================
+  // ─────────────────────────────────────────────
+  //  Mapeado al proto: AuthService.ValidateToken
+  //  Usado por API Gateway y otros microservicios
+  // ─────────────────────────────────────────────
+  @GrpcMethod('AuthService', 'ValidateToken')
+  validateToken(data: ValidateTokenRequest) {
+    return this.authService.validateToken(data);
+  }
+
+  // ─────────────────────────────────────────────
+  //  Métodos internos — llamados desde el API Gateway
+  //  (el gateway los expone como HTTP REST al frontend)
+  // ─────────────────────────────────────────────
 
   @GrpcMethod('AuthService', 'Register')
-  register(data: { email: string; password: string }) {
+  register(data: RegisterRequest) {
     return this.authService.register(data);
   }
 
   @GrpcMethod('AuthService', 'Login')
-  login(data: { email: string; password: string }) {
+  login(data: LoginRequest) {
     return this.authService.login(data);
   }
 
-  @GrpcMethod('AuthService', 'ValidateToken')
-  validateToken(data: { access_token: string }) {
-    return this.authService.validateToken(data);
+  @GrpcMethod('AuthService', 'RefreshToken')
+  async refreshToken(data: { refreshToken: string }) {
+    return this.authService.refreshToken(data.refreshToken);
   }
 
   @GrpcMethod('AuthService', 'Logout')
-  logout(data: { user_id: string }) {
-    return this.authService.logout(data);
+  async logout(data: { refreshToken: string }) {
+    return this.authService.logout(data.refreshToken);
   }
 
-  // =========================
-  // PASSWORD
-  // =========================
-
-  @GrpcMethod('AuthService', 'ChangePassword')
-  changePassword(data: {
-    user_id: string;
-    old_password: string;
-    new_password: string;
-  }) {
-    return this.authService.changePassword(data);
+  @GrpcMethod('AuthService', 'LogoutAll')
+  async logoutAll(data: { userId: string }) {
+    return this.authService.logoutAll(data.userId);
   }
 
-  @GrpcMethod('AuthService', 'RequestPasswordReset')
-  requestPasswordReset(data: { email: string }) {
-    return this.authService.requestPasswordReset(data);
+  @GrpcMethod('AuthService', 'ForgotPassword')
+  forgotPassword(data: ForgotPasswordRequest) {
+    return this.authService.forgotPassword(data);
   }
 
   @GrpcMethod('AuthService', 'ResetPassword')
-  resetPassword(data: { token: string; new_password: string }) {
+  resetPassword(data: ResetPasswordRequest) {
     return this.authService.resetPassword(data);
-  }
-
-  // =========================
-  // PROFILES
-  // =========================
-
-  @GrpcMethod('AuthService', 'CreateProfile')
-  createProfile(data: { user_id: string; name: string }) {
-    return this.authService.createProfile(data);
-  }
-
-  @GrpcMethod('AuthService', 'GetProfiles')
-  getProfiles(data: { user_id: string }) {
-    return this.authService.getProfiles(data);
   }
 }

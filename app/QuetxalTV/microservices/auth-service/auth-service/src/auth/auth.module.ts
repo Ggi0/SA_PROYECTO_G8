@@ -1,23 +1,22 @@
+// src/auth/auth.module.ts
+
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthRepository } from './auth.repository';
+import { User } from './entities/user.entity';
+import { RefreshToken } from './entities/refresh-token.entity';
+import { VerificationToken } from './entities/verification-token.entity';
+import { JwtModule } from '../JWT/jwt.module';
 
 @Module({
   imports: [
-    // Configuración del módulo JWT
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_ACCESS_SECRET') ?? 'defaultSecret',
-        signOptions: {
-          expiresIn: parseInt(configService.get<string>('JWT_ACCESS_EXPIRES_IN') ?? '900', 10),        },
-      }),
-    }),
+    TypeOrmModule.forFeature([User, RefreshToken, VerificationToken]),
+    JwtModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthRepository],
+  exports: [AuthService],
 })
 export class AuthModule {}

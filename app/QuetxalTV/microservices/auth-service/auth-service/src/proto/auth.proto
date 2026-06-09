@@ -2,132 +2,115 @@ syntax = "proto3";
 
 package auth;
 
+// ─────────────────────────────────────────────
+//  AUTH SERVICE  (expuesto para otros micros)
+// ─────────────────────────────────────────────
+
 service AuthService {
+  // Verificar un access token y devolver el payload
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
 
-  rpc Register(RegisterRequest)
-      returns (RegisterResponse);
+  // Renovar access token a partir de un refresh token
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
 
-  rpc Login(LoginRequest)
-      returns (LoginResponse);
-
-  rpc ValidateToken(ValidateTokenRequest)
-      returns (ValidateTokenResponse);
-
-  rpc Logout(LogoutRequest)
-      returns (LogoutResponse);
-
-  rpc ChangePassword(ChangePasswordRequest)
-      returns (ChangePasswordResponse);
-
-  rpc RequestPasswordReset(RequestPasswordResetRequest)
-      returns (RequestPasswordResetResponse);
-
-  rpc ResetPassword(ResetPasswordRequest)
-      returns (ResetPasswordResponse);
-
-  rpc CreateProfile(CreateProfileRequest)
-      returns (CreateProfileResponse);
-
-  rpc GetProfiles(GetProfilesRequest)
-      returns (GetProfilesResponse);
-
+  // Obtener datos básicos del usuario por ID
+  rpc GetUserById (GetUserByIdRequest) returns (UserResponse);
 }
 
-//////////////////////////////////////////////////////
-// AUTH
-//////////////////////////////////////////////////////
-
-message RegisterRequest {
-  string email = 1;
-  string password = 2;
-}
-
-message RegisterResponse {
-  string user_id = 1;
-  string access_token = 2;
-  string refresh_token = 3;
-}
-
-message LoginRequest {
-  string email = 1;
-  string password = 2;
-}
-
-message LoginResponse {
-  string access_token = 1;
-  string refresh_token = 2;
-}
+// ─────────────────────────────────────────────
+//  MENSAJES — TOKEN
+// ─────────────────────────────────────────────
 
 message ValidateTokenRequest {
   string access_token = 1;
 }
 
 message ValidateTokenResponse {
-  string user_id = 1;
-  bool valid = 2;
+  bool   valid             = 1;
+  string user_id           = 2;
+  string email             = 3;
+  string role              = 4;
+  string active_profile_id = 5;  // vacío si no hay perfil activo
 }
 
-message LogoutRequest {
-  string user_id = 1;
+message RefreshTokenRequest {
+  string refresh_token = 1;
 }
 
-message LogoutResponse {
-  bool success = 1;
+message RefreshTokenResponse {
+  string access_token      = 1;
+  int32  expires_in        = 2;   // segundos
+  string active_profile_id = 3;
 }
 
-//////////////////////////////////////////////////////
-// PASSWORD
-//////////////////////////////////////////////////////
+// ─────────────────────────────────────────────
+//  MENSAJES — USUARIO
+// ─────────────────────────────────────────────
 
-message ChangePasswordRequest {
-  string user_id = 1;
-  string old_password = 2;
-  string new_password = 3;
-}
-
-message ChangePasswordResponse {
-  bool success = 1;
-}
-
-message RequestPasswordResetRequest {
-  string email = 1;
-}
-
-message RequestPasswordResetResponse {
-  bool success = 1;
-}
-
-message ResetPasswordRequest {
-  string token = 1;
-  string new_password = 2;
-}
-
-message ResetPasswordResponse {
-  bool success = 1;
-}
-
-//////////////////////////////////////////////////////
-// PROFILES
-//////////////////////////////////////////////////////
-
-message CreateProfileRequest {
-  string user_id = 1;
-  string name = 2;
-}
-
-message CreateProfileResponse {
-  string profile_id = 1;
-}
-
-message GetProfilesRequest {
+message GetUserByIdRequest {
   string user_id = 1;
 }
 
-message Profile {
-  string id = 1;
-  string name = 2;
+message UserResponse {
+  string user_id   = 1;
+  string email     = 2;
+  string role      = 3;
+  bool   is_active = 4;
 }
 
-message GetProfilesResponse {
-  repeated Profile profiles = 1;
-}
+// ─────────────────────────────────────────────
+//  NOTIFICATION SERVICE  (futuro — cliente)
+// ─────────────────────────────────────────────
+//
+//  El Auth Service invocará estos métodos cuando el
+//  Notification Service esté implementado.
+//  Por ahora quedan como referencia de contrato.
+//
+//  service NotificationService {
+//    rpc SendWelcomeEmail    (WelcomeEmailRequest)     returns (NotificationAck);
+//    rpc SendPasswordReset   (PasswordResetRequest)    returns (NotificationAck);
+//    rpc SendSecurityAlert   (SecurityAlertRequest)    returns (NotificationAck);
+//  }
+//
+//  message WelcomeEmailRequest {
+//    string user_id      = 1;
+//    string email        = 2;
+//    string display_name = 3;
+//  }
+//
+//  message PasswordResetRequest {
+//    string user_id     = 1;
+//    string email       = 2;
+//    string reset_token = 3;   // token en texto plano (el svc lo usa para construir la URL)
+//    int32  expires_in  = 4;   // segundos hasta expiración
+//  }
+//
+//  message SecurityAlertRequest {
+//    string user_id    = 1;
+//    string email      = 2;
+//    string event_type = 3;    // 'PASSWORD_CHANGE', 'NEW_DEVICE', etc.
+//    string ip_address = 4;
+//  }
+//
+//  message NotificationAck {
+//    bool   sent       = 1;
+//    string message_id = 2;
+//  }
+
+// ─────────────────────────────────────────────
+//  SUBSCRIPTION SERVICE  (futuro — cliente)
+// ─────────────────────────────────────────────
+//
+//  service SubscriptionService {
+//    rpc CreateTrialSubscription (TrialSubscriptionRequest) returns (SubscriptionAck);
+//  }
+//
+//  message TrialSubscriptionRequest {
+//    string user_id = 1;
+//    string email   = 2;
+//  }
+//
+//  message SubscriptionAck {
+//    bool   created         = 1;
+//    string subscription_id = 2;
+//  }
