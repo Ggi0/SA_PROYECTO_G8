@@ -30,7 +30,7 @@ export default function LoginPage() {
         {
           id: data.user.userId,
           email: data.user.email,
-          name: '',
+          name: 'Mi perfil',
           subscriptionPlan: null,
         },
         data.accessToken,
