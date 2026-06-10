@@ -4,15 +4,12 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from grpc import aio
 from src.grpc import fx_pb2, fx_pb2_grpc
 from src.services.fx_service import fx_service
 
-# ─── Implementación del servidor gRPC ───────────────────
-class FxServiceServicer(fx_pb2_grpc.FxServiceServicer):
+class FXServiceServicer(fx_pb2_grpc.FxServiceServicer):
 
     async def GetExchangeRate(self, request, context):
-        """Obtiene el tipo de cambio para una divisa."""
         try:
             result = await fx_service.get_exchange_rate(
                 currency=request.target_currency,
@@ -35,7 +32,6 @@ class FxServiceServicer(fx_pb2_grpc.FxServiceServicer):
             )
 
     async def GetAllRates(self, request, context):
-        """Obtiene todos los tipos de cambio disponibles."""
         try:
             rates = await fx_service.get_all_rates(
                 requested_by=request.requested_by
@@ -61,7 +57,6 @@ class FxServiceServicer(fx_pb2_grpc.FxServiceServicer):
             )
 
     async def ConvertAmount(self, request, context):
-        """Convierte un monto de USD a otra divisa."""
         try:
             result = await fx_service.convert_amount(
                 amount=request.amount,

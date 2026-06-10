@@ -64,9 +64,9 @@ export class AuthGatewayService implements OnModuleInit {
 
 register(data: { email: string; password: string; display_name: string }) {
   const payload = {
-    email:       data.email,
-    password:    data.password,
-    displayName: data.display_name,  // ← camelCase, no snake_case
+    email:        data.email,
+    password:     data.password,
+    display_name: data.display_name,  // ← snake_case, igual que el proto
   };
   
   console.log('GRPC PAYLOAD=', payload);
