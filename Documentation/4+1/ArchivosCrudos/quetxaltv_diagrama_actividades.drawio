@@ -1,0 +1,903 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="3400" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- ══════════ TÍTULO ══════════ -->
+    <mxCell id="title" value="Diagrama de Actividades — Quetxal TV&#xa;CDU-001 · CDU-002 · CDU-003 · CDU-004 · CDU-005 · CDU-006 · CDU-007 · CDU-008" style="text;html=1;strokeColor=none;fillColor=#1A2C4A;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="2400" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════
+         SWIMLANE CDU-001: AUTENTICACIÓN
+    ══════════════════════════════════════════════ -->
+    <mxCell id="sw001" value="CDU-001: Autenticación y Gestión de Usuarios" style="swimlane;startSize=30;fillColor=#EBF5FB;strokeColor=#2980B9;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1A2C4A;" vertex="1" parent="1">
+      <mxGeometry x="10" y="60" width="1150" height="1100" as="geometry"/>
+    </mxCell>
+
+    <!-- Inicio CDU-001 -->
+    <mxCell id="s001" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#1A2C4A;" vertex="1" parent="sw001">
+      <mxGeometry x="550" y="40" width="30" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- D1: ¿Tipo de acción? -->
+    <mxCell id="d001_tipo" value="¿Acción de&#xa;usuario?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="495" y="90" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_s001_d001" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="s001" target="d001_tipo" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ── REGISTRO (CDU001.1) ── -->
+    <mxCell id="a001_reg_form" value="Mostrar formulario&#xa;de registro" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="40" y="200" width="160" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_d001_reg" value="Registrarse" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontStyle=2;" edge="1" source="d001_tipo" target="a001_reg_form" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_campos" value="Usuario ingresa:&#xa;nombre, email, password,&#xa;confirmar password" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="40" y="260" width="160" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_reg_campos" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_reg_form" target="a001_campos" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d001_campos_ok" value="¿Campos&#xa;completos?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="50" y="330" width="120" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_campos_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_campos" target="d001_campos_ok" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_err_campos" value="Resaltar campos&#xa;en rojo&#xa;'Todos son obligatorios'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=8;" vertex="1" parent="sw001">
+      <mxGeometry x="180" y="330" width="130" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_campos_err" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d001_campos_ok" target="a001_err_campos" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_campos_err_back" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_err_campos" target="a001_campos" parent="sw001">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="310" y="280"/>
+          <mxPoint x="120" y="280"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="d001_pass_match" value="¿Passwords&#xa;coinciden?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="50" y="400" width="120" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_campos_pass" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d001_campos_ok" target="d001_pass_match" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_err_pass" value="'Las contraseñas&#xa;no coinciden'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=8;" vertex="1" parent="sw001">
+      <mxGeometry x="180" y="400" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_pass_err" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d001_pass_match" target="a001_err_pass" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_check_email" value="Verificar unicidad&#xa;de email en users_db" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="50" y="470" width="160" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_pass_email" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d001_pass_match" target="a001_check_email" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d001_email_unico" value="¿Email&#xa;único?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="65" y="530" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_check_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_check_email" target="d001_email_unico" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_err_email" value="'Este correo&#xa;ya está en uso'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=8;" vertex="1" parent="sw001">
+      <mxGeometry x="180" y="530" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_email_err" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d001_email_unico" target="a001_err_email" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_bcrypt" value="bcrypt.hash(password)&#xa;factor ≥ 12" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="55" y="600" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_email_bcrypt" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d001_email_unico" target="a001_bcrypt" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_save_user" value="sp_register_user()&#xa;INSERT users_db" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="55" y="660" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_bcrypt_save" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_bcrypt" target="a001_save_user" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_notif_reg" value="gRPC SendRegistrationEmail()&#xa;→ Notification Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8DC;strokeColor=#C8A020;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="55" y="720" width="160" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_save_notif" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_save_user" target="a001_notif_reg" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_redirect_reg" value="Redirigir a login&#xa;+ mensaje de éxito" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="55" y="780" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_notif_redirect" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_notif_reg" target="a001_redirect_reg" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ── LOGIN (CDU001.2) ── -->
+    <mxCell id="a001_login_form" value="Mostrar formulario&#xa;de login" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="360" y="200" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_d001_login" value="Iniciar sesión" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontStyle=2;" edge="1" source="d001_tipo" target="a001_login_form" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d001_oauth" value="¿Login&#xa;OAuth?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="375" y="260" width="110" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_login_oauth_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_login_form" target="d001_oauth" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- OAuth branch -->
+    <mxCell id="a001_oauth_redirect" value="Redirigir a&#xa;Google OAuth 2.0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="500" y="260" width="140" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_oauth_sí" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d001_oauth" target="a001_oauth_redirect" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_oauth_callback" value="Recibir callback&#xa;+ authorization_code" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="500" y="320" width="140" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_oauth_cb" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_oauth_redirect" target="a001_oauth_callback" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_oauth_upsert" value="INSERT ... ON CONFLICT&#xa;UPDATE users_db (upsert)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D32F2F;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="500" y="375" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_cb_upsert" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_oauth_callback" target="a001_oauth_upsert" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Login normal branch -->
+    <mxCell id="a001_creds" value="Ingresar email&#xa;y contraseña" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="360" y="330" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_oauth_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d001_oauth" target="a001_creds" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_check_attempts" value="Verificar contador&#xa;intentos en Redis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="360" y="390" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_creds_attempts" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_creds" target="a001_check_attempts" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d001_bloqueado" value="¿Cuenta&#xa;bloqueada?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="368" y="450" width="115" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_attempts_bloqueo" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_check_attempts" target="d001_bloqueado" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_err_bloqueado" value="'Cuenta bloqueada&#xa;15 min por intentos'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=8;" vertex="1" parent="sw001">
+      <mxGeometry x="500" y="455" width="140" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_bloqueo_err" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d001_bloqueado" target="a001_err_bloqueado" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_bcrypt_verify" value="bcrypt.compare()&#xa;password vs hash" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="365" y="520" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_bloqueo_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d001_bloqueado" target="a001_bcrypt_verify" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d001_creds_ok" value="¿Credenciales&#xa;válidas?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="372" y="578" width="115" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_bcrypt_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_bcrypt_verify" target="d001_creds_ok" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_inc_attempts" value="Redis: INCR intentos&#xa;TTL 15min&#xa;Notificar intentos restantes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=8;" vertex="1" parent="sw001">
+      <mxGeometry x="500" y="578" width="150" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_creds_incr" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d001_creds_ok" target="a001_inc_attempts" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- JWT sign — join de login normal + oauth -->
+    <mxCell id="a001_jwt_sign" value="jsonwebtoken.sign()&#xa;{ userId, email, exp: 1h }" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="365" y="650" width="160" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_creds_jwt" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d001_creds_ok" target="a001_jwt_sign" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_upsert_jwt" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_oauth_upsert" target="a001_jwt_sign" parent="sw001">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="575" y="430"/>
+          <mxPoint x="575" y="635"/>
+          <mxPoint x="445" y="635"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="a001_set_cookie" value="Set-Cookie: JWT&#xa;HttpOnly · Secure · SameSite=Strict" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="355" y="710" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_jwt_cookie" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_jwt_sign" target="a001_set_cookie" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_reset_attempts" value="Redis: DEL intentos&#xa;(reset contador)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="355" y="770" width="160" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_cookie_reset" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_set_cookie" target="a001_reset_attempts" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_redirect_profiles" value="Redirigir a selector&#xa;de perfiles" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="365" y="830" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_reset_profiles" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_reset_attempts" target="a001_redirect_profiles" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ── CAMBIO DE CONTRASEÑA (CDU001.6) ── -->
+    <mxCell id="a001_cambio_form" value="Formulario cambio&#xa;de contraseña" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="700" y="200" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_d001_cambio" value="Cambiar contraseña" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontStyle=2;" edge="1" source="d001_tipo" target="a001_cambio_form" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_verify_old" value="Verificar contraseña&#xa;actual con bcrypt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="700" y="260" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_cambio_verify" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_cambio_form" target="a001_verify_old" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d001_old_ok" value="¿Contraseña&#xa;actual OK?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="710" y="318" width="120" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_verify_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_verify_old" target="d001_old_ok" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_err_old_pass" value="'Contraseña actual&#xa;incorrecta'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=8;" vertex="1" parent="sw001">
+      <mxGeometry x="850" y="318" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_old_err" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d001_old_ok" target="a001_err_old_pass" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d001_new_req" value="¿Nueva pass&#xa;cumple requisitos?&#xa;(8 chars, mayús, num)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="700" y="385" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_old_ok" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d001_old_ok" target="d001_new_req" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_bcrypt_new" value="bcrypt.hash(newPass)&#xa;factor ≥ 12" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="710" y="468" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_req_ok" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d001_new_req" target="a001_bcrypt_new" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_update_pass" value="UPDATE users_db&#xa;SET passwordHash=$1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="710" y="528" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_bcrypt_update" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_bcrypt_new" target="a001_update_pass" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_trigger_audit" value="trg_audit_credentials&#xa;dispara automáticamente&#xa;(registra cambio en log)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="700" y="590" width="150" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_update_trigger" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_update_pass" target="a001_trigger_audit" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_invalidar_sesiones" value="Invalidar todas las&#xa;sesiones activas&#xa;(Redis blacklist)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="710" y="660" width="130" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_trigger_inv" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_trigger_audit" target="a001_invalidar_sesiones" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_pass_ok_msg" value="'Contraseña actualizada'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="710" y="730" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_inv_ok" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_invalidar_sesiones" target="a001_pass_ok_msg" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ── CERRAR SESIÓN (CDU001.3) ── -->
+    <mxCell id="a001_logout" value="Seleccionar&#xa;'Cerrar sesión'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="950" y="200" width="140" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_d001_logout" value="Cerrar sesión" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontStyle=2;" edge="1" source="d001_tipo" target="a001_logout" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_blacklist" value="Redis: añadir JWT&#xa;a blacklist (TTL=exp)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;fontStyle=1;" vertex="1" parent="sw001">
+      <mxGeometry x="950" y="260" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_logout_bl" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_logout" target="a001_blacklist" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_del_cookie" value="Eliminar Session Cookie&#xa;(expiración en pasado)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2980B9;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="950" y="320" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_bl_cookie" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_blacklist" target="a001_del_cookie" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a001_redirect_home" value="Redirigir a inicio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw001">
+      <mxGeometry x="965" y="380" width="120" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_cookie_home" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_del_cookie" target="a001_redirect_home" parent="sw001">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Fin CDU-001 -->
+    <mxCell id="end001" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#F4F6F9;strokeWidth=4;" vertex="1" parent="sw001">
+      <mxGeometry x="548" y="1040" width="30" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_reg_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_redirect_reg" target="end001" parent="sw001">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="130" y="1020"/><mxPoint x="563" y="1020"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_login_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_redirect_profiles" target="end001" parent="sw001">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="440" y="1020"/><mxPoint x="563" y="1020"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_pass_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_pass_ok_msg" target="end001" parent="sw001">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="775" y="1020"/><mxPoint x="563" y="1020"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_logout_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a001_redirect_home" target="end001" parent="sw001">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1025" y="1020"/><mxPoint x="563" y="1020"/></Array></mxGeometry>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════
+         SWIMLANE CDU-002: GESTIÓN DE PERFILES
+    ══════════════════════════════════════════════ -->
+    <mxCell id="sw002" value="CDU-002: Gestión de Perfiles" style="swimlane;startSize=30;fillColor=#E8F8F5;strokeColor=#1A7A4A;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1A2C4A;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1180" width="700" height="520" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="s002" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#1A2C4A;" vertex="1" parent="sw002">
+      <mxGeometry x="330" y="40" width="30" height="30" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d002_accion" value="¿Acción&#xa;de perfil?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;fontStyle=1;" vertex="1" parent="sw002">
+      <mxGeometry x="285" y="88" width="120" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_s002_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="s002" target="d002_accion" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Crear perfil -->
+    <mxCell id="a002_check_limit" value="Verificar cantidad&#xa;de perfiles (&lt; 5)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A7A4A;fontSize=9;fontStyle=1;" vertex="1" parent="sw002">
+      <mxGeometry x="60" y="190" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_d002_crear" value="Crear" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontStyle=2;" edge="1" source="d002_accion" target="a002_check_limit" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d002_limite" value="¿Menos de&#xa;5 perfiles?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw002">
+      <mxGeometry x="70" y="248" width="120" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_check_d002" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_check_limit" target="d002_limite" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a002_err_limite" value="'Límite de 5&#xa;perfiles alcanzado'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=8;" vertex="1" parent="sw002">
+      <mxGeometry x="200" y="252" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_limite_err" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d002_limite" target="a002_err_limite" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a002_form_perfil" value="Mostrar formulario&#xa;nombre + avatar" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A7A4A;fontSize=9;" vertex="1" parent="sw002">
+      <mxGeometry x="65" y="318" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_limite_form" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d002_limite" target="a002_form_perfil" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a002_save_perfil" value="INSERT profiles&#xa;(nombre, avatar, userId)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw002">
+      <mxGeometry x="65" y="378" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_form_save" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_form_perfil" target="a002_save_perfil" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Seleccionar perfil -->
+    <mxCell id="a002_list_perfiles" value="Listar perfiles&#xa;de la cuenta" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A7A4A;fontSize=9;fontStyle=1;" vertex="1" parent="sw002">
+      <mxGeometry x="280" y="190" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_d002_select" value="Seleccionar" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontStyle=2;" edge="1" source="d002_accion" target="a002_list_perfiles" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a002_set_active" value="SET profile_id activo&#xa;en sesión JWT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A7A4A;fontSize=9;" vertex="1" parent="sw002">
+      <mxGeometry x="278" y="250" width="135" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_list_set" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_list_perfiles" target="a002_set_active" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a002_home_perfil" value="Ir a catálogo&#xa;con perfil activo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw002">
+      <mxGeometry x="278" y="310" width="135" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_set_home" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_set_active" target="a002_home_perfil" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Eliminar perfil -->
+    <mxCell id="a002_confirm_del" value="Confirmar eliminación&#xa;de perfil" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1A7A4A;fontSize=9;fontStyle=1;" vertex="1" parent="sw002">
+      <mxGeometry x="490" y="190" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_d002_del" value="Eliminar" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontStyle=2;" edge="1" source="d002_accion" target="a002_confirm_del" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a002_delete_db" value="DELETE profiles&#xa;+ historial asociado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw002">
+      <mxGeometry x="490" y="250" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_confirm_del" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_confirm_del" target="a002_delete_db" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a002_del_ok" value="'Perfil eliminado'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw002">
+      <mxGeometry x="490" y="310" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_del_ok" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_delete_db" target="a002_del_ok" parent="sw002">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="end002" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#F4F6F9;strokeWidth=4;" vertex="1" parent="sw002">
+      <mxGeometry x="328" y="460" width="30" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_create_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_save_perfil" target="end002" parent="sw002">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="140" y="450"/><mxPoint x="343" y="450"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_select_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_home_perfil" target="end002" parent="sw002">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="345" y="450"/><mxPoint x="343" y="450"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_del_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a002_del_ok" target="end002" parent="sw002">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="565" y="450"/><mxPoint x="343" y="450"/></Array></mxGeometry>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════
+         SWIMLANE CDU-003: PLANES Y SUSCRIPCIONES
+    ══════════════════════════════════════════════ -->
+    <mxCell id="sw003" value="CDU-003: Gestión de Planes y Suscripciones + CDU-006: FX-Service" style="swimlane;startSize=30;fillColor=#FEF9E7;strokeColor=#D4AC0D;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1A2C4A;" vertex="1" parent="1">
+      <mxGeometry x="730" y="1180" width="820" height="700" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="s003" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#1A2C4A;" vertex="1" parent="sw003">
+      <mxGeometry x="385" y="40" width="30" height="30" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_ver_planes" value="Usuario accede a&#xa;sección de planes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D4AC0D;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="330" y="90" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_s003_ver" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="s003" target="a003_ver_planes" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_sub_grpc" value="gRPC GetPlans()&#xa;subscription.proto :50053" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D4AC0D;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="330" y="150" width="155" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_ver_grpc" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_ver_planes" target="a003_sub_grpc" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_lee_usd" value="Lee planes en USD&#xa;desde subscription_db" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="330" y="210" width="155" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_grpc_usd" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_sub_grpc" target="a003_lee_usd" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_fx_grpc" value="gRPC GetExchangeRate(USD, GTQ)&#xa;fx.proto → FX Service :50055" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D4AC0D;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="320" y="270" width="175" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_usd_fx" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_lee_usd" target="a003_fx_grpc" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Cache-Aside Redis -->
+    <mxCell id="a003_redis_check" value="FX Service: buscar&#xa;fx:USD:GTQ en Redis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8DC;strokeColor=#C8A020;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="565" y="270" width="160" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_fx_redis" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_fx_grpc" target="a003_redis_check" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d003_cache_hit" value="¿Cache&#xa;Hit?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8DC;strokeColor=#C8A020;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="583" y="328" width="110" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_redis_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_redis_check" target="d003_cache_hit" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_cache_hit_resp" value="Retorna tipo de cambio&#xa;~1ms (TTL vigente)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw003">
+      <mxGeometry x="700" y="328" width="150" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_hit_resp" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d003_cache_hit" target="a003_cache_hit_resp" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_ext_api" value="HTTP → ExchangeRate&#xa;API externa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#555555;fontSize=9;" vertex="1" parent="sw003">
+      <mxGeometry x="565" y="400" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_miss_ext" value="NO (miss)" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d003_cache_hit" target="a003_ext_api" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_save_redis" value="Guardar en Redis&#xa;TTL = 30 min&#xa;key: fx:USD:GTQ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8DC;strokeColor=#C8A020;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="565" y="460" width="150" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_ext_save" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_ext_api" target="a003_save_redis" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Join hit/miss -->
+    <mxCell id="a003_precio_local" value="precio_GTQ = precio_USD&#xa;× tipo_cambio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D4AC0D;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="330" y="540" width="155" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_hit_precio" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_cache_hit_resp" target="a003_precio_local" parent="sw003">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="775" y="530"/><mxPoint x="408" y="530"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_miss_precio" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_save_redis" target="a003_precio_local" parent="sw003">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="640" y="530"/><mxPoint x="408" y="530"/></Array></mxGeometry>
+    </mxCell>
+
+    <mxCell id="a003_mostrar_planes" value="Mostrar planes en GTQ&#xa;Básico · Estándar · Premium" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D4AC0D;fontSize=9;" vertex="1" parent="sw003">
+      <mxGeometry x="330" y="600" width="155" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_precio_mostrar" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_precio_local" target="a003_mostrar_planes" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_seleccionar" value="Usuario selecciona plan&#xa;+ POST /subscribe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D4AC0D;fontSize=9;" vertex="1" parent="sw003">
+      <mxGeometry x="330" y="656" width="155" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_mostrar_sel" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_mostrar_planes" target="a003_seleccionar" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_sp" value="sp_process_subscription()&#xa;Transacción atómica:&#xa;pago + activar plan · COMMIT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw003">
+      <mxGeometry x="317" y="714" width="180" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_sel_sp" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_seleccionar" target="a003_sp" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d003_pago_ok" value="¿Transacción&#xa;exitosa?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw003">
+      <mxGeometry x="335" y="782" width="145" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_sp_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_sp" target="d003_pago_ok" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_err_pago" value="ROLLBACK&#xa;'Pago rechazado'&#xa;→ 402" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;" vertex="1" parent="sw003">
+      <mxGeometry x="500" y="782" width="130" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_pago_err" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d003_pago_ok" target="a003_err_pago" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_notif_recibo" value="gRPC SendReceiptEmail()&#xa;notification.proto" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8DC;strokeColor=#C8A020;fontSize=9;" vertex="1" parent="sw003">
+      <mxGeometry x="160" y="782" width="155" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_pago_notif" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d003_pago_ok" target="a003_notif_recibo" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a003_ok_msg" value="'Suscripción activa&#xa;¡Bienvenido!'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw003">
+      <mxGeometry x="175" y="852" width="130" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_notif_ok" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_notif_recibo" target="a003_ok_msg" parent="sw003">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="end003" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#F4F6F9;strokeWidth=4;" vertex="1" parent="sw003">
+      <mxGeometry x="393" y="936" width="30" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_ok_end003" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_ok_msg" target="end003" parent="sw003">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="240" y="920"/><mxPoint x="408" y="920"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_err_end003" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a003_err_pago" target="end003" parent="sw003">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="565" y="920"/><mxPoint x="408" y="920"/></Array></mxGeometry>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════
+         SWIMLANE CDU-004 + CDU-005: CATÁLOGO + CALIFICACIONES
+    ══════════════════════════════════════════════ -->
+    <mxCell id="sw004" value="CDU-004: Catálogo, Búsqueda y Detalle + CDU-005: Sistema de Calificaciones" style="swimlane;startSize=30;fillColor=#FDEDEC;strokeColor=#E74C3C;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1A2C4A;" vertex="1" parent="1">
+      <mxGeometry x="10" y="1900" width="900" height="620" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="s004" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#1A2C4A;" vertex="1" parent="sw004">
+      <mxGeometry x="425" y="40" width="30" height="30" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a004_buscar" value="Ingresar término&#xa;de búsqueda o filtro" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E74C3C;fontSize=9;fontStyle=1;" vertex="1" parent="sw004">
+      <mxGeometry x="375" y="90" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_s004_b" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="s004" target="a004_buscar" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a004_grpc_catalog" value="gRPC SearchContent(query, filters)&#xa;catalog.proto :50052" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E74C3C;fontSize=9;fontStyle=1;" vertex="1" parent="sw004">
+      <mxGeometry x="362" y="150" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_b_grpc" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a004_buscar" target="a004_grpc_catalog" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a004_vw_catalog" value="SELECT * FROM vw_catalog&#xa;(vista BD pre-calculada)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw004">
+      <mxGeometry x="362" y="210" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_grpc_vw" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a004_grpc_catalog" target="a004_vw_catalog" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a004_resultados" value="Mostrar resultados&#xa;del catálogo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E74C3C;fontSize=9;" vertex="1" parent="sw004">
+      <mxGeometry x="375" y="270" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_vw_res" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a004_vw_catalog" target="a004_resultados" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a004_seleccionar" value="Usuario selecciona&#xa;contenido" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E74C3C;fontSize=9;" vertex="1" parent="sw004">
+      <mxGeometry x="375" y="330" width="150" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_res_sel" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a004_resultados" target="a004_seleccionar" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Fork: ficha + calificación -->
+    <mxCell id="fork004" value="" style="shape=mxgraph.flowchart.start_2;fillColor=#1A2C4A;strokeColor=#1A2C4A;" vertex="1" parent="sw004">
+      <mxGeometry x="250" y="390" width="400" height="10" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_sel_fork" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a004_seleccionar" target="fork004" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Ficha técnica -->
+    <mxCell id="a004_vw_actor" value="SELECT FROM vw_actor_detail&#xa;ficha técnica completa" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw004">
+      <mxGeometry x="80" y="420" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_fork_actor" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="fork004" target="a004_vw_actor" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Porcentaje recomendación -->
+    <mxCell id="a004_fn_recom" value="fn_recommendation_percentage()&#xa;(pulgares↑ / total) × 100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw004">
+      <mxGeometry x="595" y="420" width="200" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_fork_fn" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="fork004" target="a004_fn_recom" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Join ficha + recomendación -->
+    <mxCell id="join004" value="" style="shape=mxgraph.flowchart.start_2;fillColor=#1A2C4A;strokeColor=#1A2C4A;" vertex="1" parent="sw004">
+      <mxGeometry x="250" y="480" width="400" height="10" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_actor_join" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a004_vw_actor" target="join004" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_fn_join" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a004_fn_recom" target="join004" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a004_ficha_completa" value="Mostrar ficha técnica completa&#xa;+ % recomendación comunidad" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E74C3C;fontSize=9;" vertex="1" parent="sw004">
+      <mxGeometry x="325" y="500" width="250" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_join_ficha" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="join004" target="a004_ficha_completa" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- CDU-005: Calificación -->
+    <mxCell id="d005_quiere_cal" value="¿Usuario quiere&#xa;calificar?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw004">
+      <mxGeometry x="358" y="558" width="140" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_ficha_d005" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a004_ficha_completa" target="d005_quiere_cal" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a005_registrar_cal" value="INSERT/UPDATE calificación&#xa;por profile_id (upsert)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw004">
+      <mxGeometry x="220" y="630" width="170" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_d005_cal" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d005_quiere_cal" target="a005_registrar_cal" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a005_recalc" value="fn_recommendation_percentage()&#xa;recalcula % global" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw004">
+      <mxGeometry x="220" y="688" width="180" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_cal_recalc" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a005_registrar_cal" target="a005_recalc" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a005_update_ui" value="Actualizar % en UI&#xa;en tiempo real" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw004">
+      <mxGeometry x="230" y="748" width="155" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_recalc_ui" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a005_recalc" target="a005_update_ui" parent="sw004">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="end004" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#F4F6F9;strokeWidth=4;" vertex="1" parent="sw004">
+      <mxGeometry x="423" y="808" width="30" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_ui_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a005_update_ui" target="end004" parent="sw004">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="307" y="798"/><mxPoint x="438" y="798"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_no_cal_end" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d005_quiere_cal" target="end004" parent="sw004">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="568" y="798"/><mxPoint x="438" y="798"/></Array></mxGeometry>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════
+         SWIMLANE CDU-007: HISTORIAL + CDU-008: NOTIFICACIONES
+    ══════════════════════════════════════════════ -->
+    <mxCell id="sw007" value="CDU-007: Historial de Reproducción + CDU-008: Notificaciones por Correo" style="swimlane;startSize=30;fillColor=#F0F4FF;strokeColor=#2C3E50;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#1A2C4A;" vertex="1" parent="1">
+      <mxGeometry x="930" y="1900" width="920" height="620" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="s007" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#1A2C4A;" vertex="1" parent="sw007">
+      <mxGeometry x="435" y="40" width="30" height="30" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a007_selecciona" value="Usuario selecciona&#xa;contenido a reproducir" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=9;fontStyle=1;" vertex="1" parent="sw007">
+      <mxGeometry x="375" y="90" width="160" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_s007_sel" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="s007" target="a007_selecciona" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a007_get_progress" value="gRPC GetProgress(profileId, contentId)&#xa;history.proto :50054" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=9;fontStyle=1;" vertex="1" parent="sw007">
+      <mxGeometry x="362" y="150" width="190" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_sel_get" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_selecciona" target="a007_get_progress" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a007_select_db" value="SELECT season, episode, minute&#xa;FROM historial_db&#xa;WHERE profile_id=$1 AND content_id=$2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw007">
+      <mxGeometry x="350" y="210" width="220" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_get_select" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_get_progress" target="a007_select_db" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d007_progreso" value="¿Progreso&#xa;guardado?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw007">
+      <mxGeometry x="388" y="278" width="130" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_select_d" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_select_db" target="d007_progreso" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a007_reanudar" value="Reanudar desde&#xa;{ season, episode, minute }" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;fontStyle=1;" vertex="1" parent="sw007">
+      <mxGeometry x="220" y="278" width="155" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_progreso_si" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d007_progreso" target="a007_reanudar" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a007_inicio" value="Iniciar desde&#xa;S01E01 minuto 0:00" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=9;" vertex="1" parent="sw007">
+      <mxGeometry x="548" y="278" width="150" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_progreso_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d007_progreso" target="a007_inicio" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Join reanudar/inicio -->
+    <mxCell id="join007" value="" style="shape=mxgraph.flowchart.start_2;fillColor=#1A2C4A;strokeColor=#1A2C4A;" vertex="1" parent="sw007">
+      <mxGeometry x="200" y="350" width="520" height="10" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_rea_join" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_reanudar" target="join007" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_ini_join" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_inicio" target="join007" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a007_reproducir" value="Reproductor inicia&#xa;contenido" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=9;" vertex="1" parent="sw007">
+      <mxGeometry x="370" y="368" width="165" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_join_rep" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="join007" target="a007_reproducir" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Loop guardar progreso 30s -->
+    <mxCell id="a007_save_progress" value="gRPC SaveProgress(profileId,&#xa;contentId, season, episode, minute)&#xa;UPDATE historial_db cada 30s" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#D32F2F;fontSize=9;fontStyle=1;" vertex="1" parent="sw007">
+      <mxGeometry x="350" y="428" width="210" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_rep_save" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_reproducir" target="a007_save_progress" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="d007_sigue" value="¿Continúa&#xa;viendo?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw007">
+      <mxGeometry x="385" y="506" width="130" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_save_sigue" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_save_progress" target="d007_sigue" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Loop back -->
+    <mxCell id="e_loop_30s" value="SÍ (+30s)" style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;entryX=1;entryY=0.5;fontSize=8;fontColor=#2A7A2A;fontStyle=1;" edge="1" source="d007_sigue" target="a007_save_progress" parent="sw007">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="610" y="533"/>
+          <mxPoint x="640" y="533"/>
+          <mxPoint x="640" y="458"/>
+          <mxPoint x="560" y="458"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="d007_completado" value="¿Contenido&#xa;completado?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=9;" vertex="1" parent="sw007">
+      <mxGeometry x="200" y="580" width="130" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_sigue_no" value="NO/Pausa" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#D32F2F;" edge="1" source="d007_sigue" target="d007_completado" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a007_mark_complete" value="Marcar contenido como&#xa;completado en historial_db" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=9;" vertex="1" parent="sw007">
+      <mxGeometry x="80" y="580" width="110" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_comp_si" value="SÍ" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d007_completado" target="a007_mark_complete" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="a007_progreso_guardado" value="Progreso guardado&#xa;usuario puede continuar&#xa;en otro momento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C8;strokeColor=#2A7A2A;fontSize=9;" vertex="1" parent="sw007">
+      <mxGeometry x="340" y="580" width="150" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_comp_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;fontSize=8;fontColor=#2A7A2A;" edge="1" source="d007_completado" target="a007_progreso_guardado" parent="sw007">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- CDU-008: Notificaciones -->
+    <mxCell id="a008_notif" value="CDU-008: Notification Service&#xa;gRPC notification.proto :50056&#xa;Envía email según trigger:&#xa;· registro → registro.html&#xa;· compra → recibo.html&#xa;· nuevo contenido → alerta.html&#xa;aiosmtplib async → SMTP Gmail :587" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8DC;strokeColor=#C8A020;fontSize=9;fontStyle=1;" vertex="1" parent="sw007">
+      <mxGeometry x="620" y="430" width="260" height="130" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="end007" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1A2C4A;strokeColor=#F4F6F9;strokeWidth=4;" vertex="1" parent="sw007">
+      <mxGeometry x="430" y="800" width="30" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_prog_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_progreso_guardado" target="end007" parent="sw007">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="415" y="790"/><mxPoint x="445" y="790"/></Array></mxGeometry>
+    </mxCell>
+    <mxCell id="e_comp_end" value="" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="a007_mark_complete" target="end007" parent="sw007">
+      <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="135" y="790"/><mxPoint x="445" y="790"/></Array></mxGeometry>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════
+         NOTAS GLOBALES
+    ══════════════════════════════════════ -->
+    <mxCell id="nota_sp" value="«SP» = Stored Procedure PostgreSQL&#xa;«trigger» = trg_audit_credentials (disparo automático)&#xa;«view» = vw_catalog / vw_actor_detail&#xa;«fn» = fn_recommendation_percentage&#xa;Todos los servicios se comunican vía gRPC síncrono (HTTP/2)&#xa;Protocol Buffers definen los contratos entre servicios" style="text;html=1;strokeColor=#2C3E50;fillColor=#F8F9FA;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=9;fontColor=#1A2C4A;" vertex="1" parent="1">
+      <mxGeometry x="10" y="2540" width="450" height="100" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="nota_colores" value="Convención de colores:&#xa;■ Borde rojo = objetos de BD programables (SP, trigger, view, fn)&#xa;■ Fondo rojo claro = error / flujo de excepción&#xa;■ Fondo verde claro = éxito / resultado positivo&#xa;■ Fondo amarillo = decisiones (rombos) y Redis Cache&#xa;■ Borde dorado = Redis / FX Service / Notificaciones" style="text;html=1;strokeColor=#2C3E50;fillColor=#F8F9FA;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=9;fontColor=#1A2C4A;" vertex="1" parent="1">
+      <mxGeometry x="480" y="2540" width="480" height="100" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>
