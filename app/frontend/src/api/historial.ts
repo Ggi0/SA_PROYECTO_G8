@@ -1,4 +1,4 @@
-import { api } from '@/api/auth'
+import { gateway } from '@/api/client'
 
 export interface UpdateMovieProgressPayload {
   profileId: string
@@ -63,6 +63,14 @@ interface ApiProgressItem {
   lastEpMinute?: number
 }
 
+interface ContinueWatchingApiResponse {
+  items?: ApiProgressItem[]
+}
+
+interface ContentProgressApiResponse {
+  progress?: ApiProgressItem
+}
+
 const normalizarProgressItem = (item: ApiProgressItem): ProgressItemResponse => ({
   progressId: item.progressId ?? item.progress_id ?? '',
   profileId: item.profileId ?? item.profile_id ?? '',
@@ -81,18 +89,24 @@ const normalizarProgressItem = (item: ApiProgressItem): ProgressItemResponse => 
 
 export const historialAPI = {
   updateMovieProgress: async (payload: UpdateMovieProgressPayload) => {
-    const res = await api.post('/historial/movie-progress', payload)
+    const res = await gateway.post('/historial/movie-progress', payload)
     return res.data
   },
 
   updateEpisodeProgress: async (payload: UpdateEpisodeProgressPayload) => {
-    const res = await api.post('/historial/episode-progress', payload)
+    const res = await gateway.post('/historial/episode-progress', payload)
     return res.data
   },
 
-  getContinueWatching: async (profileId: string): Promise<ProgressItemResponse[]> => {
-    const res = await api.get(`/historial/continue-watching/${profileId}`)
+  getContinueWatching: async (
+    profileId: string
+  ): Promise<ProgressItemResponse[]> => {
+    const res = await gateway.get<ApiProgressItem[] | ContinueWatchingApiResponse>(
+      `/historial/continue-watching/${profileId}`
+    )
+
     const data = Array.isArray(res.data) ? res.data : res.data.items ?? []
+
     return data.map(normalizarProgressItem)
   },
 
@@ -100,11 +114,18 @@ export const historialAPI = {
     profileId: string,
     contentId: string
   ): Promise<ProgressItemResponse | null> => {
-    const res = await api.get(`/historial/progress/${profileId}/${contentId}`)
+    const res = await gateway.get<ApiProgressItem | ContentProgressApiResponse>(
+      `/historial/progress/${profileId}/${contentId}`
+    )
 
     if (!res.data) return null
 
-    const progress = res.data.progress ?? res.data
-    return normalizarProgressItem(progress)
+    const progress = (
+  'progress' in res.data ? res.data.progress : res.data
+) as ApiProgressItem | undefined
+
+if (!progress) return null
+
+return normalizarProgressItem(progress)
   },
 }
