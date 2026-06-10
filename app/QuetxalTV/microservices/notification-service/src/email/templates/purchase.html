@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f0f0f; color:#f0f0f0; margin:0; padding:0; }
+    .container { max-width:600px; margin:40px auto; background:#1a1a1a; border-radius:12px; overflow:hidden; }
+    .header { background:#e8a020; padding:32px; text-align:center; }
+    .header h1 { margin:0; color:#0f0f0f; font-size:28px; }
+    .body { padding:32px; }
+    .body h2 { color:#e8a020; }
+    .receipt { background:#252525; border-radius:8px; padding:20px; margin:20px 0; }
+    .receipt-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #333; }
+    .receipt-row:last-child { border-bottom:none; font-weight:bold; color:#e8a020; }
+    .footer { padding:20px; text-align:center; color:#666; font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎬 QuetxalTV</h1>
+    </div>
+    <div class="body">
+      <h2>Recibo de compra</h2>
+      <p>Hola {{ name }}, tu suscripción ha sido activada exitosamente.</p>
+      <div class="receipt">
+        <div class="receipt-row">
+          <span>Plan</span>
+          <span>{{ plan_name }}</span>
+        </div>
+        <div class="receipt-row">
+          <span>ID de transacción</span>
+          <span>{{ transaction_id }}</span>
+        </div>
+        <div class="receipt-row">
+          <span>Total pagado</span>
+          <span>{{ currency }} {{ amount }}</span>
+        </div>
+      </div>
+      <p>Gracias por suscribirte. ¡Disfruta QuetxalTV!</p>
+    </div>
+    <div class="footer">
+      <p>© 2026 QuetxalTV. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</body>
+</html>

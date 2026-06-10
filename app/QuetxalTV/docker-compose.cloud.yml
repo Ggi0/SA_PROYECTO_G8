@@ -1,0 +1,143 @@
+services:
+  api-gateway:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/api-gateway:${IMAGE_TAG:-latest}
+    ports:
+      - "${API_GATEWAY_PUBLIC_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-3000}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      SUBSCRIPTION_SERVICE_URL: ${SUBSCRIPTION_SERVICE_URL:-subscription-service:50053}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-auth-service:50051}
+      CATALOG_SERVICE_URL: ${CATALOG_SERVICE_URL:-catalogo-service:50052}
+      FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
+      FX_SERVICE_URL: ${FX_SERVICE_URL:-fx-service:50054}
+      HISTORIAL_SERVICE_URL: ${HISTORIAL_SERVICE_URL:-historial-service:50054}
+    depends_on:
+      - subscription-service
+      - fx-service
+      - catalogo-service
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  subscription-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/subscription-service:${IMAGE_TAG:-latest}
+    environment:
+      DB_HOST: ${SUBSCRIPTION_DB_HOST}
+      DB_PORT: ${SUBSCRIPTION_DB_PORT:-5432}
+      DB_USER: ${SUBSCRIPTION_DB_USER}
+      DB_PASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
+      DB_NAME: ${SUBSCRIPTION_DB_NAME}
+      DB_SSLMODE: ${SUBSCRIPTION_DB_SSLMODE:-disable}
+      DB_SCHEMA: ${SUBSCRIPTION_DB_SCHEMA:-subscription}
+      GRPC_PORT: 50053
+      FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
+      NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST:-notification-service:50056}
+    depends_on:
+      - fx-service
+      - notification-service
+    expose:
+      - "50053"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  catalogo-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/catalogo-service:${IMAGE_TAG:-latest}
+    environment:
+      DB_HOST: ${CATALOGO_DB_HOST}
+      DB_PORT: ${CATALOGO_DB_PORT:-5432}
+      DB_USER: ${CATALOGO_DB_USER}
+      DB_PASSWORD: ${CATALOGO_DB_PASSWORD}
+      DB_NAME: ${CATALOGO_DB_NAME}
+      DB_SCHEMA: ${CATALOGO_DB_SCHEMA:-catalog}
+      DB_SSLMODE: ${CATALOGO_DB_SSLMODE:-disable}
+      GRPC_PORT: 50052
+    expose:
+      - "50052"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  fx-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/fx-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50054
+      DB_HOST: ${FX_DB_HOST}
+      DB_PORT: ${FX_DB_PORT:-5432}
+      DB_NAME: ${FX_DB_NAME}
+      DB_USER: ${FX_DB_USER}
+      DB_PASSWORD: ${FX_DB_PASSWORD}
+      DB_SCHEMA: ${FX_DB_SCHEMA:-fx}
+      DB_SSLMODE: ${FX_DB_SSLMODE:-disable}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_TTL: ${REDIS_TTL:-3600}
+      EXCHANGE_API_KEY: ${EXCHANGE_API_KEY}
+      EXCHANGE_API_URL: ${EXCHANGE_API_URL}
+    depends_on:
+      - redis
+    expose:
+      - "50054"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  notification-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/notification-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50056
+      DB_HOST: ${NOTIFICATION_DB_HOST}
+      DB_PORT: ${NOTIFICATION_DB_PORT:-5432}
+      DB_USER: ${NOTIFICATION_DB_USER}
+      DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      DB_NAME: ${NOTIFICATION_DB_NAME}
+      DB_SSLMODE: ${NOTIFICATION_DB_SSLMODE:-disable}
+      DB_SCHEMA: ${NOTIFICATION_DB_SCHEMA:-notification}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    expose:
+      - "50056"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  historial-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/historial-service:${IMAGE_TAG:-latest}
+    environment:
+      HISTORIAL_SERVICE_PORT: 50054
+      DB_HOST: ${HISTORIAL_DB_HOST}
+      DB_PORT: ${HISTORIAL_DB_PORT:-5432}
+      DB_USER: ${HISTORIAL_DB_USER}
+      DB_PASSWORD: ${HISTORIAL_DB_PASSWORD}
+      DB_NAME: ${HISTORIAL_DB_NAME}
+      DB_SSLMODE: ${HISTORIAL_DB_SSLMODE:-disable}
+      DB_SCHEMA: ${HISTORIAL_DB_SCHEMA:-playback}
+    expose:
+      - "50054"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+volumes:
+  redis_data:
+
+networks:
+  quetxal-network:
+    driver: bridge
