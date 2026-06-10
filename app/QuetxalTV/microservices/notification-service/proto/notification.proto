@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package notification;
+
+option go_package = "subscription-service/proto/notification;notification";
+
+service NotificationService {
+  rpc SendPurchaseReceipt(SendPurchaseReceiptRequest) returns (SendPurchaseReceiptResponse);
+  rpc SendWelcomeEmail(SendWelcomeEmailRequest) returns (SendWelcomeEmailResponse);
+}
+
+message SendPurchaseReceiptRequest {
+  string user_id        = 1;
+  string user_email     = 2;
+  string plan_name      = 3;
+  double amount         = 4;
+  string currency       = 5;
+  string transaction_id = 6;
+}
+
+message SendPurchaseReceiptResponse {
+  bool   success = 1;
+  string message = 2;
+}
+
+message SendWelcomeEmailRequest {
+  string user_id    = 1;
+  string user_email = 2;
+  string user_name  = 3;
+}
+
+message SendWelcomeEmailResponse {
+  bool   success = 1;
+  string message = 2;
+}

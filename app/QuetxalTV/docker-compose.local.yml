@@ -11,13 +11,56 @@ services:
       FX_SERVICE_HOST: fx-service:50055
       JWT_SECRET: local_dev_secret
       SUBSCRIPTION_SERVICE_URL: subscription-service:50053
+      AUTH_SERVICE_HOST: auth-service:50051
+      AUTH_SERVICE_URL: auth-service:50051
+      NOTIFICATION_SERVICE_HOST: notification-service:50056
       CATALOG_SERVICE_URL: catalog-service:50052
     depends_on:
+      - auth-service
       - subscription-service
-      - catalog-service
+      - notification-service
     networks:
       - quetxal-network
 
+  auth-service:
+    build:
+      context: ./microservices/auth-service/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    env_file:
+      - path: ./microservices/auth-service/auth-service/.env
+        required: false
+    environment:
+      GRPC_PORT: 50051
+      NOTIFICATION_SERVICE_HOST: notification-service
+      NOTIFICATION_SERVICE_PORT: 50056
+    depends_on:
+      - notification-service
+    networks:
+      - quetxal-network
+  notification-service:
+    build:
+      context: ./microservices/notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "50056:50056"
+    environment:
+      GRPC_PORT: 50056
+      DB_HOST: ${NOTIFICATION_DB_HOST}
+      DB_PORT: 5432
+      DB_USER: notificacion_user
+      DB_PASSWORD: admin
+      DB_NAME: notificacion_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: notification
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+    networks:
+      - quetxal-network
   catalog-service:
     build:
       context: ./microservices/catalogo-service
@@ -73,6 +116,8 @@ services:
       GRPC_PORT: 50053
       FX_SERVICE_HOST: fx-service:50055
       NOTIFICATION_SERVICE_HOST: notification-service:50056
+    depends_on:
+      - notification-service
     networks:
       - quetxal-network
 
@@ -94,6 +139,7 @@ services:
       retries: 5
     networks:
       - quetxal-network
+
   fx-service:
     build:
       context: ./microservices/fx-service
@@ -116,6 +162,19 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+  historial-service:
+    build:
+      context: ./microservices/historial-service
+      dockerfile: Dockerfile
+    container_name: quetxaltv-historial-service
+    env_file:
+      - path: ./microservices/historial-service/.env
+        required: false
+    ports:
+      - "50054:50054"
     restart: unless-stopped
     networks:
       - quetxal-network
