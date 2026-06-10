@@ -10,6 +10,22 @@ export const api = axios.create({
   },
 })
 
+export interface LoginResponse {
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+
+  
+
+  user: {
+    userId: string
+    email: string
+    role: string
+  }
+
+  profiles: any[]
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('quetxal_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
@@ -18,8 +34,12 @@ api.interceptors.request.use((config) => {
 
 export const authAPI = {
   login: async (email: string, password: string) => {
-    const res = await api.post('/auth/login', { email, password })
-    return res.data as { user: import('@/types').User; token: string }
+    const res = await api.post('/auth/login', {
+      email,
+      password,
+    })
+  
+    return res.data as LoginResponse
   },
   register: async (email: string, password: string, name: string) => {
     const res = await api.post('/auth/register', { email, password, name })
