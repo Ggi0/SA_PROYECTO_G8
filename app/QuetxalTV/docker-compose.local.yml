@@ -38,7 +38,6 @@ services:
       - notification-service
     networks:
       - quetxal-network
-
   notification-service:
     build:
       context: ./microservices/notification-service
@@ -59,10 +58,8 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM: ${SMTP_FROM}
-      - catalog-service
     networks:
       - quetxal-network
-
   catalog-service:
     build:
       context: ./microservices/catalogo-service
