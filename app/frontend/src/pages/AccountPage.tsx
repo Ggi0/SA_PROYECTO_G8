@@ -4,7 +4,8 @@ import MainLayout from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/AuthContext'
-import { LogOut, Play } from 'lucide-react'
+import { subscriptionAPI } from '@/services/api/subscriptionService'
+import { LogOut, Play, Loader2 } from 'lucide-react'
 import { getAllProgress } from '@/lib/progress'
 import type { SavedProgress } from '@/lib/progress'
 
@@ -17,10 +18,53 @@ export default function AccountPage() {
     setHistory(getAllProgress())
   }, [])
 
+  // ─── Estado de suscripción ───────────────────────────
+  const [subscription, setSubscription] = useState<any>(null)
+  const [paymentHistory, setPaymentHistory] = useState<any[]>([])
+  const [loadingSub, setLoadingSub] = useState(true)
+  const [cancelling, setCancelling] = useState(false)
+
+  useEffect(() => {
+    const fetchSubscriptionData = async () => {
+      try {
+        const [subData, paymentsData] = await Promise.all([
+          subscriptionAPI.getMySubscription(),
+          subscriptionAPI.getPaymentHistory(),
+        ])
+        setSubscription(subData)
+        setPaymentHistory(paymentsData)
+      } catch (error) {
+        console.error('Subscription service no disponible:', error)
+        setSubscription({
+          plan_name: 'Estándar',
+          status: 'ACTIVE',
+          current_period_end: '2026-07-01',
+          days_remaining: 22,
+        })
+      } finally {
+        setLoadingSub(false)
+      }
+    }
+    fetchSubscriptionData()
+  }, [])
+
   const handleLogout = () => {
     logout()
     localStorage.removeItem('auth_token')
     navigate('/login')
+  }
+
+  const handleCancelSubscription = async () => {
+    if (!confirm('¿Estás segura que querés cancelar tu suscripción?')) return
+    setCancelling(true)
+    try {
+      await subscriptionAPI.cancelSubscription()
+      setSubscription((prev: any) => ({ ...prev, status: 'CANCELLED' }))
+    } catch (error) {
+      console.error('Error al cancelar:', error)
+    } finally {
+      setCancelling(false)
+    }
   }
 
   return (
@@ -93,36 +137,94 @@ export default function AccountPage() {
             <h2 className="font-display text-lg text-parchment">Suscripción actual</h2>
           </div>
 
-          <div className="flex items-center justify-between p-4 border border-[#3a2e1a] bg-[#0f0b04]">
-            <div>
-              <p className="text-parchment font-mono font-medium">
-                Plan {user?.subscriptionPlan ?? 'Estándar'}
-              </p>
-              <p className="text-silver/50 font-mono text-xs mt-1">
-                Próxima renovación: 1 de julio, 2026
-              </p>
+          {loadingSub ? (
+            <div className="flex items-center gap-2 text-silver/50 font-mono text-sm">
+              <Loader2 size={14} className="animate-spin" />
+              Cargando suscripción...
             </div>
-            <span className="text-xs font-mono bg-green-900/40 border border-green-700/50 text-green-400 px-3 py-1 tracking-widest uppercase">
-              Activo
-            </span>
-          </div>
+          ) : subscription ? (
+            <>
+              <div className="flex items-center justify-between p-4 border border-[#3a2e1a] bg-[#0f0b04]">
+                <div>
+                  <p className="text-parchment font-mono font-medium">
+                    Plan {subscription.plan_name}
+                  </p>
+                  <p className="text-silver/50 font-mono text-xs mt-1">
+                    {subscription.days_remaining} días restantes · vence {new Date(subscription.current_period_end).toLocaleDateString('es-GT')}
+                  </p>
+                </div>
+                <span className={`text-xs font-mono border px-3 py-1 tracking-widest uppercase ${
+                  subscription.status === 'ACTIVE'
+                    ? 'bg-green-900/40 border-green-700/50 text-green-400'
+                    : 'bg-red-900/40 border-red-700/50 text-red-400'
+                }`}>
+                  {subscription.status === 'ACTIVE' ? 'Activo' : 'Cancelado'}
+                </span>
+              </div>
 
-          <div className="flex gap-3">
-            <Button
-              onClick={() => navigate('/plans')}
-              variant="outline"
-              className="border-[#3a2e1a] hover:border-spotlight text-silver hover:text-spotlight font-mono text-xs tracking-widest uppercase bg-transparent h-10"
-            >
-              Cambiar plan
-            </Button>
-            <Button
-              variant="outline"
-              className="border-[#3a2e1a] hover:border-curtain text-silver hover:text-red-400 font-mono text-xs tracking-widest uppercase bg-transparent h-10"
-            >
-              Cancelar suscripción
-            </Button>
-          </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => navigate('/plans')}
+                  variant="outline"
+                  className="border-[#3a2e1a] hover:border-spotlight text-silver hover:text-spotlight font-mono text-xs tracking-widest uppercase bg-transparent h-10"
+                >
+                  Cambiar plan
+                </Button>
+                {subscription.status === 'ACTIVE' && (
+                  <Button
+                    onClick={handleCancelSubscription}
+                    disabled={cancelling}
+                    variant="outline"
+                    className="border-[#3a2e1a] hover:border-curtain text-silver hover:text-red-400 font-mono text-xs tracking-widest uppercase bg-transparent h-10"
+                  >
+                    {cancelling ? (
+                      <Loader2 size={14} className="animate-spin mr-2" />
+                    ) : null}
+                    Cancelar suscripción
+                  </Button>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="p-4 border border-dashed border-[#3a2e1a] text-center">
+              <p className="text-silver/50 font-mono text-sm mb-3">No tenés una suscripción activa</p>
+              <Button
+                onClick={() => navigate('/plans')}
+                className="bg-spotlight hover:bg-spotlight/80 text-film font-mono text-xs tracking-widest uppercase h-10"
+              >
+                Ver planes
+              </Button>
+            </div>
+          )}
         </div>
+
+        {/* Historial de pagos */}
+        {paymentHistory.length > 0 && (
+          <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-1 h-5 bg-spotlight" />
+              <h2 className="font-display text-lg text-parchment">Historial de pagos</h2>
+            </div>
+            {paymentHistory.map((payment: any) => (
+              <div key={payment.payment_id} className="flex items-center justify-between p-3 border border-[#3a2e1a] bg-[#0f0b04]">
+                <div>
+                  <p className="text-parchment font-mono text-sm">{payment.plan_name}</p>
+                  <p className="text-silver/50 font-mono text-xs mt-0.5">
+                    {new Date(payment.paid_at).toLocaleDateString('es-GT')}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-spotlight font-mono text-sm">${payment.amount_usd}</p>
+                  {payment.display_currency && (
+                    <p className="text-silver/50 font-mono text-xs">
+                      {payment.display_currency} {payment.display_amount}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Continuar viendo */}
         <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-4">
