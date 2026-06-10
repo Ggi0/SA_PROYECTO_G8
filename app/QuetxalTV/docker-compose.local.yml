@@ -8,6 +8,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
+      FX_SERVICE_HOST: fx-service:50055
       JWT_SECRET: local_dev_secret
       SUBSCRIPTION_SERVICE_URL: subscription-service:50053
     depends_on:
@@ -47,6 +48,31 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - quetxal-network
+  fx-service:
+    build:
+      context: ./microservices/fx-service
+      dockerfile: Dockerfile
+    ports:
+      - "50055:50055"
+    environment:
+      GRPC_PORT: 50055
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_TTL: 3600
+      EXCHANGE_API_KEY: ${EXCHANGE_API_KEY}
+      EXCHANGE_API_URL: https://v6.exchangerate-api.com/v6
+    depends_on:
+      - redis
+    networks:
+      - quetxal-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
     networks:
       - quetxal-network
 

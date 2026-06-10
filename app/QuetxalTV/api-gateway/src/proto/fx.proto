@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package fx;
+
+option go_package = "subscription-service/proto/fx;fx";
+
+service FxService {
+  rpc GetExchangeRate (ExchangeRateRequest) returns (ExchangeRateResponse);
+  rpc GetAllRates (AllRatesRequest) returns (AllRatesResponse);
+  rpc ConvertAmount (ConvertAmountRequest) returns (ConvertAmountResponse);
+}
+
+message ExchangeRateRequest {
+  string target_currency = 1;
+  string requested_by    = 2;
+}
+
+message AllRatesRequest {
+  string requested_by = 1;
+}
+
+message ConvertAmountRequest {
+  double amount          = 1;
+  string target_currency = 2;
+  string requested_by    = 3;
+}
+
+message ExchangeRateResponse {
+  string currency_code  = 1;
+  string currency_name  = 2;
+  string symbol         = 3;
+  double rate           = 4;
+  string source         = 5;
+  string valid_at       = 6;
+  bool   success        = 7;
+  string error_message  = 8;
+}
+
+message RateItem {
+  string currency_code = 1;
+  string currency_name = 2;
+  string symbol        = 3;
+  double rate          = 4;
+}
+
+message AllRatesResponse {
+  repeated RateItem rates = 1;
+  bool   success          = 2;
+  string error_message    = 3;
+}
+
+message ConvertAmountResponse {
+  double original_amount   = 1;
+  double converted_amount  = 2;
+  string currency_code     = 3;
+  string symbol            = 4;
+  double rate              = 5;
+  bool   success           = 6;
+  string error_message     = 7;
+}

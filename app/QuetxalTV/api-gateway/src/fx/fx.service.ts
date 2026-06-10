@@ -9,7 +9,7 @@ export class FxService implements OnModuleInit {
 
   onModuleInit() {
     const packageDef = protoLoader.loadSync(
-     join(__dirname, '../../../proto/fx/fx.proto'),
+     join(__dirname, '../proto/fx.proto'),
       {
         keepCase: true,
         longs: String,
