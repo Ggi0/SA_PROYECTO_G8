@@ -12,15 +12,33 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  
 
   const handleLogin = async () => {
     setLoading(true)
     setError('')
+  
     try {
-      const data = await authAPI.login(email, password)
-      setUser(data.user, data.token)
+      const data = await authAPI.login(
+        email,
+        password,
+      )
+      
+      console.log(data.accessToken)
+      
+      setUser(
+        {
+          id: data.user.userId,
+          email: data.user.email,
+          name: 'Mi perfil',
+          subscriptionPlan: null,
+        },
+        data.accessToken,
+      )
+        
       navigate('/profiles')
-    } catch {
+    } catch (err) {
+      console.error(err)
       setError('Correo o contraseña incorrectos')
     } finally {
       setLoading(false)

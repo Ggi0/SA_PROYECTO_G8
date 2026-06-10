@@ -105,8 +105,8 @@ register(data: { email: string; password: string; display_name: string }) {
 
   getMe(userId: string, activeProfileId: string | null) {
     return this.call(this.authSvc.GetMe({
-      user_id:           userId,
-      active_profile_id: activeProfileId ?? '',
+      userId:           userId,
+      activeProfileId: activeProfileId ?? '',
     }));
   }
 
@@ -116,7 +116,7 @@ register(data: { email: string; password: string; display_name: string }) {
     newPassword:     string;
   }) {
     return this.call(this.authSvc.ChangePassword({
-      user_id:          data.userId,
+      userId:          data.userId,
       current_password: data.currentPassword,
       new_password:     data.newPassword,
     }));
@@ -138,7 +138,7 @@ register(data: { email: string; password: string; display_name: string }) {
   // ─────────────────────────────────────────────
 
   listProfiles(userId: string) {
-    return this.call(this.authSvc.ListProfiles({ user_id: userId }));
+    return this.call(this.authSvc.ListProfiles({ userId: userId }));
   }
 
   createProfile(data: {
@@ -148,10 +148,10 @@ register(data: { email: string; password: string; display_name: string }) {
     avatarUrl?:  string;
   }) {
     return this.call(this.authSvc.CreateProfile({
-      user_id:      data.userId,
+      userId:      data.userId,
       displayName: data.displayName,
-      is_kids_mode: data.isKidsMode ?? false,
-      avatar_url:   data.avatarUrl  ?? '',
+      isKidsMode: data.isKidsMode ?? false,
+      avatarUrl:   data.avatarUrl  ?? '',
     }));
   }
 
@@ -163,25 +163,25 @@ register(data: { email: string; password: string; display_name: string }) {
     isKidsMode?:  boolean;
   }) {
     return this.call(this.authSvc.UpdateProfile({
-      user_id:      data.userId,
-      profile_id:   data.profileId,
+      userId:      data.userId,
+      profileId:   data.profileId,
       displayName: data.displayName ?? '',
-      avatar_url:   data.avatarUrl   ?? '',
-      is_kids_mode: data.isKidsMode  ?? false,
+      avatarUrl:   data.avatarUrl   ?? '',
+      isKidsMode: data.isKidsMode  ?? false,
     }));
   }
 
   deleteProfile(userId: string, profileId: string) {
     return this.call(this.authSvc.DeleteProfile({
-      user_id:    userId,
-      profile_id: profileId,
+      userId:    userId,
+      profileId: profileId,
     }));
   }
 
   selectProfile(userId: string, profileId: string) {
     return this.call(this.authSvc.SelectProfile({
-      user_id:    userId,
-      profile_id: profileId,
+      userId:    userId,
+      profileId: profileId,
     }));
   }
 }
