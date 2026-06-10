@@ -64,7 +64,7 @@ import {
       return this.authService.register({
         email:        body.email,
         password:     body.password,
-        display_name: body.display_name,
+        display_name: body.display_name || body.displayName || '',
       });
     }
   

@@ -4,13 +4,21 @@ from src.db.connection import get_connection
 class NotificationRepository:
 
     def queue_notification(self, user_id: str, recipient_email: str,
-                           recipient_name: str, type_code: str,
-                           template_data: dict) -> str:
+                       recipient_name: str, type_code: str,
+                       template_data: dict) -> str:
         import json
         with get_connection() as conn:
             with conn.cursor() as cur:
+                # Usar el SP que devuelve el notification_id como OUT parameter
                 cur.execute(
-                    "CALL sp_queue_notification(%s, %s, %s, %s, %s, NULL)",
+                    """
+                    DO $$
+                    DECLARE
+                        v_id UUID;
+                    BEGIN
+                        CALL sp_queue_notification(%s, %s, %s, %s, %s, v_id);
+                    END $$;
+                    """,
                     (
                         user_id,
                         recipient_email,
@@ -19,12 +27,10 @@ class NotificationRepository:
                         json.dumps(template_data)
                     )
                 )
-                # El SP devuelve el notification_id en el OUT parameter
-                cur.execute("SELECT lastval()")
-                # Como es UUID usamos una consulta directa
+                # Obtener el ID recién insertado
                 cur.execute(
                     """
-                    SELECT notification_id FROM notifications
+                    SELECT notification_id FROM notification.notifications
                     WHERE recipient_email = %s
                     ORDER BY created_at DESC LIMIT 1
                     """,
@@ -32,7 +38,6 @@ class NotificationRepository:
                 )
                 row = cur.fetchone()
                 return str(row[0]) if row else str(uuid.uuid4())
-
     def get_pending_notifications(self, limit: int = 10):
         with get_connection() as conn:
             with conn.cursor() as cur:

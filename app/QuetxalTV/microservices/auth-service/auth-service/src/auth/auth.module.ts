@@ -9,6 +9,7 @@ import { User } from './entities/user.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { VerificationToken } from './entities/verification-token.entity';
 import { JwtModule } from '../JWT/jwt.module';
+import { NotificationClient } from '../notification/notification.client';
 
 @Module({
   imports: [
@@ -16,9 +17,7 @@ import { JwtModule } from '../JWT/jwt.module';
     JwtModule,
   ],
   controllers: [AuthController],
-  providers:   [AuthService, AuthRepository],
-  // AuthRepository se exporta para que PerfilModule pueda inyectarlo
-  // en PerfilService (necesario para selectProfile y futuras notificaciones)
+  providers:   [AuthService, AuthRepository, NotificationClient],
   exports:     [AuthService, AuthRepository],
 })
 export class AuthModule {}
