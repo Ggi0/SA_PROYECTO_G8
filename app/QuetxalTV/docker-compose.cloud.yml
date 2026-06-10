@@ -10,10 +10,14 @@ services:
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       SUBSCRIPTION_SERVICE_URL: ${SUBSCRIPTION_SERVICE_URL:-subscription-service:50053}
       AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-auth-service:50051}
-      FX_SERVICE_URL: fx-service:50054
+      CATALOG_SERVICE_URL: ${CATALOG_SERVICE_URL:-catalogo-service:50052}
+      FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
+      FX_SERVICE_URL: ${FX_SERVICE_URL:-fx-service:50054}
+      HISTORIAL_SERVICE_URL: ${HISTORIAL_SERVICE_URL:-historial-service:50054}
     depends_on:
       - subscription-service
       - fx-service
+      - catalogo-service
     restart: unless-stopped
     networks:
       - quetxal-network
@@ -29,8 +33,11 @@ services:
       DB_SSLMODE: ${SUBSCRIPTION_DB_SSLMODE:-disable}
       DB_SCHEMA: ${SUBSCRIPTION_DB_SCHEMA:-subscription}
       GRPC_PORT: 50053
-      FX_SERVICE_HOST: fx-service:50054
+      FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
       NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST:-notification-service:50056}
+    depends_on:
+      - fx-service
+      - notification-service
     expose:
       - "50053"
     restart: unless-stopped
@@ -72,6 +79,45 @@ services:
       EXCHANGE_API_URL: ${EXCHANGE_API_URL}
     depends_on:
       - redis
+    expose:
+      - "50054"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  notification-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/notification-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50056
+      DB_HOST: ${NOTIFICATION_DB_HOST}
+      DB_PORT: ${NOTIFICATION_DB_PORT:-5432}
+      DB_USER: ${NOTIFICATION_DB_USER}
+      DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      DB_NAME: ${NOTIFICATION_DB_NAME}
+      DB_SSLMODE: ${NOTIFICATION_DB_SSLMODE:-disable}
+      DB_SCHEMA: ${NOTIFICATION_DB_SCHEMA:-notification}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    expose:
+      - "50056"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  historial-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/historial-service:${IMAGE_TAG:-latest}
+    environment:
+      HISTORIAL_SERVICE_PORT: 50054
+      DB_HOST: ${HISTORIAL_DB_HOST}
+      DB_PORT: ${HISTORIAL_DB_PORT:-5432}
+      DB_USER: ${HISTORIAL_DB_USER}
+      DB_PASSWORD: ${HISTORIAL_DB_PASSWORD}
+      DB_NAME: ${HISTORIAL_DB_NAME}
+      DB_SSLMODE: ${HISTORIAL_DB_SSLMODE:-disable}
+      DB_SCHEMA: ${HISTORIAL_DB_SCHEMA:-playback}
     expose:
       - "50054"
     restart: unless-stopped
