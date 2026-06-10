@@ -1,11 +1,11 @@
-import { WatchHistory } from '@/types'
+import { SavedProgress } from '@/lib/progress'
 import ContinueWatchingCard from './ContinueWatchingCard'
 
-interface ContinueWatchingSectionProps {
-  items: WatchHistory[]
+interface Props {
+  items: SavedProgress[]
 }
 
-export default function ContinueWatchingSection({ items }: ContinueWatchingSectionProps) {
+export default function ContinueWatchingSection({ items }: Props) {
   if (items.length === 0) return null
 
   return (
@@ -25,7 +25,7 @@ export default function ContinueWatchingSection({ items }: ContinueWatchingSecti
 
       <div className="grid grid-cols-1 gap-4 px-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {items.map((item) => (
-          <ContinueWatchingCard key={item.id} item={item} />
+          <ContinueWatchingCard key={item.contentId} item={item} />
         ))}
       </div>
     </section>

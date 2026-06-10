@@ -1,7 +1,6 @@
 import axios from 'axios'
 
-const API_BASE =
-  import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export const api = axios.create({
   baseURL: API_BASE,
@@ -11,35 +10,41 @@ export const api = axios.create({
   },
 })
 
+export interface LoginResponse {
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+
+  
+
+  user: {
+    userId: string
+    email: string
+    role: string
+  }
+
+  profiles: any[]
+}
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('quetxal_token')
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
 export const authAPI = {
-  register: async (
-    email: string,
-    password: string,
-    display_name: string,
-  ) => {
-    const res = await api.post('/auth/register', {
-      email,
-      password,
-      display_name,
-    })
-
-    return res.data
-  },
-
-  login: async (
-    email: string,
-    password: string,
-  ) => {
+  login: async (email: string, password: string) => {
     const res = await api.post('/auth/login', {
       email,
       password,
-      device_info: navigator.userAgent,
-      ip_address: '127.0.0.1',
     })
-
+  
+    return res.data as LoginResponse
+  },
+  register: async (email: string, password: string, name: string) => {
+    const res = await api.post('/auth/register', { email, password, name })
     return res.data
   },
-
   logout: async () => {
     const res = await api.post('/auth/logout')
     return res.data

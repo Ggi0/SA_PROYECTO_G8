@@ -67,7 +67,7 @@ const handleSubscribe = (plan: Plan) => {
       <div className="px-8 py-16 max-w-5xl mx-auto">
 
         {/* Encabezado */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-10">
           <div className="flex items-center gap-3 justify-center mb-4">
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-spotlight/40" />
             <span className="text-spotlight text-xs font-mono tracking-widest uppercase">
@@ -87,6 +87,14 @@ const handleSubscribe = (plan: Plan) => {
             </p>
           )}
         </div>
+
+    
+
+        {loading && (
+          <div className="text-center text-silver/50 font-mono text-sm py-10">
+            Cargando planes...
+          </div>
+        )}
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

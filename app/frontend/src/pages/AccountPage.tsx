@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/AuthContext'
 import { subscriptionAPI } from '@/services/api/subscriptionService'
-import { mockHistory } from '@/services/mock/mockData'
 import { LogOut, Play, Loader2 } from 'lucide-react'
+import { getAllProgress } from '@/lib/progress'
+import type { SavedProgress } from '@/lib/progress'
 
 export default function AccountPage() {
-  const { user, logout } = useAuth()
+  const { user, currentProfile, logout } = useAuth()
   const navigate = useNavigate()
+  const [history, setHistory] = useState<SavedProgress[]>([])
+
+  useEffect(() => {
+    setHistory(getAllProgress())
+  }, [])
 
   // ─── Estado de suscripción ───────────────────────────
   const [subscription, setSubscription] = useState<any>(null)
@@ -29,7 +35,6 @@ export default function AccountPage() {
         setPaymentHistory(paymentsData)
       } catch (error) {
         console.error('Subscription service no disponible:', error)
-        // Mock mientras el servicio no está listo
         setSubscription({
           plan_name: 'Estándar',
           status: 'ACTIVE',
@@ -45,6 +50,7 @@ export default function AccountPage() {
 
   const handleLogout = () => {
     logout()
+    localStorage.removeItem('auth_token')
     navigate('/login')
   }
 
@@ -94,7 +100,7 @@ export default function AccountPage() {
                 Nombre
               </label>
               <Input
-                defaultValue={user?.name ?? 'Usuario'}
+                defaultValue={user?.name ?? currentProfile?.name ?? 'Usuario'}
                 className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11"
               />
             </div>
@@ -132,9 +138,9 @@ export default function AccountPage() {
           </div>
 
           {loadingSub ? (
-            <div className="flex items-center gap-2 text-silver/50">
-              <Loader2 size={16} className="animate-spin" />
-              <span className="font-mono text-sm">Cargando suscripción...</span>
+            <div className="flex items-center gap-2 text-silver/50 font-mono text-sm">
+              <Loader2 size={14} className="animate-spin" />
+              Cargando suscripción...
             </div>
           ) : subscription ? (
             <>
@@ -227,40 +233,53 @@ export default function AccountPage() {
             <h2 className="font-display text-lg text-parchment">Continuar viendo</h2>
           </div>
 
-          {mockHistory.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => navigate(`/movie/${item.movieId}`)}
-              className="flex items-center gap-4 p-3 border border-[#3a2e1a] hover:border-spotlight bg-[#0f0b04] cursor-pointer transition-all group"
-            >
-              <img
-                src={item.movie.coverImage}
-                alt={item.movie.title}
-                className="w-16 h-10 object-cover filter sepia-[0.3] group-hover:sepia-0 transition-all"
-              />
-              <div className="flex-1">
-                <p className="text-parchment font-mono text-sm font-medium">
-                  {item.movie.title}
-                </p>
-                {item.season ? (
-                  <p className="text-silver/50 font-mono text-xs mt-0.5">
-                    Temp. {item.season} · Ep. {item.episode} · {item.progressMinutes} min
-                  </p>
-                ) : (
-                  <p className="text-silver/50 font-mono text-xs mt-0.5">
-                    {item.progressMinutes} min vistos
-                  </p>
-                )}
-              </div>
-              <div className="w-24 h-1 bg-[#3a2e1a] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-spotlight"
-                  style={{ width: `${Math.min((item.progressMinutes / 120) * 100, 100)}%` }}
+          {history.length === 0 && (
+            <p className="text-silver/40 font-mono text-sm py-4">
+              Aún no hay contenido en progreso.
+            </p>
+          )}
+
+          {history.map((item) => {
+            const totalMin = item.totalDuration || 90
+            const pct = Math.min((item.minuteReached / totalMin) * 100, 100)
+
+            return (
+              <div
+                key={item.contentId}
+                onClick={() => navigate(`/movie/${item.contentId}`)}
+                className="flex items-center gap-4 p-3 border border-[#3a2e1a] hover:border-spotlight bg-[#0f0b04] cursor-pointer transition-all group"
+              >
+                <img
+                  src={item.posterUrl || 'https://i.pinimg.com/originals/8d/e8/d7/8de8d761d3b5ab6321856c3ec71858b1.gif'}
+                  alt={item.title}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://i.pinimg.com/originals/8d/e8/d7/8de8d761d3b5ab6321856c3ec71858b1.gif'
+                  }}
+                  className="w-16 h-10 object-cover filter sepia-[0.3] group-hover:sepia-0 transition-all rounded"
                 />
+                <div className="flex-1 min-w-0">
+                  <p className="text-parchment font-mono text-sm font-medium truncate">
+                    {item.title}
+                  </p>
+                  {item.seasonNum ? (
+                    <p className="text-silver/50 font-mono text-xs mt-0.5">
+                      Temp. {item.seasonNum} · Ep. {item.episodeNum} · {item.minuteReached} min
+                    </p>
+                  ) : (
+                    <p className="text-silver/50 font-mono text-xs mt-0.5">
+                      {item.minuteReached} min vistos
+                    </p>
+                  )}
+                </div>
+
+                <div className="w-24 h-1 bg-[#3a2e1a] rounded-full overflow-hidden shrink-0">
+                  <div className="h-full bg-spotlight" style={{ width: `${pct}%` }} />
+                </div>
+
+                <Play size={14} className="text-silver/40 group-hover:text-spotlight transition-colors shrink-0" />
               </div>
-              <Play size={14} className="text-silver/40 group-hover:text-spotlight transition-colors" />
-            </div>
-          ))}
+            )
+          })}
         </div>
 
       </div>
