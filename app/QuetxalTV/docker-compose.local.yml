@@ -10,8 +10,52 @@ services:
       PORT: 3000
       JWT_SECRET: local_dev_secret
       SUBSCRIPTION_SERVICE_URL: subscription-service:50053
+      CATALOG_SERVICE_URL: catalog-service:50052
     depends_on:
       - subscription-service
+      - catalog-service
+    networks:
+      - quetxal-network
+
+  catalog-service:
+    build:
+      context: ./microservices/catalogo-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    ports:
+      - "50052:50052"
+    environment:
+      DB_HOST: catalog-db
+      DB_PORT: 5432
+      DB_USER: catalog_user
+      DB_PASSWORD: catalog_pass
+      DB_NAME: catalog_db
+      DB_SSLMODE: disable
+      GRPC_PORT: 50052
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+    networks:
+      - quetxal-network
+
+  catalog-db:
+    image: postgres:16-alpine
+    container_name: catalog-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+      - ./microservices/catalogo-service/database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./microservices/catalogo-service/database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - quetxal-network
 
@@ -52,6 +96,7 @@ services:
 
 volumes:
   subscription_db_data:
+  catalog_db_data:
 
 networks:
   quetxal-network:
