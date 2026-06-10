@@ -12,6 +12,7 @@ services:
       JWT_SECRET: local_dev_secret
       SUBSCRIPTION_SERVICE_URL: subscription-service:50053
       AUTH_SERVICE_HOST: auth-service:50051
+      AUTH_SERVICE_URL: auth-service:50051
       NOTIFICATION_SERVICE_HOST: notification-service:50056
       CATALOG_SERVICE_URL: catalog-service:50052
     depends_on:
@@ -46,7 +47,7 @@ services:
       - "50056:50056"
     environment:
       GRPC_PORT: 50056
-      DB_HOST: 8.229
+      DB_HOST: ${NOTIFICATION_DB_HOST}
       DB_PORT: 5432
       DB_USER: notificacion_user
       DB_PASSWORD: admin
@@ -161,6 +162,19 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+  historial-service:
+    build:
+      context: ./microservices/historial-service
+      dockerfile: Dockerfile
+    container_name: quetxaltv-historial-service
+    env_file:
+      - path: ./microservices/historial-service/.env
+        required: false
+    ports:
+      - "50054:50054"
     restart: unless-stopped
     networks:
       - quetxal-network
