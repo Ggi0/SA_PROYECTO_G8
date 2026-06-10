@@ -1,0 +1,354 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="1400" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+  
+    <mxCell id="title" value="Vista de Componentes (Desarrollo) — Quetxal TV&#xa;Diagrama de Paquetes + Diagrama de Componentes UML · gRPC + Protocol Buffers" style="text;html=1;strokeColor=none;fillColor=#2C3E50;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#FFFFFF;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="1900" height="52" as="geometry"/>
+    </mxCell>
+
+
+    <mxCell id="divider" value="" style="endArrow=none;dashed=1;html=1;dashPattern=8 4;strokeColor=#999999;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry x="630" y="52" relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="630" y="1380"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+
+    <mxCell id="pkg_title" value="Diagrama de Paquetes" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=14;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="0" y="56" width="630" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="pkg_sub" value="Agrupación lógica por capas" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="0" y="82" width="630" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="lbl_c1" value="CAPA 1 — CLIENTE" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#888888;" vertex="1" parent="1">
+      <mxGeometry x="20" y="106" width="200" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="pkg_web" value="&lt;b&gt;quetxaltv-web&lt;/b&gt;&#xa;react + vite · axios&#xa;«artifact» bundle.js" style="shape=mxgraph.uml.package2;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2C3E50;align=center;verticalAlign=middle;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="150" y="126" width="220" height="80" as="geometry"/>
+    </mxCell>
+
+
+    <mxCell id="e_https" value="HTTPS :443" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#2C3E50;fontColor=#2C3E50;fontStyle=1;fontSize=9;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="260" y="206" as="sourcePoint"/>
+        <mxPoint x="260" y="232" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+
+    <mxCell id="lbl_c2" value="CAPA 2 — PUNTO DE ENTRADA ÚNICO" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#888888;" vertex="1" parent="1">
+      <mxGeometry x="20" y="234" width="300" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="pkg_gw" value="&lt;b&gt;api-gateway&lt;/b&gt;&#xa;AuthMiddleware · GRPCClientRegistry · OAuthHandler&#xa;Puerto :8080 · archivos .proto embebidos" style="shape=mxgraph.uml.package2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#2C3E50;strokeWidth=2;align=center;verticalAlign=middle;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="20" y="254" width="580" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_grpc_pkg" value="gRPC síncrono" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;fontColor=#555555;fontStyle=2;fontSize=9;dashed=1;dashPattern=5 3;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="310" y="334" as="sourcePoint"/>
+        <mxPoint x="310" y="360" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="lbl_c3" value="CAPA 3 — MICROSERVICIOS CORE" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#888888;" vertex="1" parent="1">
+      <mxGeometry x="20" y="362" width="280" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="pkg_auth" value="&lt;b&gt;auth-service&lt;/b&gt;&#xa;«TypeScript»&#xa;sp_register_user · trg_audit_credentials&#xa;gRPC :50051" style="shape=mxgraph.uml.package2;whiteSpace=wrap;html=1;fillColor=#F9F9F9;strokeColor=#2C3E50;align=center;verticalAlign=middle;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="20" y="382" width="280" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="pkg_cat" value="&lt;b&gt;catalog-service&lt;/b&gt;&#xa;«Go»&#xa;vw_catalog · vw_actor_detail · fn_recommend&#xa;gRPC :50052" style="shape=mxgraph.uml.package2;whiteSpace=wrap;html=1;fillColor=#F9F9F9;strokeColor=#2C3E50;align=center;verticalAlign=middle;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="320" y="382" width="280" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="pkg_sub" value="&lt;b&gt;subscription-service&lt;/b&gt;&#xa;«Go»&#xa;sp_process_subscription&#xa;gRPC :50053" style="shape=mxgraph.uml.package2;whiteSpace=wrap;html=1;fillColor=#F9F9F9;strokeColor=#2C3E50;align=center;verticalAlign=middle;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="20" y="480" width="280" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="pkg_hist" value="&lt;b&gt;history-service&lt;/b&gt;&#xa;«Python»&#xa;season · episode · minute&#xa;gRPC :50054" style="shape=mxgraph.uml.package2;whiteSpace=wrap;html=1;fillColor=#F9F9F9;strokeColor=#2C3E50;align=center;verticalAlign=middle;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="320" y="480" width="280" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="pkg_fx" value="&lt;b&gt;fx-service&lt;/b&gt;&#xa;«Python»&#xa;Cache-Aside · TTL 3600s&#xa;gRPC :50055" style="shape=mxgraph.uml.package2;whiteSpace=wrap;html=1;fillColor=#F9F9F9;strokeColor=#2C3E50;align=center;verticalAlign=middle;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="20" y="578" width="280" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="pkg_notif" value="&lt;b&gt;notification-service&lt;/b&gt;&#xa;«Python»&#xa;registro · recibo · alerta&#xa;gRPC :50056" style="shape=mxgraph.uml.package2;whiteSpace=wrap;html=1;fillColor=#F9F9F9;strokeColor=#2C3E50;align=center;verticalAlign=middle;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="320" y="578" width="280" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_c3c4" value="TCP / Redis Protocol" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;fontColor=#555555;fontStyle=2;fontSize=9;dashed=1;dashPattern=4 3;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="310" y="658" as="sourcePoint"/>
+        <mxPoint x="310" y="682" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="lbl_c4" value="CAPA 4 — PERSISTENCIA (Database per Microservice)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#888888;" vertex="1" parent="1">
+      <mxGeometry x="20" y="686" width="400" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="capa4_box" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#2C3E50;strokeWidth=1;" vertex="1" parent="1">
+      <mxGeometry x="20" y="706" width="580" height="90" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_auth_l" value="«database»&#xa;auth_db" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="30" y="720" width="70" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_cat_l" value="«database»&#xa;catalog_db" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="110" y="720" width="70" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_sub_l" value="«database»&#xa;subscript_db" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="190" y="720" width="70" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_hist_l" value="«database»&#xa;historial_db" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="270" y="720" width="70" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_fx_l" value="«database»&#xa;fx_db" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="350" y="720" width="70" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_notif_l" value="«database»&#xa;notif_db" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="430" y="720" width="70" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_redis_l" value="«cache»&#xa;Redis" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F0F0F0;strokeColor=#2C3E50;strokeWidth=2;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="510" y="720" width="70" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="capa4_note" value="PostgreSQL · TCP :5432 — Redis :6379 · TTL 3600s" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="20" y="768" width="580" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_c4c5" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=4 3;endArrow=block;endFill=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="310" y="796" as="sourcePoint"/>
+        <mxPoint x="310" y="818" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="lbl_c5" value="CAPA 5 — SERVICIOS EXTERNOS" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#888888;" vertex="1" parent="1">
+      <mxGeometry x="20" y="820" width="280" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="ext_rate" value="ExchangeRate API · HTTPS" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="20" y="844" width="200" height="34" as="geometry"/>
+    </mxCell>
+    <mxCell id="ext_smtp" value="SMTP Gmail · :587" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="240" y="844" width="200" height="34" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="proto_pkg" value="«contracts» /proto — Protocol Buffers&#xa;auth · catalog · subscription · history · fx · notification&#xa;Contratos compartidos — ningún servicio los posee" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=2;dashed=1;dashPattern=7 3;fontSize=9;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="20" y="898" width="580" height="60" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="comp_title" value="Diagrama de Componentes UML" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=14;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="640" y="56" width="1260" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="comp_sub" value="Interfaces provistas (○—) y requeridas (—◑)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="640" y="82" width="1260" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="c_nav" value="«device»&#xa;Navegador Web&#xa;react+vite · axios" style="shape=component;align=center;spacingTop=36;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.2;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="660" y="110" width="200" height="60" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="lollipop_pub" value="IPublicAPI&#xa;Proporciona" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;aspect=fixed;fontSize=8;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="810" y="162" width="16" height="16" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="socket_nav" value="requiere&#xa;IPublicAPI" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=8;fontStyle=2;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="870" y="132" width="100" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_nav_gw" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#2C3E50;endArrow=block;endFill=1;" edge="1" source="c_nav" target="c_gw" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="c_gw" value="«Gateway»&#xa;api-gateway · :8080&#xa;AuthMiddleware · GRPCClientRegistry&#xa;OAuthHandler · RateLimiter&#xa;NestJS + TypeScript · archivos .proto embebidos" style="shape=component;align=center;spacingTop=36;whiteSpace=wrap;html=1;fillColor=#F0F0F0;strokeColor=#2C3E50;strokeWidth=2;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="660" y="212" width="360" height="90" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="sk_auth" value="IAuthGRPC&#xa;auth.proto · :50051" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=8;fontStyle=2;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="1030" y="220" width="180" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_cat" value="ICatalogGRPC&#xa;catalog.proto · :50052" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=8;fontStyle=2;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="1030" y="244" width="180" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_sub" value="ISubscriptionGRPC&#xa;subscription.proto · :50053" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=8;fontStyle=2;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="1030" y="268" width="200" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_hist_gw" value="IHistoryGRPC · history.proto · :50054" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=8;fontStyle=2;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="660" y="306" width="360" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="c_auth" value="«Microservice»&#xa;auth-service · :50051&#xa;«TypeScript»&#xa;sp_register_user · trg_audit_credentials" style="shape=component;align=center;spacingTop=36;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="1240" y="290" width="260" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="lp_auth" value="IAuthGRPC&#xa;Proporciona" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;aspect=fixed;fontSize=7;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="1218" y="318" width="16" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_gw_auth" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;" edge="1" source="c_gw" target="c_auth" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_auth_db" value="IDatabase — auth_db" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="295" width="160" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_auth_notif" value="INotification — notification.proto" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="315" width="200" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="c_cat" value="«Microservice»&#xa;catalog-service · :50052&#xa;«Go»&#xa;vw_catalog · vw_actor_detail · fn_recommend" style="shape=component;align=center;spacingTop=36;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="1240" y="410" width="260" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="lp_cat" value="ICatalogGRPC&#xa;Proporciona" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;aspect=fixed;fontSize=7;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="1218" y="438" width="16" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_gw_cat" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;" edge="1" source="c_gw" target="c_cat" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_cat_db" value="IDatabase — catalog_db" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="415" width="160" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_cat_notif" value="INotification — notification.proto" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="435" width="200" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="c_sub" value="«Microservice»&#xa;subscription-service · :50053&#xa;«Go»&#xa;sp_process_subscription" style="shape=component;align=center;spacingTop=36;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="1240" y="530" width="260" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="lp_sub" value="ISubscriptionGRPC&#xa;Proporciona" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;aspect=fixed;fontSize=7;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="1218" y="558" width="16" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_gw_sub" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;" edge="1" source="c_gw" target="c_sub" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_sub_db" value="IDatabase — subscript_db" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="530" width="160" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_sub_fx" value="IFXService — fx.proto" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="550" width="160" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_sub_notif" value="INotification — notification.proto" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="570" width="200" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_sub_fx" value="IFXService&#xa;fx.proto" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=4 3;endArrow=open;endFill=0;fontSize=8;fontStyle=2;fontColor=#555555;" edge="1" source="c_sub" target="c_fx" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="c_hist" value="«Microservice»&#xa;history-service · :50054&#xa;«Python»&#xa;season · episode · minute" style="shape=component;align=center;spacingTop=36;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="900" y="660" width="260" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="lp_hist" value="IHistoryGRPC&#xa;Proporciona" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;aspect=fixed;fontSize=7;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="878" y="688" width="16" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_gw_hist" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=5 3;endArrow=open;endFill=0;" edge="1" source="c_gw" target="c_hist" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_hist_db" value="IDatabase — historial_db" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1170" y="678" width="160" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="c_notif" value="«Microservice»&#xa;notification-service · :50056&#xa;«Python»&#xa;registro · recibo · alerta" style="shape=component;align=center;spacingTop=36;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="1240" y="660" width="260" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="lp_notif" value="INotification&#xa;Proporciona" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;aspect=fixed;fontSize=7;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="1218" y="688" width="16" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_notif_db" value="IDatabase — notif_db" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="660" width="160" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_notif_smtp" value="ISMTP — Gmail :587" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="680" width="160" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_auth_notif" value="INotification" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;fontSize=8;fontStyle=2;" edge="1" source="c_auth" target="c_notif" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_cat_notif" value="INotification" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;fontSize=8;fontStyle=2;" edge="1" source="c_cat" target="c_notif" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_sub_notif" value="INotification" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;fontSize=8;fontStyle=2;" edge="1" source="c_sub" target="c_notif" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="c_fx" value="«Microservice»&#xa;fx-service · :50055&#xa;«Python»&#xa;Cache-Aside · TTL 3600s" style="shape=component;align=center;spacingTop=36;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="1240" y="790" width="260" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="lp_fx" value="IFXService&#xa;Proporciona" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;aspect=fixed;fontSize=7;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="1218" y="818" width="16" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_fx_db" value="IDatabase — fx_db" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="793" width="160" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_fx_cache" value="ICache — Redis :6379 TTL 3600s" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="813" width="220" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="sk_fx_ext" value="IExternalFX — HTTPS" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=8;fontStyle=2;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="1510" y="833" width="160" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_auth" value="«database»&#xa;auth_db&#xa;PostgreSQL" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1700" y="293" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_auth_db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_auth" target="db_auth" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_cat" value="«database»&#xa;catalog_db&#xa;PostgreSQL" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1700" y="413" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_cat_db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_cat" target="db_cat" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_sub" value="«database»&#xa;subscript_db&#xa;PostgreSQL" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1700" y="533" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_sub_db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_sub" target="db_sub" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_hist" value="«database»&#xa;historial_db&#xa;PostgreSQL" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1170" y="660" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_hist_db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_hist" target="db_hist" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_notif" value="«database»&#xa;notif_db&#xa;PostgreSQL" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1700" y="663" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_notif_db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_notif" target="db_notif" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_fx" value="«database»&#xa;fx_db&#xa;PostgreSQL" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#2C3E50;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1700" y="793" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_fx_db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_fx" target="db_fx" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_redis" value="«cache»&#xa;Redis&#xa;:6379 TTL 3600s" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F0F0F0;strokeColor=#2C3E50;strokeWidth=2;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1700" y="853" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_fx_redis" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_fx" target="db_redis" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_exrate" value="«external»&#xa;ExRate API&#xa;HTTPS" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1700" y="913" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_fx_ext" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#999999;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_fx" target="db_exrate" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_smtp" value="«external»&#xa;SMTP Gmail&#xa;:587" style="rounded=2;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;fontSize=8;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1700" y="973" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_notif_smtp" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#999999;dashed=1;dashPattern=3 2;endArrow=open;endFill=0;" edge="1" source="c_notif" target="db_smtp" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>
