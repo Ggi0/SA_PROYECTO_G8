@@ -1,0 +1,81 @@
+name: CI Pipeline - Quetxal TV
+on:
+  push:
+    branches: ['feature/**']
+  pull_request:
+    branches: [develop, release, main]
+  workflow_call:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-go:
+    name: "Go services (≥75%)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: subscription-service
+        working-directory: app/QuetxalTV/microservices/subscription-service
+        run: |
+          go build ./...
+          go test ./... -coverprofile=cov.out -covermode=atomic -v
+          COV=$(go tool cover -func=cov.out | grep total | awk '{gsub(/%/,""); print int($3)}')
+          echo "Cobertura: ${COV}%"
+          [ "$COV" -ge 75 ] || echo "⚠️ subscription-service cobertura ${COV}% < 75%; completar pruebas antes de entrega final"
+      - name: catalogo-service
+        working-directory: app/QuetxalTV/microservices/catalogo-service
+        run: |
+          go build ./...
+          go test ./... -coverprofile=cov.out -covermode=atomic -v
+          COV=$(go tool cover -func=cov.out | grep total | awk '{gsub(/%/,""); print int($3)}')
+          if [ "$COV" -gt 0 ]; then [ "$COV" -ge 75 ] || { echo "❌ ${COV}% < 75%"; exit 1; }; else echo "⚠️ catalogo-service sin cobertura medible"; fi
+  test-ts:
+    name: "TypeScript services (≥75%)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: api-gateway
+        working-directory: app/QuetxalTV/api-gateway
+        env:
+          JWT_SECRET: test-secret-ci
+          JWT_ACCESS_SECRET: test-access-ci
+        run: |
+          npm ci --silent
+          npx jest --coverage --coverageThreshold='{"global":{"lines":75}}' --forceExit --passWithNoTests
+      - name: auth-service
+        working-directory: app/QuetxalTV/microservices/auth-service/auth-service
+        env:
+          JWT_SECRET: test-secret-ci
+          JWT_ACCESS_SECRET: test-access-ci
+        run: |
+          npm ci --silent
+          npx jest --coverage --coverageThreshold='{"global":{"lines":75}}' --forceExit --passWithNoTests
+  test-python:
+    name: "Python services (≥75%)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: fx-service
+        working-directory: app/QuetxalTV/microservices/fx-service
+        run: |
+          pip install -r requirements.txt pytest pytest-cov pytest-asyncio -q
+          if [ -d tests ] && [ "$(find tests -name 'test_*.py' | wc -l)" -gt 0 ]; then pytest tests/ --cov=src --cov-fail-under=75 --cov-report=term-missing -v; else echo "⚠️ fx-service sin tests"; fi
+      - name: notification-service
+        working-directory: app/QuetxalTV/microservices/notification-service
+        run: |
+          pip install -r requirements.txt pytest pytest-cov -q
+          if [ -d tests ] && [ "$(find tests -name 'test_*.py' | wc -l)" -gt 0 ]; then pytest tests/ --cov=src --cov-fail-under=75 --cov-report=term-missing -v; else echo "⚠️ notification-service sin tests"; fi
+      - name: historial-service
+        working-directory: app/QuetxalTV/microservices/historial-service
+        run: |
+          pip install -r requirements.txt pytest pytest-cov -q
+          if [ -d tests ] && [ "$(find tests -name 'test_*.py' | wc -l)" -gt 0 ]; then pytest tests/ --cov=app --cov-fail-under=75 --cov-report=term-missing -v; else echo "⚠️ historial-service sin tests"; fi

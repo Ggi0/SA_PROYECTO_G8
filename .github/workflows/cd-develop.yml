@@ -1,0 +1,80 @@
+name: CD - develop → Compute Engine
+on:
+  push:
+    branches: [develop]
+env:
+  REGISTRY: ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}
+jobs:
+  ci-gate:
+    name: CI gate
+    uses: ./.github/workflows/ci.yml
+  build:
+    name: Build & push (tag :develop)
+    needs: ci-gate
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - run: gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
+      - name: frontend
+        run: |
+          docker build --build-arg VITE_API_URL=http://${{ secrets.GCE_INSTANCE_IP }}:3000 --build-arg VITE_GATEWAY_URL=http://${{ secrets.GCE_INSTANCE_IP }}:3000 -t ${{ env.REGISTRY }}/frontend:develop -f app/frontend/Dockerfile app/frontend
+          docker push ${{ env.REGISTRY }}/frontend:develop
+      - name: api-gateway
+        run: |
+          docker build -t ${{ env.REGISTRY }}/api-gateway:develop -f app/QuetxalTV/api-gateway/Dockerfile app/QuetxalTV/api-gateway
+          docker push ${{ env.REGISTRY }}/api-gateway:develop
+      - name: auth-service
+        run: |
+          docker build -t ${{ env.REGISTRY }}/auth-service:develop -f app/QuetxalTV/microservices/auth-service/auth-service/Dockerfile app/QuetxalTV/microservices/auth-service/auth-service
+          docker push ${{ env.REGISTRY }}/auth-service:develop
+      - name: subscription-service
+        run: |
+          docker build -t ${{ env.REGISTRY }}/subscription-service:develop -f app/QuetxalTV/microservices/subscription-service/Dockerfile app/QuetxalTV/microservices/subscription-service
+          docker push ${{ env.REGISTRY }}/subscription-service:develop
+      - name: catalogo-service
+        run: |
+          docker build -t ${{ env.REGISTRY }}/catalogo-service:develop -f app/QuetxalTV/microservices/catalogo-service/Dockerfile app/QuetxalTV/microservices/catalogo-service
+          docker push ${{ env.REGISTRY }}/catalogo-service:develop
+      - name: fx-service
+        run: |
+          docker build -t ${{ env.REGISTRY }}/fx-service:develop -f app/QuetxalTV/microservices/fx-service/Dockerfile app/QuetxalTV/microservices/fx-service
+          docker push ${{ env.REGISTRY }}/fx-service:develop
+      - name: notification-service
+        run: |
+          docker build -t ${{ env.REGISTRY }}/notification-service:develop -f app/QuetxalTV/microservices/notification-service/Dockerfile app/QuetxalTV/microservices/notification-service
+          docker push ${{ env.REGISTRY }}/notification-service:develop
+      - name: historial-service
+        run: |
+          docker build -t ${{ env.REGISTRY }}/historial-service:develop -f app/QuetxalTV/microservices/historial-service/Dockerfile app/QuetxalTV/microservices/historial-service
+          docker push ${{ env.REGISTRY }}/historial-service:develop
+  deploy:
+    name: Deploy → GCE via SSH
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH y deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCE_INSTANCE_IP }}
+          username: ${{ secrets.GCE_SSH_USER }}
+          key: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /app/SA_PROYECTO_G8
+            git fetch origin develop
+            git checkout develop
+            git pull origin develop
+            cd app/QuetxalTV
+            gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
+            sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=develop/' .env || echo 'IMAGE_TAG=develop' >> .env
+            docker compose -f docker-compose.cloud.yml pull
+            docker compose -f docker-compose.cloud.yml up -d --remove-orphans
+            docker system prune -f
+            echo "✅ Deploy GCE: $(date)"
