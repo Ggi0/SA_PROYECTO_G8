@@ -4,7 +4,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 // ─── Token de autenticación ──────────────────────────────
 const getAuthHeader = () => {
-  const token = localStorage.getItem('token')
+ const token = localStorage.getItem('quetxal_token')
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
@@ -64,9 +64,10 @@ export const subscriptionAPI = {
     return res.data
   },
 
-  cancelSubscription: async () => {
+cancelSubscription: async () => {
     const res = await axios.delete(`${API_BASE}/subscriptions`, {
-      headers: getAuthHeader()
+      headers: getAuthHeader(),
+      data: { reason: 'Cancelado por el usuario' }
     })
     return res.data
   },

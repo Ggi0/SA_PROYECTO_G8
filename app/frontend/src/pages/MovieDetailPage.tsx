@@ -8,6 +8,7 @@ import { getContentDetail, getSeriesStructure, rateContent } from '@/api/catalog
 import { getProgress, clearProgress } from '@/lib/progress'
 import { useAuth } from '@/context/AuthContext'
 import type { Movie, SeriesStructure, Episode } from '@/types'
+import { subscriptionAPI } from '@/services/api/subscriptionService'
 
 export default function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -29,6 +30,13 @@ export default function MovieDetailPage() {
   // Calificación
   const [thumb, setThumb] = useState<'UP' | 'DOWN' | ''>('')
   const [ratingPct, setRatingPct] = useState<number>(0)
+  const [hasSubscription, setHasSubscription] = useState<boolean>(false)
+
+useEffect(() => {
+  subscriptionAPI.getMySubscription()
+    .then((sub: any) => setHasSubscription(sub?.status === 'ACTIVE'))
+    .catch(() => setHasSubscription(false))
+}, [])
 
   useEffect(() => {
     if (!id) return
@@ -58,6 +66,10 @@ export default function MovieDetailPage() {
   }, [id]) // eslint-disable-line
 
   const handlePlay = () => {
+     if (!hasSubscription) {
+    navigate('/plans')
+    return
+  }
     if (movie?.type === 'series' && structure?.seasons[0]?.episodes[0]) {
       const saved = getProgress(id!)
       if (saved?.episodeNum && saved?.seasonNum) {
@@ -79,6 +91,10 @@ export default function MovieDetailPage() {
   }
 
   const handleEpisodePlay = (ep: Episode, seasonNum: number) => {
+    if (!hasSubscription) {
+      navigate('/plans')
+      return
+    }
     setPlayerEpisode(ep)
     setPlayerSeasonNum(seasonNum)
     setShowPlayer(true)

@@ -9,7 +9,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       FX_SERVICE_HOST: fx-service:50055
-      JWT_SECRET: local_dev_secret
+      JWT_SECRET: ${JWT_SECRET}
       SUBSCRIPTION_SERVICE_URL: subscription-service:50053
       AUTH_SERVICE_HOST: auth-service:50051
       AUTH_SERVICE_URL: auth-service:50051
@@ -39,6 +39,7 @@ services:
       - notification-service
     networks:
       - quetxal-network
+
   notification-service:
     build:
       context: ./microservices/notification-service
@@ -61,6 +62,7 @@ services:
       SMTP_FROM: ${SMTP_FROM}
     networks:
       - quetxal-network
+
   catalog-service:
     build:
       context: ./microservices/catalogo-service
@@ -107,38 +109,24 @@ services:
     build:
       context: ./microservices/subscription-service
       dockerfile: Dockerfile
-    env_file:
-      - path: ./microservices/subscription-service/.env
-        required: false
+   
     ports:
       - "50053:50053"
     environment:
       GRPC_PORT: 50053
       FX_SERVICE_HOST: fx-service:50055
       NOTIFICATION_SERVICE_HOST: notification-service:50056
+      DB_HOST: ${SUBSCRIPTION_DB_HOST}
+      DB_PORT: ${SUBSCRIPTION_DB_PORT}
+      DB_USER: ${SUBSCRIPTION_DB_USER}
+      DB_PASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
+      DB_NAME: ${SUBSCRIPTION_DB_NAME}
     depends_on:
       - notification-service
     networks:
       - quetxal-network
 
-  subscription-db:
-    image: postgres:16-alpine
-    ports:
-      - "5435:5432"
-    environment:
-      POSTGRES_USER: subscription_user
-      POSTGRES_PASSWORD: subscription_pass
-      POSTGRES_DB: subscription_db
-    volumes:
-      - subscription_db_data:/var/lib/postgresql/data
-      - ./database/subscription.sql:/docker-entrypoint-initdb.d/001_subscription.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U subscription_user -d subscription_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - quetxal-network
+ 
 
   fx-service:
     build:
@@ -153,6 +141,12 @@ services:
       REDIS_TTL: 3600
       EXCHANGE_API_KEY: ${EXCHANGE_API_KEY}
       EXCHANGE_API_URL: https://v6.exchangerate-api.com/v6
+      DB_HOST: ${FX_DB_HOST}
+      DB_PORT: ${FX_DB_PORT}
+      DB_USER: ${FX_DB_USER}
+      DB_PASSWORD: ${FX_DB_PASSWORD}
+      DB_NAME: ${FX_DB_NAME}
+
     depends_on:
       - redis
     networks:
