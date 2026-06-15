@@ -18,6 +18,7 @@ services:
       PORT: ${PORT:-3000}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST:-auth-service:50051}
       SUBSCRIPTION_SERVICE_URL: ${SUBSCRIPTION_SERVICE_URL:-subscription-service:50053}
       AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-auth-service:50051}
       CATALOG_SERVICE_URL: ${CATALOG_SERVICE_URL:-catalogo-service:50052}
@@ -25,9 +26,34 @@ services:
       FX_SERVICE_URL: ${FX_SERVICE_URL:-fx-service:50054}
       HISTORIAL_SERVICE_URL: ${HISTORIAL_SERVICE_URL:-historial-service:50054}
     depends_on:
+      - auth-service
       - subscription-service
       - fx-service
       - catalogo-service
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  auth-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/auth-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50051
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      DB_HOST: ${AUTH_DB_HOST}
+      DB_PORT: ${AUTH_DB_PORT:-5432}
+      DB_USER: ${AUTH_DB_USER}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD}
+      DB_NAME: ${AUTH_DB_NAME}
+      DB_SCHEMA: ${AUTH_DB_SCHEMA:-auth}
+      DB_SSLMODE: ${AUTH_DB_SSLMODE:-disable}
+      NOTIFICATION_SERVICE_HOST: notification-service
+      NOTIFICATION_SERVICE_PORT: 50056
+    depends_on:
+      - notification-service
+    expose:
+      - "50051"
     restart: unless-stopped
     networks:
       - quetxal-network
