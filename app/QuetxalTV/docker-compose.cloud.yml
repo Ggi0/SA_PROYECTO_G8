@@ -2,7 +2,7 @@ services:
   frontend:
     image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/frontend:${IMAGE_TAG:-latest}
     ports:
-      - "80:80"
+      - "${FRONTEND_PUBLIC_PORT:-8080}:80"
     depends_on:
       - api-gateway
     restart: unless-stopped
