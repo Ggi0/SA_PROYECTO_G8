@@ -1,0 +1,169 @@
+name: CD - release → GKE
+on:
+  push:
+    branches: [release]
+env:
+  REGISTRY: ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}
+  NAMESPACE: quetxal-tv-prod
+jobs:
+  ci-gate:
+    name: CI gate
+    uses: ./.github/workflows/ci.yml
+  versioning:
+    name: Semantic version tag
+    needs: ci-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.sv.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calcular versi\xf3n
+        id: sv
+        run: |
+          LATEST=$(git tag --sort=-v:refname | grep -E '^[Vv]2\\.' | head -1)
+          if [ -z "$LATEST" ]; then NEW="v2.1.0"
+          else MINOR=$(echo "$LATEST" | sed 's/[Vv]2\\.//;s/\\.0$//'); NEW="v2.$((MINOR+1)).0"; fi
+          echo "version=$NEW" >> $GITHUB_OUTPUT && echo "🏷️ $NEW"
+      - name: Push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.sv.outputs.version }}
+          git push origin ${{ steps.sv.outputs.version }}
+  build:
+    name: Build & push (${{ needs.versioning.outputs.version }})
+    needs: versioning
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      VER: ${{ needs.versioning.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - run: gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
+      - name: Build microservicios
+        run: |
+          docker build --build-arg VITE_API_URL=/api --build-arg VITE_GATEWAY_URL=/api -t ${{ env.REGISTRY }}/frontend:${{ env.VER }} -t ${{ env.REGISTRY }}/frontend:latest -f app/frontend/Dockerfile app/frontend
+          docker push ${{ env.REGISTRY }}/frontend:${{ env.VER }}
+          docker push ${{ env.REGISTRY }}/frontend:latest
+
+          for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service; do
+            DIR="app/QuetxalTV/microservices/$SVC"
+            [ "$SVC" = "api-gateway" ] && DIR="app/QuetxalTV/api-gateway"
+            [ "$SVC" = "auth-service" ] && DIR="app/QuetxalTV/microservices/auth-service/auth-service"
+            docker build -t ${{ env.REGISTRY }}/$SVC:${{ env.VER }} -t ${{ env.REGISTRY }}/$SVC:latest -f $DIR/Dockerfile $DIR
+            docker push ${{ env.REGISTRY }}/$SVC:${{ env.VER }}
+            docker push ${{ env.REGISTRY }}/$SVC:latest
+          done
+      - name: Build bases de datos
+        run: |
+          for DB in auth-db subscription-db catalogo-db fx-db notification-db historial-db; do
+            docker build -t ${{ env.REGISTRY }}/$DB:${{ env.VER }} -t ${{ env.REGISTRY }}/$DB:latest -f app/QuetxalTV/databases/$DB/Dockerfile app/QuetxalTV
+            docker push ${{ env.REGISTRY }}/$DB:${{ env.VER }}
+            docker push ${{ env.REGISTRY }}/$DB:latest
+          done
+  deploy:
+    name: Deploy → GKE (RollingUpdate + rollback)
+    needs: [versioning, build]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      VER: ${{ needs.versioning.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+          location: ${{ secrets.GKE_CLUSTER_ZONE }}
+      - name: Namespace + ConfigMap
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+      - name: K8s Secrets
+        run: |
+          kubectl create secret generic quetxal-tv-secrets \
+            --namespace=${{ env.NAMESPACE }} \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --from-literal=JWT_ACCESS_SECRET="${{ secrets.JWT_ACCESS_SECRET }}" \
+            --from-literal=JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
+            --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+            --from-literal=AUTH_DB_HOST="${{ secrets.AUTH_DB_HOST }}" \
+            --from-literal=AUTH_DB_PORT="${{ secrets.AUTH_DB_PORT }}" \
+            --from-literal=AUTH_DB_USER="${{ secrets.AUTH_DB_USER }}" \
+            --from-literal=AUTH_DB_PASSWORD="${{ secrets.AUTH_DB_PASSWORD }}" \
+            --from-literal=AUTH_DB_NAME="${{ secrets.AUTH_DB_NAME }}" \
+            --from-literal=AUTH_DB_SCHEMA="${{ secrets.AUTH_DB_SCHEMA }}" \
+            --from-literal=SUBSCRIPTION_DB_HOST="${{ secrets.SUBSCRIPTION_DB_HOST }}" \
+            --from-literal=SUBSCRIPTION_DB_PORT="${{ secrets.SUBSCRIPTION_DB_PORT }}" \
+            --from-literal=SUBSCRIPTION_DB_USER="${{ secrets.SUBSCRIPTION_DB_USER }}" \
+            --from-literal=SUBSCRIPTION_DB_PASSWORD="${{ secrets.SUBSCRIPTION_DB_PASSWORD }}" \
+            --from-literal=SUBSCRIPTION_DB_NAME="${{ secrets.SUBSCRIPTION_DB_NAME }}" \
+            --from-literal=SUBSCRIPTION_DB_SCHEMA="${{ secrets.SUBSCRIPTION_DB_SCHEMA }}" \
+            --from-literal=CATALOGO_DB_HOST="${{ secrets.CATALOGO_DB_HOST }}" \
+            --from-literal=CATALOGO_DB_PORT="${{ secrets.CATALOGO_DB_PORT }}" \
+            --from-literal=CATALOGO_DB_USER="${{ secrets.CATALOGO_DB_USER }}" \
+            --from-literal=CATALOGO_DB_PASSWORD="${{ secrets.CATALOGO_DB_PASSWORD }}" \
+            --from-literal=CATALOGO_DB_NAME="${{ secrets.CATALOGO_DB_NAME }}" \
+            --from-literal=CATALOGO_DB_SCHEMA="${{ secrets.CATALOGO_DB_SCHEMA }}" \
+            --from-literal=FX_DB_HOST="${{ secrets.FX_DB_HOST }}" \
+            --from-literal=FX_DB_PORT="${{ secrets.FX_DB_PORT }}" \
+            --from-literal=FX_DB_USER="${{ secrets.FX_DB_USER }}" \
+            --from-literal=FX_DB_PASSWORD="${{ secrets.FX_DB_PASSWORD }}" \
+            --from-literal=FX_DB_NAME="${{ secrets.FX_DB_NAME }}" \
+            --from-literal=FX_DB_SCHEMA="${{ secrets.FX_DB_SCHEMA }}" \
+            --from-literal=NOTIFICATION_DB_HOST="${{ secrets.NOTIFICATION_DB_HOST }}" \
+            --from-literal=NOTIFICATION_DB_PORT="${{ secrets.NOTIFICATION_DB_PORT }}" \
+            --from-literal=NOTIFICATION_DB_USER="${{ secrets.NOTIFICATION_DB_USER }}" \
+            --from-literal=NOTIFICATION_DB_PASSWORD="${{ secrets.NOTIFICATION_DB_PASSWORD }}" \
+            --from-literal=NOTIFICATION_DB_NAME="${{ secrets.NOTIFICATION_DB_NAME }}" \
+            --from-literal=NOTIFICATION_DB_SCHEMA="${{ secrets.NOTIFICATION_DB_SCHEMA }}" \
+            --from-literal=HISTORIAL_DB_HOST="${{ secrets.HISTORIAL_DB_HOST }}" \
+            --from-literal=HISTORIAL_DB_PORT="${{ secrets.HISTORIAL_DB_PORT }}" \
+            --from-literal=HISTORIAL_DB_USER="${{ secrets.HISTORIAL_DB_USER }}" \
+            --from-literal=HISTORIAL_DB_PASSWORD="${{ secrets.HISTORIAL_DB_PASSWORD }}" \
+            --from-literal=HISTORIAL_DB_NAME="${{ secrets.HISTORIAL_DB_NAME }}" \
+            --from-literal=HISTORIAL_DB_SCHEMA="${{ secrets.HISTORIAL_DB_SCHEMA }}" \
+            --from-literal=SMTP_USER="${{ secrets.SMTP_USER }}" \
+            --from-literal=SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
+            --from-literal=SMTP_FROM="${{ secrets.SMTP_FROM }}" \
+            --from-literal=EXCHANGE_API_KEY="${{ secrets.EXCHANGE_API_KEY }}" \
+            --save-config --dry-run=client -o yaml | kubectl apply -f -
+      - name: Aplicar todos los manifiestos
+        run: |
+          export IMAGE_TAG="${{ env.VER }}"
+          export GCP_PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+          export ARTIFACT_REGISTRY_LOCATION="${{ secrets.ARTIFACT_REGISTRY_LOCATION }}"
+          export ARTIFACT_REGISTRY_REPOSITORY="${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}"
+          for f in k8s/databases/*.yaml k8s/deployments/*.yaml k8s/services/*.yaml; do
+            envsubst '${IMAGE_TAG} ${GCP_PROJECT_ID} ${ARTIFACT_REGISTRY_LOCATION} ${ARTIFACT_REGISTRY_REPOSITORY}' < "$f" | kubectl apply -f -
+          done
+          kubectl apply -f k8s/ingress.yaml
+      - name: Verificar RollingUpdate + rollback autom\xe1tico
+        run: |
+          FAILED=0
+          ALL="frontend api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service auth-db subscription-db catalogo-db fx-db notification-db historial-db redis"
+          for DEP in $ALL; do
+            echo "⏳ $DEP..."
+            if ! kubectl rollout status deployment/$DEP -n ${{ env.NAMESPACE }} --timeout=5m; then
+              echo "❌ Rollback $DEP"
+              kubectl rollout undo deployment/$DEP -n ${{ env.NAMESPACE }}
+              FAILED=1
+            else echo "✅ $DEP"; fi
+          done
+          [ "$FAILED" -eq 0 ] || exit 1
+          echo "🎉 Deploy ${{ env.VER }} OK"

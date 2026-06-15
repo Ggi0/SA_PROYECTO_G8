@@ -1,0 +1,63 @@
+name: DB Backup - Quetxal TV
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+jobs:
+  backup:
+    name: Backup PostgreSQL → GCS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backup via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCE_INSTANCE_IP }}
+          username: ${{ secrets.GCE_SSH_USER }}
+          key: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            TS=$(date +%Y%m%d_%H%M%S)
+            BUCKET="gs://${{ secrets.GCS_BACKUP_BUCKET }}"
+            backup() {
+              C=$1
+              echo "🔄 $C..."
+              docker exec $C pg_dumpall -U postgres | gzip > /tmp/${C}_${TS}.sql.gz
+              gsutil cp /tmp/${C}_${TS}.sql.gz $BUCKET/$C/${C}_${TS}.sql.gz
+              rm -f /tmp/${C}_${TS}.sql.gz
+              echo "✅ $C"
+            }
+            backup auth-db
+            backup subscription-db
+            backup catalogo-db
+            backup fx-db
+            backup notification-db
+            backup historial-db
+            echo " Backups completados: $TS"
+  backup-gke:
+      name: Backup PostgreSQL GKE -> GCS
+      runs-on: ubuntu-latest
+      permissions:
+        id-token: write
+        contents: read
+      env:
+        NAMESPACE: quetxal-tv-prod
+      steps:
+        - uses: google-github-actions/auth@v2
+          with:
+            workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+            service_account: ${{ secrets.GCP_SA_EMAIL }}
+        - uses: google-github-actions/get-gke-credentials@v2
+          with:
+            cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+            location: ${{ secrets.GKE_CLUSTER_ZONE }}
+        - name: Backup DBs in GKE
+          run: |
+            set -e
+            TS=$(date +%Y%m%d_%H%M%S)
+            BUCKET="gs://${{ secrets.GCS_BACKUP_BUCKET }}"
+            for DB in auth-db subscription-db catalogo-db fx-db notification-db historial-db; do
+              POD=$(kubectl get pod -n "$NAMESPACE" -l app=$DB -o jsonpath='{.items[0].metadata.name}')
+              kubectl exec -n "$NAMESPACE" "$POD" -- sh -c 'pg_dumpall -U "$POSTGRES_USER"' > ${DB}_${TS}.sql
+              gzip ${DB}_${TS}.sql
+              gsutil cp ${DB}_${TS}.sql.gz $BUCKET/gke/$DB/${DB}_${TS}.sql.gz
+            done

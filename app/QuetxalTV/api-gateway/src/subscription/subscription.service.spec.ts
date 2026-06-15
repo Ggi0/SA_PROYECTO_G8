@@ -41,4 +41,51 @@ describe('SubscriptionService', () => {
       done();
     });
   });
+
+  it('delegates plan queries to grpc client', (done) => {
+    const grpcMethods = {
+      getPlans: jest.fn().mockReturnValue(of({ plans: [] })),
+      getPlanById: jest.fn().mockReturnValue(of({ planId: 'plan-1' })),
+      getPlansWithRates: jest.fn().mockReturnValue(of({ currency: 'USD' })),
+    };
+    const service = buildService(grpcMethods);
+
+    service.getPlans().subscribe((plans) => {
+      expect(plans).toEqual({ plans: [] });
+      expect(grpcMethods.getPlans).toHaveBeenCalledWith({});
+
+      service.getPlanById('plan-1').subscribe((plan) => {
+        expect(plan).toEqual({ planId: 'plan-1' });
+        expect(grpcMethods.getPlanById).toHaveBeenCalledWith({ planId: 'plan-1' });
+
+        service.getPlansWithRates(undefined, 'user-1').subscribe((rates) => {
+          expect(rates).toEqual({ currency: 'USD' });
+          expect(grpcMethods.getPlansWithRates).toHaveBeenCalledWith({ currency: 'USD', userId: 'user-1' });
+          done();
+        });
+      });
+    });
+  });
+
+  it('delegates cancellation and current subscription requests', (done) => {
+    const grpcMethods = {
+      cancelSubscription: jest.fn().mockReturnValue(of({ success: true })),
+      getUserSubscription: jest.fn().mockReturnValue(of({ hasSubscription: true })),
+    };
+    const service = buildService(grpcMethods);
+
+    service.cancelSubscription('user-1', {}).subscribe((cancelResp) => {
+      expect(cancelResp).toEqual({ success: true });
+      expect(grpcMethods.cancelSubscription).toHaveBeenCalledWith({
+        userId: 'user-1',
+        reason: 'Cancelado por el usuario',
+      });
+
+      service.getUserSubscription('user-1').subscribe((subscription) => {
+        expect(subscription).toEqual({ hasSubscription: true });
+        expect(grpcMethods.getUserSubscription).toHaveBeenCalledWith({ userId: 'user-1' });
+        done();
+      });
+    });
+  });
 });
