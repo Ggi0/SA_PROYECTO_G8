@@ -50,3 +50,4 @@ app/frontend/tsconfig.tsbuildinfo
 
 # Documentacion local con datos sensibles de configuracion
 Enunciado-F2/
+secrets.env
