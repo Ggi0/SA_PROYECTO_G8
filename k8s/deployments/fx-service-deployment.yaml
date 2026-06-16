@@ -15,8 +15,8 @@ spec:
           image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/fx-service:${IMAGE_TAG}
           ports: [{ containerPort: 50054 }]
           resources:
-            requests: { cpu: "25m", memory: "64Mi" }
-            limits: { cpu: "150m", memory: "160Mi" }
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "250m", memory: "256Mi" }
           envFrom: [{ configMapRef: { name: quetxal-tv-config } }]
           env:
             - { name: GRPC_PORT, value: "50054" }
@@ -35,5 +35,5 @@ spec:
             - { name: DB_SSLMODE, value: "disable" }
             - name: EXCHANGE_API_KEY
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: EXCHANGE_API_KEY } }
-          readinessProbe: { tcpSocket: { port: 50054 }, initialDelaySeconds: 10, periodSeconds: 8, failureThreshold: 3 }
-          livenessProbe: { tcpSocket: { port: 50054 }, initialDelaySeconds: 25, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { tcpSocket: { port: 50054 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { tcpSocket: { port: 50054 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

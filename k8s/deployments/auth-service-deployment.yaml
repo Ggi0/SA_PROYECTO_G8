@@ -25,11 +25,11 @@ spec:
             - containerPort: 50051
           resources:
             requests:
-              cpu: "25m"
-              memory: "64Mi"
+              cpu: "50m"
+              memory: "128Mi"
             limits:
-              cpu: "150m"
-              memory: "160Mi"
+              cpu: "250m"
+              memory: "256Mi"
           env:
             - name: JWT_SECRET
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: JWT_SECRET } }
@@ -53,5 +53,5 @@ spec:
               value: notification-service
             - name: NOTIFICATION_SERVICE_PORT
               value: "50056"
-          readinessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 10, periodSeconds: 8, failureThreshold: 3 }
-          livenessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 25, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

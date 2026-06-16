@@ -25,11 +25,11 @@ spec:
             - containerPort: 3000
           resources:
             requests:
-              cpu: "50m"
-              memory: "96Mi"
+              cpu: "75m"
+              memory: "192Mi"
             limits:
-              cpu: "200m"
-              memory: "256Mi"
+              cpu: "300m"
+              memory: "384Mi"
           envFrom:
             - configMapRef:
                 name: quetxal-tv-config
@@ -53,13 +53,13 @@ spec:
             httpGet:
               path: /health
               port: 3000
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
-            failureThreshold: 3
+            failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /health
               port: 3000
-            initialDelaySeconds: 30
+            initialDelaySeconds: 90
             periodSeconds: 20
             failureThreshold: 3

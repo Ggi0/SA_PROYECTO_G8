@@ -20,8 +20,8 @@ spec:
           image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/subscription-service:${IMAGE_TAG}
           ports: [{ containerPort: 50053 }]
           resources:
-            requests: { cpu: "25m", memory: "64Mi" }
-            limits: { cpu: "150m", memory: "160Mi" }
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "250m", memory: "256Mi" }
           env:
             - { name: GRPC_PORT, value: "50053" }
             - { name: FX_SERVICE_HOST, value: "fx-service:50054" }
@@ -39,5 +39,5 @@ spec:
             - name: DB_SCHEMA
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_SCHEMA } }
             - { name: DB_SSLMODE, value: "disable" }
-          readinessProbe: { tcpSocket: { port: 50053 }, initialDelaySeconds: 10, periodSeconds: 8, failureThreshold: 3 }
-          livenessProbe: { tcpSocket: { port: 50053 }, initialDelaySeconds: 25, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { tcpSocket: { port: 50053 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { tcpSocket: { port: 50053 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
