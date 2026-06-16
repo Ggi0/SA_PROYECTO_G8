@@ -11,6 +11,7 @@ interface CatalogGrpcService {
   getPerson(data: { personId: string }): Observable<unknown>;
   rateContent(data: { contentId: string; profileId: string; thumb: string; stars: number }): Observable<unknown>;
   getUserRating(data: { contentId: string; profileId: string }): Observable<unknown>;
+  
 }
 
 @Injectable()

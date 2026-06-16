@@ -19,6 +19,12 @@ const NAV_ITEMS = [
         href: '/admin/settings',
         icon: Settings,
     },
+    
+    {
+    label: 'Catálogo',
+    href: '/admin/catalog',
+    icon: Film,
+    },
 ]
 
 export default function LayoutAdmin() {

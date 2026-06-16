@@ -12,6 +12,7 @@ import CheckoutPage from '@/pages/CheckoutPage'
 
 import LayoutAdmin from '@/pages/admin/layoutAdmin'
 import MainPage from '@/pages/admin/mainPage'
+import CatalogAdminPage from '@/pages/admin/CatalogAdminPage'
 
 
 export default function AppRoutes() {
@@ -52,6 +53,7 @@ export default function AppRoutes() {
         }
       >
         <Route index element={<MainPage />} />
+        <Route path="catalog" element={<CatalogAdminPage />} />
       </Route>
 
     </Routes>
