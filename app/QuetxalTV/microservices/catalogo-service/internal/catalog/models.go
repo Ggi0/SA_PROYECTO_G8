@@ -115,3 +115,78 @@ type CreatePersonInput struct {
 	Bio         string
 	PhotoURL    string
 }
+
+type UpdatePersonInput struct {
+	PersonID    string
+	FullName    string
+	BirthDate   string
+	Nationality string
+	Bio         string
+	PhotoURL    string
+}
+
+type SeasonRow struct {
+	SeasonID    string
+	ContentID   string
+	SeasonNum   int
+	Title       string
+	ReleaseYear int
+}
+
+type CreateSeasonInput struct {
+	ContentID   string
+	SeasonNum   int
+	Title       string
+	ReleaseYear int
+}
+
+type EpisodeRow struct {
+	EpisodeID   string
+	SeasonID    string
+	EpisodeNum  int
+	Title       string
+	Synopsis    string
+	DurationMin int
+	VideoRef    string
+	VideoSource string
+}
+
+type CreateEpisodeInput struct {
+	SeasonID    string
+	EpisodeNum  int
+	Title       string
+	Synopsis    string
+	DurationMin int
+	VideoRef    string
+	VideoSource string
+}
+
+type UpdateEpisodeInput struct {
+	EpisodeID   string
+	Title       string
+	Synopsis    string
+	DurationMin int
+	VideoRef    string
+	VideoSource string
+}
+
+// AuditLogRow representa una fila de la tabla catalog_audit_log.
+type AuditLogRow struct {
+	ID        int64
+	TableName string
+	Operation string
+	ChangedBy string
+	ChangedAt string
+	OldData   string
+	NewData   string
+}
+
+// AuditLogFilter agrupa los parámetros de filtrado y paginación para consultas de auditoría.
+type AuditLogFilter struct {
+	TableName string
+	Operation string
+	From      string // formato ISO 8601: "2026-01-01T00:00:00Z"
+	To        string
+	Page      int
+	PageSize  int
+}

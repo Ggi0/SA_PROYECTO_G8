@@ -323,6 +323,352 @@ func (r *Repository) AddPersonToContent(contentID, personID, roleType, character
 	return err
 }
 
+// ScheduleContent fija o limpia la premiere_date de un contenido.
+// Si premiereDate es vacío, limpia la fecha (visible inmediatamente si is_published=TRUE).
+func (r *Repository) ScheduleContent(contentID, premiereDate, changedBy string) (string, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+
+	if err = txSetChangedBy(tx, changedBy); err != nil {
+		return "", err
+	}
+
+	var result string
+	if premiereDate == "" {
+		err = tx.QueryRow(
+			`UPDATE content SET premiere_date = NULL WHERE content_id = $1
+			 RETURNING COALESCE(premiere_date::TEXT, '')`,
+			contentID,
+		).Scan(&result)
+	} else {
+		err = tx.QueryRow(
+			`UPDATE content SET premiere_date = $1::TIMESTAMPTZ WHERE content_id = $2
+			 RETURNING premiere_date::TEXT`,
+			premiereDate, contentID,
+		).Scan(&result)
+	}
+	if err == sql.ErrNoRows {
+		return "", sql.ErrNoRows
+	}
+	if err != nil {
+		return "", err
+	}
+	return result, tx.Commit()
+}
+
+// DeleteContent elimina un contenido y todo lo que depende de él (cascade en BD).
+func (r *Repository) DeleteContent(contentID, changedBy string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = txSetChangedBy(tx, changedBy); err != nil {
+		return err
+	}
+	res, err := tx.Exec(`DELETE FROM content WHERE content_id = $1`, contentID)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return tx.Commit()
+}
+
+// CreateGenre inserta un nuevo género.
+func (r *Repository) CreateGenre(name, slug string) (*GenreRow, error) {
+	row := &GenreRow{}
+	err := r.db.QueryRow(
+		`INSERT INTO genres(name, slug) VALUES($1,$2) RETURNING genre_id, name, slug`,
+		name, slug,
+	).Scan(&row.GenreID, &row.Name, &row.Slug)
+	return row, err
+}
+
+// UpdateGenre actualiza nombre y slug de un género existente.
+func (r *Repository) UpdateGenre(genreID int, name, slug string) (*GenreRow, error) {
+	row := &GenreRow{}
+	err := r.db.QueryRow(
+		`UPDATE genres SET name=$1, slug=$2 WHERE genre_id=$3 RETURNING genre_id, name, slug`,
+		name, slug, genreID,
+	).Scan(&row.GenreID, &row.Name, &row.Slug)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return row, err
+}
+
+// DeleteGenre elimina un género por ID.
+func (r *Repository) DeleteGenre(genreID int, changedBy string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = txSetChangedBy(tx, changedBy); err != nil {
+		return err
+	}
+	res, err := tx.Exec(`DELETE FROM genres WHERE genre_id = $1`, genreID)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return tx.Commit()
+}
+
+// UpdatePerson actualiza los datos de una persona.
+func (r *Repository) UpdatePerson(req UpdatePersonInput) (*PersonRow, error) {
+	row := &PersonRow{}
+	err := r.db.QueryRow(`
+		UPDATE people SET
+		    full_name=$1, birth_date=$2::DATE, nationality=$3, bio=$4, photo_url=$5
+		WHERE person_id=$6
+		RETURNING person_id, full_name,
+		          COALESCE(birth_date::TEXT,''), COALESCE(nationality,''),
+		          COALESCE(bio,''), COALESCE(photo_url,'')`,
+		req.FullName, nullableStr(req.BirthDate), nullableStr(req.Nationality),
+		nullableStr(req.Bio), nullableStr(req.PhotoURL), req.PersonID,
+	).Scan(&row.PersonID, &row.FullName, &row.BirthDate, &row.Nationality, &row.Bio, &row.PhotoURL)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return row, err
+}
+
+// DeletePerson elimina una persona por ID.
+func (r *Repository) DeletePerson(personID, changedBy string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = txSetChangedBy(tx, changedBy); err != nil {
+		return err
+	}
+	res, err := tx.Exec(`DELETE FROM people WHERE person_id = $1`, personID)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return tx.Commit()
+}
+
+// RemovePersonFromContent elimina la relación persona-contenido.
+func (r *Repository) RemovePersonFromContent(contentID, personID, roleType string) error {
+	res, err := r.db.Exec(
+		`DELETE FROM content_people WHERE content_id=$1 AND person_id=$2 AND role_type=$3`,
+		contentID, personID, roleType,
+	)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+// CreateSeason inserta una nueva temporada para una serie.
+func (r *Repository) CreateSeason(req CreateSeasonInput) (*SeasonRow, error) {
+	row := &SeasonRow{}
+	err := r.db.QueryRow(`
+		INSERT INTO seasons(content_id, season_num, title, release_year)
+		VALUES($1,$2,$3,$4)
+		RETURNING season_id, content_id, season_num, COALESCE(title,''), COALESCE(release_year,0)`,
+		req.ContentID, req.SeasonNum, nullableStr(req.Title), nullableInt(req.ReleaseYear),
+	).Scan(&row.SeasonID, &row.ContentID, &row.SeasonNum, &row.Title, &row.ReleaseYear)
+	return row, err
+}
+
+// DeleteSeason elimina una temporada y sus episodios (cascade).
+func (r *Repository) DeleteSeason(seasonID, changedBy string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = txSetChangedBy(tx, changedBy); err != nil {
+		return err
+	}
+	res, err := tx.Exec(`DELETE FROM seasons WHERE season_id=$1`, seasonID)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return tx.Commit()
+}
+
+// CreateEpisode inserta un episodio en una temporada.
+func (r *Repository) CreateEpisode(req CreateEpisodeInput) (*EpisodeRow, error) {
+	row := &EpisodeRow{}
+	err := r.db.QueryRow(`
+		INSERT INTO episodes(season_id, episode_num, title, synopsis, duration_min, video_ref, video_source)
+		VALUES($1,$2,$3,$4,$5,$6,$7)
+		RETURNING episode_id, season_id, episode_num, title,
+		          COALESCE(synopsis,''), COALESCE(duration_min,0),
+		          COALESCE(video_ref,''), COALESCE(video_source,'')`,
+		req.SeasonID, req.EpisodeNum, req.Title, nullableStr(req.Synopsis),
+		nullableInt(req.DurationMin), nullableStr(req.VideoRef), nullableStr(req.VideoSource),
+	).Scan(&row.EpisodeID, &row.SeasonID, &row.EpisodeNum, &row.Title,
+		&row.Synopsis, &row.DurationMin, &row.VideoRef, &row.VideoSource)
+	return row, err
+}
+
+// UpdateEpisode actualiza los datos de un episodio.
+func (r *Repository) UpdateEpisode(req UpdateEpisodeInput) (*EpisodeRow, error) {
+	row := &EpisodeRow{}
+	err := r.db.QueryRow(`
+		UPDATE episodes SET title=$1, synopsis=$2, duration_min=$3, video_ref=$4, video_source=$5
+		WHERE episode_id=$6
+		RETURNING episode_id, season_id, episode_num, title,
+		          COALESCE(synopsis,''), COALESCE(duration_min,0),
+		          COALESCE(video_ref,''), COALESCE(video_source,'')`,
+		req.Title, nullableStr(req.Synopsis), nullableInt(req.DurationMin),
+		nullableStr(req.VideoRef), nullableStr(req.VideoSource), req.EpisodeID,
+	).Scan(&row.EpisodeID, &row.SeasonID, &row.EpisodeNum, &row.Title,
+		&row.Synopsis, &row.DurationMin, &row.VideoRef, &row.VideoSource)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return row, err
+}
+
+// DeleteEpisode elimina un episodio por ID.
+func (r *Repository) DeleteEpisode(episodeID, changedBy string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err = txSetChangedBy(tx, changedBy); err != nil {
+		return err
+	}
+	res, err := tx.Exec(`DELETE FROM episodes WHERE episode_id=$1`, episodeID)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return tx.Commit()
+}
+
+// GetAuditLogs devuelve las entradas de catalog_audit_log con filtros y paginación.
+func (r *Repository) GetAuditLogs(f AuditLogFilter) ([]AuditLogRow, int, error) {
+	where := "WHERE 1=1"
+	args := []any{}
+	i := 1
+
+	if f.TableName != "" {
+		where += fmt.Sprintf(" AND table_name = $%d", i)
+		args = append(args, f.TableName)
+		i++
+	}
+	if f.Operation != "" {
+		where += fmt.Sprintf(" AND operation = $%d", i)
+		args = append(args, f.Operation)
+		i++
+	}
+	if f.From != "" {
+		where += fmt.Sprintf(" AND changed_at >= $%d", i)
+		args = append(args, f.From)
+		i++
+	}
+	if f.To != "" {
+		where += fmt.Sprintf(" AND changed_at <= $%d", i)
+		args = append(args, f.To)
+		i++
+	}
+
+	var total int
+	if err := r.db.QueryRow(
+		fmt.Sprintf("SELECT COUNT(*) FROM catalog_audit_log %s", where), args...,
+	).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	if f.Page < 1 {
+		f.Page = 1
+	}
+	if f.PageSize < 1 || f.PageSize > 10000 {
+		f.PageSize = 20
+	}
+	offset := (f.Page - 1) * f.PageSize
+	args = append(args, f.PageSize, offset)
+
+	query := fmt.Sprintf(`
+		SELECT id, table_name, operation, changed_by, changed_at::TEXT,
+		       COALESCE(old_data::TEXT, ''), COALESCE(new_data::TEXT, '')
+		FROM catalog_audit_log
+		%s
+		ORDER BY changed_at DESC
+		LIMIT $%d OFFSET $%d`, where, i, i+1)
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []AuditLogRow
+	for rows.Next() {
+		var row AuditLogRow
+		if err := rows.Scan(
+			&row.ID, &row.TableName, &row.Operation, &row.ChangedBy,
+			&row.ChangedAt, &row.OldData, &row.NewData,
+		); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, row)
+	}
+	return result, total, rows.Err()
+}
+
+// SetChangedBy establece el usuario responsable en la sesión de PostgreSQL.
+// Usar solo cuando ya hay una conexión/tx activa; para operaciones con DML
+// usar txSetChangedBy dentro de una transacción explícita.
+func (r *Repository) SetChangedBy(changedBy string) error {
+	if changedBy == "" {
+		changedBy = "system"
+	}
+	_, err := r.db.Exec(`SELECT set_config('app.changed_by', $1, true)`, changedBy)
+	return err
+}
+
+// txSetChangedBy setea app.changed_by dentro de una transacción activa.
+// El set_config con is_local=true garantiza que el valor es visible
+// para los triggers que corran en la misma transacción.
+func txSetChangedBy(tx interface {
+	Exec(string, ...any) (sql.Result, error)
+}, changedBy string) error {
+	if changedBy == "" {
+		changedBy = "system"
+	}
+	_, err := tx.Exec(`SELECT set_config('app.changed_by', $1, true)`, changedBy)
+	return err
+}
+
 func nullableStr(s string) any {
 	if s == "" {
 		return nil

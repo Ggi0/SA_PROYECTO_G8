@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.35.0
-// source: catalog.proto
+// source: proto/catalog.proto
 
 package catalog
 
@@ -19,19 +19,32 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CatalogService_GetCatalog_FullMethodName         = "/catalog.CatalogService/GetCatalog"
-	CatalogService_GetContentDetail_FullMethodName   = "/catalog.CatalogService/GetContentDetail"
-	CatalogService_GetSeriesStructure_FullMethodName = "/catalog.CatalogService/GetSeriesStructure"
-	CatalogService_SearchContent_FullMethodName      = "/catalog.CatalogService/SearchContent"
-	CatalogService_ListGenres_FullMethodName         = "/catalog.CatalogService/ListGenres"
-	CatalogService_GetPerson_FullMethodName          = "/catalog.CatalogService/GetPerson"
-	CatalogService_RateContent_FullMethodName        = "/catalog.CatalogService/RateContent"
-	CatalogService_GetUserRating_FullMethodName      = "/catalog.CatalogService/GetUserRating"
-	CatalogService_CreateContent_FullMethodName      = "/catalog.CatalogService/CreateContent"
-	CatalogService_UpdateContent_FullMethodName      = "/catalog.CatalogService/UpdateContent"
-	CatalogService_PublishContent_FullMethodName     = "/catalog.CatalogService/PublishContent"
-	CatalogService_CreatePerson_FullMethodName       = "/catalog.CatalogService/CreatePerson"
-	CatalogService_AddPersonToContent_FullMethodName = "/catalog.CatalogService/AddPersonToContent"
+	CatalogService_GetCatalog_FullMethodName              = "/catalog.CatalogService/GetCatalog"
+	CatalogService_GetContentDetail_FullMethodName        = "/catalog.CatalogService/GetContentDetail"
+	CatalogService_GetSeriesStructure_FullMethodName      = "/catalog.CatalogService/GetSeriesStructure"
+	CatalogService_SearchContent_FullMethodName           = "/catalog.CatalogService/SearchContent"
+	CatalogService_ListGenres_FullMethodName              = "/catalog.CatalogService/ListGenres"
+	CatalogService_GetPerson_FullMethodName               = "/catalog.CatalogService/GetPerson"
+	CatalogService_RateContent_FullMethodName             = "/catalog.CatalogService/RateContent"
+	CatalogService_GetUserRating_FullMethodName           = "/catalog.CatalogService/GetUserRating"
+	CatalogService_CreateContent_FullMethodName           = "/catalog.CatalogService/CreateContent"
+	CatalogService_UpdateContent_FullMethodName           = "/catalog.CatalogService/UpdateContent"
+	CatalogService_PublishContent_FullMethodName          = "/catalog.CatalogService/PublishContent"
+	CatalogService_DeleteContent_FullMethodName           = "/catalog.CatalogService/DeleteContent"
+	CatalogService_CreateGenre_FullMethodName             = "/catalog.CatalogService/CreateGenre"
+	CatalogService_UpdateGenre_FullMethodName             = "/catalog.CatalogService/UpdateGenre"
+	CatalogService_DeleteGenre_FullMethodName             = "/catalog.CatalogService/DeleteGenre"
+	CatalogService_CreatePerson_FullMethodName            = "/catalog.CatalogService/CreatePerson"
+	CatalogService_UpdatePerson_FullMethodName            = "/catalog.CatalogService/UpdatePerson"
+	CatalogService_DeletePerson_FullMethodName            = "/catalog.CatalogService/DeletePerson"
+	CatalogService_AddPersonToContent_FullMethodName      = "/catalog.CatalogService/AddPersonToContent"
+	CatalogService_RemovePersonFromContent_FullMethodName = "/catalog.CatalogService/RemovePersonFromContent"
+	CatalogService_CreateSeason_FullMethodName            = "/catalog.CatalogService/CreateSeason"
+	CatalogService_DeleteSeason_FullMethodName            = "/catalog.CatalogService/DeleteSeason"
+	CatalogService_CreateEpisode_FullMethodName           = "/catalog.CatalogService/CreateEpisode"
+	CatalogService_UpdateEpisode_FullMethodName           = "/catalog.CatalogService/UpdateEpisode"
+	CatalogService_DeleteEpisode_FullMethodName           = "/catalog.CatalogService/DeleteEpisode"
+	CatalogService_ScheduleContent_FullMethodName         = "/catalog.CatalogService/ScheduleContent"
 )
 
 // CatalogServiceClient is the client API for CatalogService service.
@@ -49,12 +62,30 @@ type CatalogServiceClient interface {
 	// Calificaciones
 	RateContent(ctx context.Context, in *RateContentRequest, opts ...grpc.CallOption) (*RateContentResponse, error)
 	GetUserRating(ctx context.Context, in *GetUserRatingRequest, opts ...grpc.CallOption) (*UserRating, error)
-	// Admin
+	// Admin — contenido
 	CreateContent(ctx context.Context, in *CreateContentRequest, opts ...grpc.CallOption) (*ContentCard, error)
 	UpdateContent(ctx context.Context, in *UpdateContentRequest, opts ...grpc.CallOption) (*ContentCard, error)
 	PublishContent(ctx context.Context, in *PublishContentRequest, opts ...grpc.CallOption) (*PublishContentResponse, error)
+	DeleteContent(ctx context.Context, in *DeleteContentRequest, opts ...grpc.CallOption) (*DeleteContentResponse, error)
+	// Admin — géneros
+	CreateGenre(ctx context.Context, in *CreateGenreRequest, opts ...grpc.CallOption) (*Genre, error)
+	UpdateGenre(ctx context.Context, in *UpdateGenreRequest, opts ...grpc.CallOption) (*Genre, error)
+	DeleteGenre(ctx context.Context, in *DeleteGenreRequest, opts ...grpc.CallOption) (*DeleteGenreResponse, error)
+	// Admin — personas / actores
 	CreatePerson(ctx context.Context, in *CreatePersonRequest, opts ...grpc.CallOption) (*PersonDetail, error)
+	UpdatePerson(ctx context.Context, in *UpdatePersonRequest, opts ...grpc.CallOption) (*PersonDetail, error)
+	DeletePerson(ctx context.Context, in *DeletePersonRequest, opts ...grpc.CallOption) (*DeletePersonResponse, error)
+	// Admin — elenco
 	AddPersonToContent(ctx context.Context, in *AddPersonToContentRequest, opts ...grpc.CallOption) (*AddPersonToContentResponse, error)
+	RemovePersonFromContent(ctx context.Context, in *RemovePersonFromContentRequest, opts ...grpc.CallOption) (*RemovePersonFromContentResponse, error)
+	// Admin — temporadas y episodios
+	CreateSeason(ctx context.Context, in *CreateSeasonRequest, opts ...grpc.CallOption) (*SeasonInfo, error)
+	DeleteSeason(ctx context.Context, in *DeleteSeasonRequest, opts ...grpc.CallOption) (*DeleteSeasonResponse, error)
+	CreateEpisode(ctx context.Context, in *CreateEpisodeRequest, opts ...grpc.CallOption) (*Episode, error)
+	UpdateEpisode(ctx context.Context, in *UpdateEpisodeRequest, opts ...grpc.CallOption) (*Episode, error)
+	DeleteEpisode(ctx context.Context, in *DeleteEpisodeRequest, opts ...grpc.CallOption) (*DeleteEpisodeResponse, error)
+	// Admin — programar estreno
+	ScheduleContent(ctx context.Context, in *ScheduleContentRequest, opts ...grpc.CallOption) (*ScheduleContentResponse, error)
 }
 
 type catalogServiceClient struct {
@@ -175,6 +206,46 @@ func (c *catalogServiceClient) PublishContent(ctx context.Context, in *PublishCo
 	return out, nil
 }
 
+func (c *catalogServiceClient) DeleteContent(ctx context.Context, in *DeleteContentRequest, opts ...grpc.CallOption) (*DeleteContentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteContentResponse)
+	err := c.cc.Invoke(ctx, CatalogService_DeleteContent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) CreateGenre(ctx context.Context, in *CreateGenreRequest, opts ...grpc.CallOption) (*Genre, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Genre)
+	err := c.cc.Invoke(ctx, CatalogService_CreateGenre_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) UpdateGenre(ctx context.Context, in *UpdateGenreRequest, opts ...grpc.CallOption) (*Genre, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Genre)
+	err := c.cc.Invoke(ctx, CatalogService_UpdateGenre_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) DeleteGenre(ctx context.Context, in *DeleteGenreRequest, opts ...grpc.CallOption) (*DeleteGenreResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteGenreResponse)
+	err := c.cc.Invoke(ctx, CatalogService_DeleteGenre_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *catalogServiceClient) CreatePerson(ctx context.Context, in *CreatePersonRequest, opts ...grpc.CallOption) (*PersonDetail, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PersonDetail)
@@ -185,10 +256,100 @@ func (c *catalogServiceClient) CreatePerson(ctx context.Context, in *CreatePerso
 	return out, nil
 }
 
+func (c *catalogServiceClient) UpdatePerson(ctx context.Context, in *UpdatePersonRequest, opts ...grpc.CallOption) (*PersonDetail, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PersonDetail)
+	err := c.cc.Invoke(ctx, CatalogService_UpdatePerson_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) DeletePerson(ctx context.Context, in *DeletePersonRequest, opts ...grpc.CallOption) (*DeletePersonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePersonResponse)
+	err := c.cc.Invoke(ctx, CatalogService_DeletePerson_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *catalogServiceClient) AddPersonToContent(ctx context.Context, in *AddPersonToContentRequest, opts ...grpc.CallOption) (*AddPersonToContentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddPersonToContentResponse)
 	err := c.cc.Invoke(ctx, CatalogService_AddPersonToContent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) RemovePersonFromContent(ctx context.Context, in *RemovePersonFromContentRequest, opts ...grpc.CallOption) (*RemovePersonFromContentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemovePersonFromContentResponse)
+	err := c.cc.Invoke(ctx, CatalogService_RemovePersonFromContent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) CreateSeason(ctx context.Context, in *CreateSeasonRequest, opts ...grpc.CallOption) (*SeasonInfo, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SeasonInfo)
+	err := c.cc.Invoke(ctx, CatalogService_CreateSeason_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) DeleteSeason(ctx context.Context, in *DeleteSeasonRequest, opts ...grpc.CallOption) (*DeleteSeasonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteSeasonResponse)
+	err := c.cc.Invoke(ctx, CatalogService_DeleteSeason_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) CreateEpisode(ctx context.Context, in *CreateEpisodeRequest, opts ...grpc.CallOption) (*Episode, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Episode)
+	err := c.cc.Invoke(ctx, CatalogService_CreateEpisode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) UpdateEpisode(ctx context.Context, in *UpdateEpisodeRequest, opts ...grpc.CallOption) (*Episode, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Episode)
+	err := c.cc.Invoke(ctx, CatalogService_UpdateEpisode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) DeleteEpisode(ctx context.Context, in *DeleteEpisodeRequest, opts ...grpc.CallOption) (*DeleteEpisodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteEpisodeResponse)
+	err := c.cc.Invoke(ctx, CatalogService_DeleteEpisode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) ScheduleContent(ctx context.Context, in *ScheduleContentRequest, opts ...grpc.CallOption) (*ScheduleContentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ScheduleContentResponse)
+	err := c.cc.Invoke(ctx, CatalogService_ScheduleContent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -210,12 +371,30 @@ type CatalogServiceServer interface {
 	// Calificaciones
 	RateContent(context.Context, *RateContentRequest) (*RateContentResponse, error)
 	GetUserRating(context.Context, *GetUserRatingRequest) (*UserRating, error)
-	// Admin
+	// Admin — contenido
 	CreateContent(context.Context, *CreateContentRequest) (*ContentCard, error)
 	UpdateContent(context.Context, *UpdateContentRequest) (*ContentCard, error)
 	PublishContent(context.Context, *PublishContentRequest) (*PublishContentResponse, error)
+	DeleteContent(context.Context, *DeleteContentRequest) (*DeleteContentResponse, error)
+	// Admin — géneros
+	CreateGenre(context.Context, *CreateGenreRequest) (*Genre, error)
+	UpdateGenre(context.Context, *UpdateGenreRequest) (*Genre, error)
+	DeleteGenre(context.Context, *DeleteGenreRequest) (*DeleteGenreResponse, error)
+	// Admin — personas / actores
 	CreatePerson(context.Context, *CreatePersonRequest) (*PersonDetail, error)
+	UpdatePerson(context.Context, *UpdatePersonRequest) (*PersonDetail, error)
+	DeletePerson(context.Context, *DeletePersonRequest) (*DeletePersonResponse, error)
+	// Admin — elenco
 	AddPersonToContent(context.Context, *AddPersonToContentRequest) (*AddPersonToContentResponse, error)
+	RemovePersonFromContent(context.Context, *RemovePersonFromContentRequest) (*RemovePersonFromContentResponse, error)
+	// Admin — temporadas y episodios
+	CreateSeason(context.Context, *CreateSeasonRequest) (*SeasonInfo, error)
+	DeleteSeason(context.Context, *DeleteSeasonRequest) (*DeleteSeasonResponse, error)
+	CreateEpisode(context.Context, *CreateEpisodeRequest) (*Episode, error)
+	UpdateEpisode(context.Context, *UpdateEpisodeRequest) (*Episode, error)
+	DeleteEpisode(context.Context, *DeleteEpisodeRequest) (*DeleteEpisodeResponse, error)
+	// Admin — programar estreno
+	ScheduleContent(context.Context, *ScheduleContentRequest) (*ScheduleContentResponse, error)
 	mustEmbedUnimplementedCatalogServiceServer()
 }
 
@@ -259,11 +438,50 @@ func (UnimplementedCatalogServiceServer) UpdateContent(context.Context, *UpdateC
 func (UnimplementedCatalogServiceServer) PublishContent(context.Context, *PublishContentRequest) (*PublishContentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PublishContent not implemented")
 }
+func (UnimplementedCatalogServiceServer) DeleteContent(context.Context, *DeleteContentRequest) (*DeleteContentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteContent not implemented")
+}
+func (UnimplementedCatalogServiceServer) CreateGenre(context.Context, *CreateGenreRequest) (*Genre, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateGenre not implemented")
+}
+func (UnimplementedCatalogServiceServer) UpdateGenre(context.Context, *UpdateGenreRequest) (*Genre, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateGenre not implemented")
+}
+func (UnimplementedCatalogServiceServer) DeleteGenre(context.Context, *DeleteGenreRequest) (*DeleteGenreResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteGenre not implemented")
+}
 func (UnimplementedCatalogServiceServer) CreatePerson(context.Context, *CreatePersonRequest) (*PersonDetail, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePerson not implemented")
 }
+func (UnimplementedCatalogServiceServer) UpdatePerson(context.Context, *UpdatePersonRequest) (*PersonDetail, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePerson not implemented")
+}
+func (UnimplementedCatalogServiceServer) DeletePerson(context.Context, *DeletePersonRequest) (*DeletePersonResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeletePerson not implemented")
+}
 func (UnimplementedCatalogServiceServer) AddPersonToContent(context.Context, *AddPersonToContentRequest) (*AddPersonToContentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddPersonToContent not implemented")
+}
+func (UnimplementedCatalogServiceServer) RemovePersonFromContent(context.Context, *RemovePersonFromContentRequest) (*RemovePersonFromContentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemovePersonFromContent not implemented")
+}
+func (UnimplementedCatalogServiceServer) CreateSeason(context.Context, *CreateSeasonRequest) (*SeasonInfo, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSeason not implemented")
+}
+func (UnimplementedCatalogServiceServer) DeleteSeason(context.Context, *DeleteSeasonRequest) (*DeleteSeasonResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteSeason not implemented")
+}
+func (UnimplementedCatalogServiceServer) CreateEpisode(context.Context, *CreateEpisodeRequest) (*Episode, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateEpisode not implemented")
+}
+func (UnimplementedCatalogServiceServer) UpdateEpisode(context.Context, *UpdateEpisodeRequest) (*Episode, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateEpisode not implemented")
+}
+func (UnimplementedCatalogServiceServer) DeleteEpisode(context.Context, *DeleteEpisodeRequest) (*DeleteEpisodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteEpisode not implemented")
+}
+func (UnimplementedCatalogServiceServer) ScheduleContent(context.Context, *ScheduleContentRequest) (*ScheduleContentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ScheduleContent not implemented")
 }
 func (UnimplementedCatalogServiceServer) mustEmbedUnimplementedCatalogServiceServer() {}
 func (UnimplementedCatalogServiceServer) testEmbeddedByValue()                        {}
@@ -484,6 +702,78 @@ func _CatalogService_PublishContent_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CatalogService_DeleteContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).DeleteContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_DeleteContent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).DeleteContent(ctx, req.(*DeleteContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_CreateGenre_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateGenreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).CreateGenre(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_CreateGenre_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).CreateGenre(ctx, req.(*CreateGenreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_UpdateGenre_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateGenreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).UpdateGenre(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_UpdateGenre_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).UpdateGenre(ctx, req.(*UpdateGenreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_DeleteGenre_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGenreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).DeleteGenre(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_DeleteGenre_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).DeleteGenre(ctx, req.(*DeleteGenreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CatalogService_CreatePerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreatePersonRequest)
 	if err := dec(in); err != nil {
@@ -502,6 +792,42 @@ func _CatalogService_CreatePerson_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CatalogService_UpdatePerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePersonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).UpdatePerson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_UpdatePerson_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).UpdatePerson(ctx, req.(*UpdatePersonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_DeletePerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePersonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).DeletePerson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_DeletePerson_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).DeletePerson(ctx, req.(*DeletePersonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CatalogService_AddPersonToContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddPersonToContentRequest)
 	if err := dec(in); err != nil {
@@ -516,6 +842,132 @@ func _CatalogService_AddPersonToContent_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CatalogServiceServer).AddPersonToContent(ctx, req.(*AddPersonToContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_RemovePersonFromContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemovePersonFromContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).RemovePersonFromContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_RemovePersonFromContent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).RemovePersonFromContent(ctx, req.(*RemovePersonFromContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_CreateSeason_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSeasonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).CreateSeason(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_CreateSeason_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).CreateSeason(ctx, req.(*CreateSeasonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_DeleteSeason_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSeasonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).DeleteSeason(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_DeleteSeason_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).DeleteSeason(ctx, req.(*DeleteSeasonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_CreateEpisode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateEpisodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).CreateEpisode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_CreateEpisode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).CreateEpisode(ctx, req.(*CreateEpisodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_UpdateEpisode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateEpisodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).UpdateEpisode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_UpdateEpisode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).UpdateEpisode(ctx, req.(*UpdateEpisodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_DeleteEpisode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteEpisodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).DeleteEpisode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_DeleteEpisode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).DeleteEpisode(ctx, req.(*DeleteEpisodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_ScheduleContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ScheduleContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).ScheduleContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_ScheduleContent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).ScheduleContent(ctx, req.(*ScheduleContentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -572,14 +1024,66 @@ var CatalogService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CatalogService_PublishContent_Handler,
 		},
 		{
+			MethodName: "DeleteContent",
+			Handler:    _CatalogService_DeleteContent_Handler,
+		},
+		{
+			MethodName: "CreateGenre",
+			Handler:    _CatalogService_CreateGenre_Handler,
+		},
+		{
+			MethodName: "UpdateGenre",
+			Handler:    _CatalogService_UpdateGenre_Handler,
+		},
+		{
+			MethodName: "DeleteGenre",
+			Handler:    _CatalogService_DeleteGenre_Handler,
+		},
+		{
 			MethodName: "CreatePerson",
 			Handler:    _CatalogService_CreatePerson_Handler,
+		},
+		{
+			MethodName: "UpdatePerson",
+			Handler:    _CatalogService_UpdatePerson_Handler,
+		},
+		{
+			MethodName: "DeletePerson",
+			Handler:    _CatalogService_DeletePerson_Handler,
 		},
 		{
 			MethodName: "AddPersonToContent",
 			Handler:    _CatalogService_AddPersonToContent_Handler,
 		},
+		{
+			MethodName: "RemovePersonFromContent",
+			Handler:    _CatalogService_RemovePersonFromContent_Handler,
+		},
+		{
+			MethodName: "CreateSeason",
+			Handler:    _CatalogService_CreateSeason_Handler,
+		},
+		{
+			MethodName: "DeleteSeason",
+			Handler:    _CatalogService_DeleteSeason_Handler,
+		},
+		{
+			MethodName: "CreateEpisode",
+			Handler:    _CatalogService_CreateEpisode_Handler,
+		},
+		{
+			MethodName: "UpdateEpisode",
+			Handler:    _CatalogService_UpdateEpisode_Handler,
+		},
+		{
+			MethodName: "DeleteEpisode",
+			Handler:    _CatalogService_DeleteEpisode_Handler,
+		},
+		{
+			MethodName: "ScheduleContent",
+			Handler:    _CatalogService_ScheduleContent_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "catalog.proto",
+	Metadata: "proto/catalog.proto",
 }
