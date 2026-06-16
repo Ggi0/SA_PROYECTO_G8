@@ -2,6 +2,27 @@ import uuid
 from src.db.connection import get_connection
 
 class NotificationRepository:
+    def __init__(self):
+        self.ensure_notification_types()
+
+    def ensure_notification_types(self):
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO notification.notification_types(
+                        type_code, description, template_file, subject_template, is_active
+                    )
+                    VALUES
+                        ('WELCOME', 'Correo de bienvenida', 'welcome.html', 'Bienvenido a Quetxal TV, {{name}}', TRUE),
+                        ('PURCHASE_RECEIPT', 'Recibo de compra', 'purchase.html', 'Recibo de compra - {{plan_name}}', TRUE)
+                    ON CONFLICT (type_code) DO UPDATE SET
+                        description = EXCLUDED.description,
+                        template_file = EXCLUDED.template_file,
+                        subject_template = EXCLUDED.subject_template,
+                        is_active = TRUE
+                    """
+                )
 
     def queue_notification(self, user_id: str, recipient_email: str,
                        recipient_name: str, type_code: str,
@@ -16,7 +37,7 @@ class NotificationRepository:
                     DECLARE
                         v_id UUID;
                     BEGIN
-                        CALL sp_queue_notification(%s, %s, %s, %s, %s, v_id);
+                        CALL notification.sp_queue_notification(%s, %s, %s, %s, %s, v_id);
                     END $$;
                     """,
                     (
@@ -41,7 +62,7 @@ class NotificationRepository:
     def get_pending_notifications(self, limit: int = 10):
         with get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT * FROM fn_get_pending_notifications(%s)", (limit,))
+                cur.execute("SELECT * FROM notification.fn_get_pending_notifications(%s)", (limit,))
                 columns = [desc[0] for desc in cur.description]
                 return [dict(zip(columns, row)) for row in cur.fetchall()]
 
@@ -49,7 +70,7 @@ class NotificationRepository:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "CALL sp_mark_sent(%s, %s, %s)",
+                    "CALL notification.sp_mark_sent(%s, %s, %s)",
                     (notification_id, message_id, 'OK')
                 )
 
@@ -57,6 +78,6 @@ class NotificationRepository:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "CALL sp_mark_failed(%s, %s)",
+                    "CALL notification.sp_mark_failed(%s, %s)",
                     (notification_id, error_message)
                 )

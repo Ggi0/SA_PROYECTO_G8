@@ -4,7 +4,13 @@
 // No contiene lógica de negocio — solo traduce llamadas HTTP → gRPC.
 // Toda la lógica vive en el Auth Microservice.
 
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Observable, firstValueFrom } from 'rxjs';
 import { AUTH_SERVICE_GRPC } from './auth.constants';
@@ -54,8 +60,51 @@ export class AuthGatewayService implements OnModuleInit {
   // ─────────────────────────────────────────────
   //  Helper — convierte Observable a Promise
   // ─────────────────────────────────────────────
-  private call<T>(obs: Observable<T>): Promise<T> {
-    return firstValueFrom(obs);
+  private async call<T>(obs: Observable<T>): Promise<T> {
+    try {
+      return await firstValueFrom(obs);
+    } catch (err: any) {
+      const message = err?.details || err?.message || 'Error en auth-service';
+      const status = this.authMessageToHttpStatus(message) ?? this.grpcCodeToHttpStatus(err?.code);
+      throw new HttpException(message, status);
+    }
+  }
+
+  private grpcCodeToHttpStatus(code?: number): HttpStatus {
+    switch (code) {
+      case 3:
+        return HttpStatus.BAD_REQUEST;
+      case 5:
+        return HttpStatus.NOT_FOUND;
+      case 6:
+        return HttpStatus.CONFLICT;
+      case 7:
+      case 16:
+        return HttpStatus.UNAUTHORIZED;
+      default:
+        return HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+  }
+
+  private authMessageToHttpStatus(message: string): HttpStatus | null {
+    const lower = message.toLowerCase();
+    if (
+      lower.includes('credenciales') ||
+      lower.includes('no activada') ||
+      lower.includes('unauthorized')
+    ) {
+      return HttpStatus.UNAUTHORIZED;
+    }
+    if (lower.includes('registrado') || lower.includes('conflict')) {
+      return HttpStatus.CONFLICT;
+    }
+    if (lower.includes('not found') || lower.includes('no encontrado')) {
+      return HttpStatus.NOT_FOUND;
+    }
+    if (lower.includes('bad request') || lower.includes('inválido') || lower.includes('invalido')) {
+      return HttpStatus.BAD_REQUEST;
+    }
+    return null;
   }
 
   // ─────────────────────────────────────────────
