@@ -54,9 +54,58 @@ jobs:
         run: |
           docker build -t ${{ env.REGISTRY }}/historial-service:develop -f app/QuetxalTV/microservices/historial-service/Dockerfile app/QuetxalTV/microservices/historial-service
           docker push ${{ env.REGISTRY }}/historial-service:develop
+  deploy-databases:
+    name: Deploy databases → GCE via SSH
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH y deploy BDs
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCE_DB_PUBLIC_IP }}
+          username: ${{ secrets.GCE_DB_SSH_USER }}
+          key: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /app/SA_PROYECTO_G8
+            git fetch origin develop
+            git checkout develop
+            git pull origin develop
+            cd app/QuetxalTV
+            set_env() {
+              grep -q "^$1=" .env && sed -i "s|^$1=.*|$1=$2|" .env || echo "$1=$2" >> .env
+            }
+            set_env AUTH_DB_USER "${{ secrets.AUTH_DB_USER }}"
+            set_env AUTH_DB_PASSWORD "${{ secrets.AUTH_DB_PASSWORD }}"
+            set_env AUTH_DB_NAME "${{ secrets.AUTH_DB_NAME }}"
+            set_env AUTH_DB_PUBLIC_PORT 5432
+            set_env SUBSCRIPTION_DB_USER "${{ secrets.SUBSCRIPTION_DB_USER }}"
+            set_env SUBSCRIPTION_DB_PASSWORD "${{ secrets.SUBSCRIPTION_DB_PASSWORD }}"
+            set_env SUBSCRIPTION_DB_NAME "${{ secrets.SUBSCRIPTION_DB_NAME }}"
+            set_env SUBSCRIPTION_DB_PUBLIC_PORT 5433
+            set_env CATALOGO_DB_USER "${{ secrets.CATALOGO_DB_USER }}"
+            set_env CATALOGO_DB_PASSWORD "${{ secrets.CATALOGO_DB_PASSWORD }}"
+            set_env CATALOGO_DB_NAME "${{ secrets.CATALOGO_DB_NAME }}"
+            set_env CATALOGO_DB_PUBLIC_PORT 5434
+            set_env FX_DB_USER "${{ secrets.FX_DB_USER }}"
+            set_env FX_DB_PASSWORD "${{ secrets.FX_DB_PASSWORD }}"
+            set_env FX_DB_NAME "${{ secrets.FX_DB_NAME }}"
+            set_env FX_DB_PUBLIC_PORT 5435
+            set_env NOTIFICATION_DB_USER "${{ secrets.NOTIFICATION_DB_USER }}"
+            set_env NOTIFICATION_DB_PASSWORD "${{ secrets.NOTIFICATION_DB_PASSWORD }}"
+            set_env NOTIFICATION_DB_NAME "${{ secrets.NOTIFICATION_DB_NAME }}"
+            set_env NOTIFICATION_DB_PUBLIC_PORT 5436
+            set_env HISTORIAL_DB_USER "${{ secrets.HISTORIAL_DB_USER }}"
+            set_env HISTORIAL_DB_PASSWORD "${{ secrets.HISTORIAL_DB_PASSWORD }}"
+            set_env HISTORIAL_DB_NAME "${{ secrets.HISTORIAL_DB_NAME }}"
+            set_env HISTORIAL_DB_PUBLIC_PORT 5437
+            docker compose -f docker-compose.databases.yml pull
+            docker compose -f docker-compose.databases.yml up -d --remove-orphans
+            docker system prune -f
+            echo "✅ Deploy DB GCE: $(date)"
   deploy:
     name: Deploy → GCE via SSH
-    needs: build
+    needs: [build, deploy-databases]
     runs-on: ubuntu-latest
     steps:
       - name: SSH y deploy
@@ -73,8 +122,53 @@ jobs:
             git pull origin develop
             cd app/QuetxalTV
             gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
-            sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=develop/' .env || echo 'IMAGE_TAG=develop' >> .env
-            grep -q '^FRONTEND_PUBLIC_PORT=' .env && sed -i 's/^FRONTEND_PUBLIC_PORT=.*/FRONTEND_PUBLIC_PORT=8080/' .env || echo 'FRONTEND_PUBLIC_PORT=8080' >> .env
+            set_env() {
+              grep -q "^$1=" .env && sed -i "s|^$1=.*|$1=$2|" .env || echo "$1=$2" >> .env
+            }
+            set_env IMAGE_TAG develop
+            set_env FRONTEND_PUBLIC_PORT 8080
+            set_env AUTH_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
+            set_env AUTH_DB_PORT 5432
+            set_env AUTH_DB_USER "${{ secrets.AUTH_DB_USER }}"
+            set_env AUTH_DB_PASSWORD "${{ secrets.AUTH_DB_PASSWORD }}"
+            set_env AUTH_DB_NAME "${{ secrets.AUTH_DB_NAME }}"
+            set_env AUTH_DB_SCHEMA "${{ secrets.AUTH_DB_SCHEMA }}"
+            set_env AUTH_DB_SSLMODE disable
+            set_env SUBSCRIPTION_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
+            set_env SUBSCRIPTION_DB_PORT 5433
+            set_env SUBSCRIPTION_DB_USER "${{ secrets.SUBSCRIPTION_DB_USER }}"
+            set_env SUBSCRIPTION_DB_PASSWORD "${{ secrets.SUBSCRIPTION_DB_PASSWORD }}"
+            set_env SUBSCRIPTION_DB_NAME "${{ secrets.SUBSCRIPTION_DB_NAME }}"
+            set_env SUBSCRIPTION_DB_SCHEMA "${{ secrets.SUBSCRIPTION_DB_SCHEMA }}"
+            set_env SUBSCRIPTION_DB_SSLMODE disable
+            set_env CATALOGO_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
+            set_env CATALOGO_DB_PORT 5434
+            set_env CATALOGO_DB_USER "${{ secrets.CATALOGO_DB_USER }}"
+            set_env CATALOGO_DB_PASSWORD "${{ secrets.CATALOGO_DB_PASSWORD }}"
+            set_env CATALOGO_DB_NAME "${{ secrets.CATALOGO_DB_NAME }}"
+            set_env CATALOGO_DB_SCHEMA "${{ secrets.CATALOGO_DB_SCHEMA }}"
+            set_env CATALOGO_DB_SSLMODE disable
+            set_env FX_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
+            set_env FX_DB_PORT 5435
+            set_env FX_DB_USER "${{ secrets.FX_DB_USER }}"
+            set_env FX_DB_PASSWORD "${{ secrets.FX_DB_PASSWORD }}"
+            set_env FX_DB_NAME "${{ secrets.FX_DB_NAME }}"
+            set_env FX_DB_SCHEMA "${{ secrets.FX_DB_SCHEMA }}"
+            set_env FX_DB_SSLMODE disable
+            set_env NOTIFICATION_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
+            set_env NOTIFICATION_DB_PORT 5436
+            set_env NOTIFICATION_DB_USER "${{ secrets.NOTIFICATION_DB_USER }}"
+            set_env NOTIFICATION_DB_PASSWORD "${{ secrets.NOTIFICATION_DB_PASSWORD }}"
+            set_env NOTIFICATION_DB_NAME "${{ secrets.NOTIFICATION_DB_NAME }}"
+            set_env NOTIFICATION_DB_SCHEMA "${{ secrets.NOTIFICATION_DB_SCHEMA }}"
+            set_env NOTIFICATION_DB_SSLMODE disable
+            set_env HISTORIAL_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
+            set_env HISTORIAL_DB_PORT 5437
+            set_env HISTORIAL_DB_USER "${{ secrets.HISTORIAL_DB_USER }}"
+            set_env HISTORIAL_DB_PASSWORD "${{ secrets.HISTORIAL_DB_PASSWORD }}"
+            set_env HISTORIAL_DB_NAME "${{ secrets.HISTORIAL_DB_NAME }}"
+            set_env HISTORIAL_DB_SCHEMA "${{ secrets.HISTORIAL_DB_SCHEMA }}"
+            set_env HISTORIAL_DB_SSLMODE disable
             docker compose -f docker-compose.cloud.yml pull
             docker compose -f docker-compose.cloud.yml up -d --remove-orphans
             docker system prune -f
