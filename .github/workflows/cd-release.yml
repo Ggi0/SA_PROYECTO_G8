@@ -25,7 +25,7 @@ jobs:
         id: sv
         run: |
           LATEST=$(git tag --sort=-v:refname | grep -E '^[Vv]2\\.' | head -1)
-          if [ -z "$LATEST" ]; then NEW="v2.1.0"
+          if [ -z "$LATEST" ]; then NEW="v2.0.0"
           else MINOR=$(echo "$LATEST" | sed 's/[Vv]2\\.//;s/\\.0$//'); NEW="v2.$((MINOR+1)).0"; fi
           echo "version=$NEW" >> $GITHUB_OUTPUT && echo "🏷️ $NEW"
       - name: Push tag
