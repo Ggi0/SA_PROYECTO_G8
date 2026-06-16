@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: { name: catalogo-service, namespace: quetxal-tv-prod }
 spec:
-  replicas: 2
+  replicas: 1
   selector: { matchLabels: { app: catalogo-service } }
   strategy:
     type: RollingUpdate

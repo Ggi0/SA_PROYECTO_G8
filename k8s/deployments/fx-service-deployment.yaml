@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: { name: fx-service, namespace: quetxal-tv-prod }
 spec:
-  replicas: 2
+  replicas: 1
   selector: { matchLabels: { app: fx-service } }
   strategy:
     type: RollingUpdate

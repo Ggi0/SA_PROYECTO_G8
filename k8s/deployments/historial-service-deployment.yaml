@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: { name: historial-service, namespace: quetxal-tv-prod }
 spec:
-  replicas: 2
+  replicas: 1
   selector: { matchLabels: { app: historial-service } }
   strategy:
     type: RollingUpdate
