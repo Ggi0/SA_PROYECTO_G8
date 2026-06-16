@@ -32,7 +32,7 @@ CREATE TABLE auth.users (
     role VARCHAR(20) NOT NULL DEFAULT 'client'
         CHECK (role IN ('client', 'admin')),
 
-    is_active BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     token_version INTEGER NOT NULL DEFAULT 1 CHECK (token_version >= 1),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -57,6 +57,10 @@ CREATE TABLE auth.users (
 COMMENT ON TABLE auth.users IS 'Cuenta principal del usuario.';
 COMMENT ON COLUMN auth.users.password_hash IS 'Hash bcrypt generado con pgcrypto.';
 COMMENT ON COLUMN auth.users.token_version IS 'Versión para invalidar JWTs previos.';
+
+
+-- admin@example.com 
+-- 12345678
 
 
 -- ---------------------------------------------------------
