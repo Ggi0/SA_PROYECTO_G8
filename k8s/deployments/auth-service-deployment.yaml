@@ -18,6 +18,22 @@ spec:
       labels:
         app: auth-service
     spec:
+      initContainers:
+        - name: wait-for-auth-db
+          image: postgres:16-alpine
+          env:
+            - name: DB_HOST
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_HOST } }
+            - name: DB_PORT
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_PORT } }
+            - name: DB_USER
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_USER } }
+            - name: DB_NAME
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_NAME } }
+          command:
+            - sh
+            - -c
+            - until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME"; do sleep 3; done
       containers:
         - name: auth-service
           image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/auth-service:${IMAGE_TAG}
