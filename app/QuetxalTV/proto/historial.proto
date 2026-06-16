@@ -64,3 +64,26 @@ message ProgressItem {
   int32 last_episode_num = 12;
   int32 last_ep_minute = 13;
 }
+
+message GetHistoryAuditLogsRequest {
+  string table_name = 1;
+  string action = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message HistoryAuditLogsResponse {
+  repeated HistoryAuditLogItem items = 1;
+}
+
+message HistoryAuditLogItem {
+  string audit_id = 1;
+  string responsible_user_id = 2;
+  string responsible_profile_id = 3;
+  string action = 4;
+  string table_name = 5;
+  string record_id = 6;
+  string old_state = 7;
+  string new_state = 8;
+  string created_at = 9;
+}
