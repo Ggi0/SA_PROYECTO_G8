@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata: { name: notification-db-pvc, namespace: quetxal-tv-prod }
 spec:
   accessModes: [ReadWriteOnce]
-  resources: { requests: { storage: 5Gi } }
+  resources: { requests: { storage: 3Gi } }
 ---
 apiVersion: apps/v1
 kind: Deployment
