@@ -51,7 +51,8 @@ services:
       NOTIFICATION_SERVICE_HOST: notification-service
       NOTIFICATION_SERVICE_PORT: 50056
     depends_on:
-      - notification-service
+      notification-service:
+        condition: service_started
     expose:
       - "50051"
     restart: unless-stopped
@@ -62,7 +63,7 @@ services:
     image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/subscription-service:${IMAGE_TAG:-latest}
     environment:
       DB_HOST: ${SUBSCRIPTION_DB_HOST}
-      DB_PORT: ${SUBSCRIPTION_DB_PORT:-5432}
+      DB_PORT: ${SUBSCRIPTION_DB_PORT:-5433}
       DB_USER: ${SUBSCRIPTION_DB_USER}
       DB_PASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
       DB_NAME: ${SUBSCRIPTION_DB_NAME}
@@ -72,8 +73,10 @@ services:
       FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
       NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST:-notification-service:50056}
     depends_on:
-      - fx-service
-      - notification-service
+      fx-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
     expose:
       - "50053"
     restart: unless-stopped
@@ -84,7 +87,7 @@ services:
     image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/catalogo-service:${IMAGE_TAG:-latest}
     environment:
       DB_HOST: ${CATALOGO_DB_HOST}
-      DB_PORT: ${CATALOGO_DB_PORT:-5432}
+      DB_PORT: ${CATALOGO_DB_PORT:-5434}
       DB_USER: ${CATALOGO_DB_USER}
       DB_PASSWORD: ${CATALOGO_DB_PASSWORD}
       DB_NAME: ${CATALOGO_DB_NAME}
@@ -102,7 +105,7 @@ services:
     environment:
       GRPC_PORT: 50054
       DB_HOST: ${FX_DB_HOST}
-      DB_PORT: ${FX_DB_PORT:-5432}
+      DB_PORT: ${FX_DB_PORT:-5435}
       DB_NAME: ${FX_DB_NAME}
       DB_USER: ${FX_DB_USER}
       DB_PASSWORD: ${FX_DB_PASSWORD}
@@ -114,7 +117,8 @@ services:
       EXCHANGE_API_KEY: ${EXCHANGE_API_KEY}
       EXCHANGE_API_URL: ${EXCHANGE_API_URL}
     depends_on:
-      - redis
+      redis:
+        condition: service_started
     expose:
       - "50054"
     restart: unless-stopped
@@ -126,7 +130,7 @@ services:
     environment:
       GRPC_PORT: 50056
       DB_HOST: ${NOTIFICATION_DB_HOST}
-      DB_PORT: ${NOTIFICATION_DB_PORT:-5432}
+      DB_PORT: ${NOTIFICATION_DB_PORT:-5436}
       DB_USER: ${NOTIFICATION_DB_USER}
       DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       DB_NAME: ${NOTIFICATION_DB_NAME}
@@ -148,7 +152,7 @@ services:
     environment:
       HISTORIAL_SERVICE_PORT: 50054
       DB_HOST: ${HISTORIAL_DB_HOST}
-      DB_PORT: ${HISTORIAL_DB_PORT:-5432}
+      DB_PORT: ${HISTORIAL_DB_PORT:-5437}
       DB_USER: ${HISTORIAL_DB_USER}
       DB_PASSWORD: ${HISTORIAL_DB_PASSWORD}
       DB_NAME: ${HISTORIAL_DB_NAME}
