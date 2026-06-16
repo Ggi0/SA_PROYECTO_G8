@@ -5,14 +5,26 @@ import { useAuth } from '@/context/AuthContext'
 interface ProtectedRouteProps {
   children: React.ReactNode
   requireSubscription?: boolean
+  allowedRoles?: string[]
 }
 
-export default function ProtectedRoute({ children, requireSubscription = false }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth()
+export default function ProtectedRoute({
+  children,
+  allowedRoles,
+}: ProtectedRouteProps) {
+  const { isAuthenticated, user } = useAuth()
 
-  // Si no está autenticado, redirigir al login
+// No autenticado
   if (!isAuthenticated) {
-    return <Navigate to="/login" />
+    return <Navigate to="/login" replace />
+  }
+
+  // Validación de roles
+  if (
+    allowedRoles &&
+    (!user?.role || !allowedRoles.includes(user.role))
+  ) {
+    return <Navigate to="/profiles" replace />
   }
 
   return <>{children}</>

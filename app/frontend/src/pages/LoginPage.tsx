@@ -12,31 +12,49 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  
+
 
   const handleLogin = async () => {
     setLoading(true)
     setError('')
-  
+
     try {
       const data = await authAPI.login(
         email,
         password,
       )
-      
+
       console.log(data.accessToken)
-      
+        console.log('===== LOGIN RESPONSE =====')
+  console.log(data)
+
+  console.log('===== USER =====')
+  console.log(data.user)
+
+  console.log('===== ROLE =====')
+  console.log(data.user?.role)
+
+  console.log('===== PROFILES =====')
+  console.log(data.profiles)
+
       setUser(
         {
           id: data.user.userId,
           email: data.user.email,
           name: 'Mi perfil',
           subscriptionPlan: null,
+          role: data.user.role,
         },
         data.accessToken,
       )
-        
-      navigate('/profiles')
+
+       if (data.user.role === 'admin') {
+    console.log('REDIRECT -> /admin')
+    navigate('/admin')
+  } else {
+    console.log('REDIRECT -> /profiles')
+    navigate('/profiles')
+  }
     } catch (err) {
       console.error(err)
       setError('Correo o contraseña incorrectos')

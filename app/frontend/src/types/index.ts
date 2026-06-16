@@ -4,6 +4,7 @@ export interface User {
   email: string
   name: string
   subscriptionPlan: 'basic' | 'standard' | 'premium' | null
+  role?: string
   profiles?: Profile[]
 }
 

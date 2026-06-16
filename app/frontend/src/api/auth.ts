@@ -10,6 +10,10 @@ export const api = axios.create({
   },
 })
 
+
+// "email": "admin@example.com",
+// "password": "12345678",
+
 export interface LoginResponse {
   accessToken: string
   refreshToken: string
