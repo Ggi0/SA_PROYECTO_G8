@@ -128,9 +128,6 @@ jobs:
             set_env() {
               grep -q "^$1=" .env && sed -i "s|^$1=.*|$1=$2|" .env || echo "$1=$2" >> .env
             }
-            set_env_if_not_empty() {
-              [ -n "$2" ] && set_env "$1" "$2"
-            }
             set_env IMAGE_TAG develop
             set_env FRONTEND_PUBLIC_PORT 8080
             set_env AUTH_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
@@ -175,11 +172,11 @@ jobs:
             set_env HISTORIAL_DB_NAME "${{ secrets.HISTORIAL_DB_NAME }}"
             set_env HISTORIAL_DB_SCHEMA playback
             set_env HISTORIAL_DB_SSLMODE disable
-            set_env_if_not_empty SMTP_HOST "${{ secrets.SMTP_HOST }}"
-            set_env_if_not_empty SMTP_PORT "${{ secrets.SMTP_PORT }}"
-            set_env_if_not_empty SMTP_USER "${{ secrets.SMTP_USER }}"
-            set_env_if_not_empty SMTP_PASSWORD "${{ secrets.SMTP_PASSWORD }}"
-            set_env_if_not_empty SMTP_FROM "${{ secrets.SMTP_FROM }}"
+            [ -n "${{ secrets.SMTP_HOST }}" ] && set_env SMTP_HOST "${{ secrets.SMTP_HOST }}"
+            [ -n "${{ secrets.SMTP_PORT }}" ] && set_env SMTP_PORT "${{ secrets.SMTP_PORT }}"
+            [ -n "${{ secrets.SMTP_USER }}" ] && set_env SMTP_USER "${{ secrets.SMTP_USER }}"
+            [ -n "${{ secrets.SMTP_PASSWORD }}" ] && set_env SMTP_PASSWORD "${{ secrets.SMTP_PASSWORD }}"
+            [ -n "${{ secrets.SMTP_FROM }}" ] && set_env SMTP_FROM "${{ secrets.SMTP_FROM }}"
             docker compose -f docker-compose.cloud.yml pull
             docker compose -f docker-compose.cloud.yml up -d --remove-orphans
             docker system prune -f
