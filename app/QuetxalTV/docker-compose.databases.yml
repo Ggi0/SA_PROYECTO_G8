@@ -10,7 +10,8 @@ services:
       POSTGRES_DB: ${AUTH_DB_NAME}
     volumes:
       - auth_db_data:/var/lib/postgresql/data
-      - ./database/auth.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./database/auth/auth.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./database/auth/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
