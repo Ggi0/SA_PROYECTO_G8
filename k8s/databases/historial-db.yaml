@@ -11,6 +11,8 @@ metadata: { name: historial-db, namespace: quetxal-tv-prod }
 spec:
   replicas: 1
   selector: { matchLabels: { app: historial-db } }
+  strategy:
+    type: Recreate
   template:
     metadata: { labels: { app: historial-db } }
     spec:
@@ -19,8 +21,8 @@ spec:
           image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/historial-db:${IMAGE_TAG}
           ports: [{ containerPort: 5432 }]
           resources:
-            requests: { cpu: "100m", memory: "256Mi" }
-            limits: { cpu: "500m", memory: "512Mi" }
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "250m", memory: "384Mi" }
           env:
             - name: POSTGRES_USER
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: HISTORIAL_DB_USER } }
