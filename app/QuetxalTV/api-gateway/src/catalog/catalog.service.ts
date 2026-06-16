@@ -1,5 +1,7 @@
+import * as http from 'node:http';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
+import { Request, Response } from 'express';
 import { Observable } from 'rxjs';
 
 interface CatalogGrpcService {
@@ -39,6 +41,7 @@ interface CatalogGrpcService {
 @Injectable()
 export class CatalogService implements OnModuleInit {
   private grpcClient!: CatalogGrpcService;
+  private readonly catalogHttpUrl = process.env.CATALOG_HTTP_URL || 'http://localhost:8082';
 
   constructor(@Inject('CATALOG_PACKAGE') private readonly client: ClientGrpc) {}
 
@@ -132,5 +135,37 @@ export class CatalogService implements OnModuleInit {
   }
   deleteEpisode(episodeId: string, changedBy: string) {
     return this.grpcClient.deleteEpisode({ episodeId, changedBy });
+  }
+
+  // ---------- Proxy HTTP → catalog-service:8082 ----------
+  proxyGet(path: string, queryString: string, res: Response): void {
+    const target = `${this.catalogHttpUrl}${path}${queryString ? '?' + queryString : ''}`;
+    http.get(target, (upstream) => {
+      res.status(upstream.statusCode ?? 200);
+      if (upstream.headers['content-type'])
+        res.set('Content-Type', upstream.headers['content-type']);
+      if (upstream.headers['content-disposition'])
+        res.set('Content-Disposition', upstream.headers['content-disposition'] as string);
+      upstream.pipe(res);
+    }).on('error', (e) => res.status(502).json({ error: 'catalog proxy: ' + e.message }));
+  }
+
+  proxyPost(path: string, req: Request, res: Response): void {
+    const parsed = new URL(this.catalogHttpUrl + path);
+    const options: http.RequestOptions = {
+      hostname: parsed.hostname,
+      port: Number(parsed.port) || 8082,
+      path: parsed.pathname,
+      method: 'POST',
+      headers: { ...req.headers, host: parsed.host },
+    };
+    const upstream = http.request(options, (upRes) => {
+      res.status(upRes.statusCode ?? 200);
+      if (upRes.headers['content-type'])
+        res.set('Content-Type', upRes.headers['content-type']);
+      upRes.pipe(res);
+    });
+    upstream.on('error', (e) => res.status(502).json({ error: 'catalog upload proxy: ' + e.message }));
+    req.pipe(upstream);
   }
 }

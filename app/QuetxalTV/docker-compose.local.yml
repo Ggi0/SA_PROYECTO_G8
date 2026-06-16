@@ -15,6 +15,7 @@ services:
       AUTH_SERVICE_URL: auth-service:50051
       NOTIFICATION_SERVICE_HOST: notification-service:50056
       CATALOG_SERVICE_URL: catalog-service:50052
+      CATALOG_HTTP_URL: http://catalog-service:8082
     depends_on:
       - auth-service
       - subscription-service

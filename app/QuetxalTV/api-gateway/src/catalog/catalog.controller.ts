@@ -8,7 +8,10 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  Res,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { CatalogService } from './catalog.service';
 
 @Controller('catalog')
@@ -185,6 +188,27 @@ export class CatalogController {
     @Body() body: { changedBy?: string },
   ) {
     return this.catalogService.deleteSeason(id, body.changedBy || 'admin');
+  }
+
+  // ===== Admin — auditoría (proxy HTTP → catalog-service:8082) =====
+
+  @Get('admin/audit/logs')
+  getAuditLogs(@Query() query: Record<string, string>, @Res() res: Response) {
+    const qs = new URLSearchParams(query).toString();
+    this.catalogService.proxyGet('/audit/logs', qs, res);
+  }
+
+  @Get('admin/audit/export')
+  exportAudit(@Query() query: Record<string, string>, @Res() res: Response) {
+    const qs = new URLSearchParams(query).toString();
+    this.catalogService.proxyGet('/audit/export', qs, res);
+  }
+
+  // ===== Admin — upload GCS (proxy HTTP → catalog-service:8082) =====
+
+  @Post('admin/upload')
+  uploadFile(@Req() req: Request, @Res() res: Response) {
+    this.catalogService.proxyPost('/admin/upload', req, res);
   }
 
   // ===== Admin — episodios =====
