@@ -22,6 +22,29 @@ services:
     networks:
       - quetxal-network
 
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: auth_db
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+      - ./database/auth/auth.sql:/docker-entrypoint-initdb.d/01_auth.sql
+      - ./database/auth/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+
   auth-service:
     build:
       context: ./microservices/auth-service/auth-service
@@ -33,10 +56,24 @@ services:
         required: false
     environment:
       GRPC_PORT: 50051
+
       NOTIFICATION_SERVICE_HOST: notification-service
       NOTIFICATION_SERVICE_PORT: 50056
+
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USER: auth_user
+      DB_PASSWORD: admin
+      DB_NAME: auth_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: auth
+
     depends_on:
-      - notification-service
+      auth-db:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
+
     networks:
       - quetxal-network
 
@@ -126,8 +163,6 @@ services:
     networks:
       - quetxal-network
 
- 
-
   fx-service:
     build:
       context: ./microservices/fx-service
@@ -174,6 +209,7 @@ services:
       - quetxal-network
 
 volumes:
+  auth_db_data:
   subscription_db_data:
   catalog_db_data:
 
