@@ -139,6 +139,34 @@ COMMENT ON TABLE auth.audit_log IS 'Eventos críticos de seguridad y auditoría.
 
 
 -- =========================================================
+-- AUDITORÍA TRANSACCIONAL DETALLADA
+-- =========================================================
+CREATE TABLE auth.audit_trail (
+    audit_id BIGSERIAL PRIMARY KEY,
+
+    table_name TEXT NOT NULL,
+    operation  VARCHAR(10) NOT NULL, -- INSERT, UPDATE, DELETE
+
+    user_id UUID NULL, -- quién hizo el cambio (si lo conocemos)
+    
+    record_id TEXT NULL, -- PK del registro afectado (como texto genérico)
+
+    old_data JSONB, -- estado antes
+    new_data JSONB, -- estado después
+
+    changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_audit_trail_table ON auth.audit_trail(table_name);
+CREATE INDEX idx_audit_trail_user ON auth.audit_trail(user_id);
+CREATE INDEX idx_audit_trail_date ON auth.audit_trail(changed_at DESC);
+
+COMMENT ON TABLE auth.audit_trail IS 'Auditoría detallada de cambios (INSERT/UPDATE/DELETE).';
+
+
+
+
+-- =========================================================
 --  ÍNDICES
 -- =========================================================
 
@@ -395,6 +423,125 @@ FOR EACH ROW
 WHEN (OLD.is_active = TRUE AND NEW.is_active = FALSE)
 EXECUTE FUNCTION auth.fn_audit_account_deactivation();
 
+
+
+
+CREATE OR REPLACE FUNCTION auth.fn_audit_trigger()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_user_id UUID;
+    v_record_id TEXT;
+BEGIN
+    -- Usuario desde sesión
+    BEGIN
+        v_user_id := current_setting('app.current_user_id')::UUID;
+    EXCEPTION
+        WHEN OTHERS THEN
+            v_user_id := NULL;
+    END;
+
+    IF TG_OP = 'INSERT' THEN
+
+        v_record_id :=
+            COALESCE(
+                to_jsonb(NEW)->>'user_id',
+                to_jsonb(NEW)->>'profile_id',
+                to_jsonb(NEW)->>'token_id',
+                to_jsonb(NEW)->>'verification_token_id'
+            );
+
+        INSERT INTO auth.audit_trail (
+            table_name,
+            operation,
+            user_id,
+            record_id,
+            new_data
+        )
+        VALUES (
+            TG_TABLE_NAME,
+            TG_OP,
+            v_user_id,
+            v_record_id,
+            to_jsonb(NEW)
+        );
+
+        RETURN NEW;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+
+        v_record_id :=
+            COALESCE(
+                to_jsonb(NEW)->>'user_id',
+                to_jsonb(NEW)->>'profile_id',
+                to_jsonb(NEW)->>'token_id',
+                to_jsonb(NEW)->>'verification_token_id'
+            );
+
+        INSERT INTO auth.audit_trail (
+            table_name,
+            operation,
+            user_id,
+            record_id,
+            old_data,
+            new_data
+        )
+        VALUES (
+            TG_TABLE_NAME,
+            TG_OP,
+            v_user_id,
+            v_record_id,
+            to_jsonb(OLD),
+            to_jsonb(NEW)
+        );
+
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+
+        v_record_id :=
+            COALESCE(
+                to_jsonb(OLD)->>'user_id',
+                to_jsonb(OLD)->>'profile_id',
+                to_jsonb(OLD)->>'token_id',
+                to_jsonb(OLD)->>'verification_token_id'
+            );
+
+        INSERT INTO auth.audit_trail (
+            table_name,
+            operation,
+            user_id,
+            record_id,
+            old_data
+        )
+        VALUES (
+            TG_TABLE_NAME,
+            TG_OP,
+            v_user_id,
+            v_record_id,
+            to_jsonb(OLD)
+        );
+
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+
+
+CREATE TRIGGER trg_audit_users
+AFTER INSERT OR UPDATE OR DELETE ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION auth.fn_audit_trigger();
+
+
+CREATE TRIGGER trg_audit_profiles
+AFTER INSERT OR UPDATE OR DELETE ON auth.profiles
+FOR EACH ROW
+EXECUTE FUNCTION auth.fn_audit_trigger();
 
 
 -- =========================================================
