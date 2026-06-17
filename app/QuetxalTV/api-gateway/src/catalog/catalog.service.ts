@@ -36,6 +36,8 @@ interface CatalogGrpcService {
   createEpisode(data: Record<string, unknown>): Observable<unknown>;
   updateEpisode(data: Record<string, unknown>): Observable<unknown>;
   deleteEpisode(data: { episodeId: string; changedBy: string }): Observable<unknown>;
+  // Admin — todo el contenido (publicado y no publicado)
+  listAllContent(data: { contentType: string; genreId: number; page: number; pageSize: number }): Observable<unknown>;
 }
 
 @Injectable()
@@ -135,6 +137,9 @@ export class CatalogService implements OnModuleInit {
   }
   deleteEpisode(episodeId: string, changedBy: string) {
     return this.grpcClient.deleteEpisode({ episodeId, changedBy });
+  }
+  listAllContent(contentType = '', genreId = 0, page = 1, pageSize = 24) {
+    return this.grpcClient.listAllContent({ contentType, genreId, page, pageSize });
   }
 
   // ---------- Proxy HTTP → catalog-service:8082 ----------

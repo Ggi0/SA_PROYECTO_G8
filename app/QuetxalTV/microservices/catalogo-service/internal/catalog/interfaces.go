@@ -31,4 +31,5 @@ type RepositoryInterface interface {
 	ScheduleContent(contentID, premiereDate, changedBy string) (string, error)
 	GetAuditLogs(f AuditLogFilter) ([]AuditLogRow, int, error)
 	SetChangedBy(changedBy string) error
+	ListAllContent(contentType string, genreID, page, pageSize int) ([]CatalogCardRow, int, error)
 }
