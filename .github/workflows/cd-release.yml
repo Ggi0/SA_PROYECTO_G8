@@ -104,37 +104,37 @@ jobs:
             --from-literal=JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             --from-literal=AUTH_DB_HOST="auth-db" \
-            --from-literal=AUTH_DB_PORT="${{ secrets.AUTH_DB_PORT }}" \
+            --from-literal=AUTH_DB_PORT="5432" \
             --from-literal=AUTH_DB_USER="${{ secrets.AUTH_DB_USER }}" \
             --from-literal=AUTH_DB_PASSWORD="${{ secrets.AUTH_DB_PASSWORD }}" \
             --from-literal=AUTH_DB_NAME="${{ secrets.AUTH_DB_NAME }}" \
             --from-literal=AUTH_DB_SCHEMA="${{ secrets.AUTH_DB_SCHEMA }}" \
             --from-literal=SUBSCRIPTION_DB_HOST="subscription-db" \
-            --from-literal=SUBSCRIPTION_DB_PORT="${{ secrets.SUBSCRIPTION_DB_PORT }}" \
+            --from-literal=SUBSCRIPTION_DB_PORT="5432" \
             --from-literal=SUBSCRIPTION_DB_USER="${{ secrets.SUBSCRIPTION_DB_USER }}" \
             --from-literal=SUBSCRIPTION_DB_PASSWORD="${{ secrets.SUBSCRIPTION_DB_PASSWORD }}" \
             --from-literal=SUBSCRIPTION_DB_NAME="${{ secrets.SUBSCRIPTION_DB_NAME }}" \
             --from-literal=SUBSCRIPTION_DB_SCHEMA="${{ secrets.SUBSCRIPTION_DB_SCHEMA }}" \
             --from-literal=CATALOGO_DB_HOST="catalogo-db" \
-            --from-literal=CATALOGO_DB_PORT="${{ secrets.CATALOGO_DB_PORT }}" \
+            --from-literal=CATALOGO_DB_PORT="5432" \
             --from-literal=CATALOGO_DB_USER="${{ secrets.CATALOGO_DB_USER }}" \
             --from-literal=CATALOGO_DB_PASSWORD="${{ secrets.CATALOGO_DB_PASSWORD }}" \
             --from-literal=CATALOGO_DB_NAME="${{ secrets.CATALOGO_DB_NAME }}" \
             --from-literal=CATALOGO_DB_SCHEMA="${{ secrets.CATALOGO_DB_SCHEMA }}" \
             --from-literal=FX_DB_HOST="fx-db" \
-            --from-literal=FX_DB_PORT="${{ secrets.FX_DB_PORT }}" \
+            --from-literal=FX_DB_PORT="5432" \
             --from-literal=FX_DB_USER="${{ secrets.FX_DB_USER }}" \
             --from-literal=FX_DB_PASSWORD="${{ secrets.FX_DB_PASSWORD }}" \
             --from-literal=FX_DB_NAME="${{ secrets.FX_DB_NAME }}" \
             --from-literal=FX_DB_SCHEMA="${{ secrets.FX_DB_SCHEMA }}" \
             --from-literal=NOTIFICATION_DB_HOST="notification-db" \
-            --from-literal=NOTIFICATION_DB_PORT="${{ secrets.NOTIFICATION_DB_PORT }}" \
+            --from-literal=NOTIFICATION_DB_PORT="5432" \
             --from-literal=NOTIFICATION_DB_USER="${{ secrets.NOTIFICATION_DB_USER }}" \
             --from-literal=NOTIFICATION_DB_PASSWORD="${{ secrets.NOTIFICATION_DB_PASSWORD }}" \
             --from-literal=NOTIFICATION_DB_NAME="${{ secrets.NOTIFICATION_DB_NAME }}" \
             --from-literal=NOTIFICATION_DB_SCHEMA="${{ secrets.NOTIFICATION_DB_SCHEMA }}" \
             --from-literal=HISTORIAL_DB_HOST="historial-db" \
-            --from-literal=HISTORIAL_DB_PORT="${{ secrets.HISTORIAL_DB_PORT }}" \
+            --from-literal=HISTORIAL_DB_PORT="5432" \
             --from-literal=HISTORIAL_DB_USER="${{ secrets.HISTORIAL_DB_USER }}" \
             --from-literal=HISTORIAL_DB_PASSWORD="${{ secrets.HISTORIAL_DB_PASSWORD }}" \
             --from-literal=HISTORIAL_DB_NAME="${{ secrets.HISTORIAL_DB_NAME }}" \

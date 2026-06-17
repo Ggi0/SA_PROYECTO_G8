@@ -65,6 +65,8 @@ spec:
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_NAME } }
             - name: DB_SCHEMA
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_SCHEMA } }
+            - name: DB_SSLMODE
+              value: disable
             - name: NOTIFICATION_SERVICE_HOST
               value: notification-service
             - name: NOTIFICATION_SERVICE_PORT
