@@ -163,7 +163,59 @@ class HistorialHandler(historial_pb2_grpc.HistorialServiceServicer):
             context.set_details("Error interno al obtener logs de auditoría de historial")
 
             return historial_pb2.HistoryAuditLogsResponse(items=[])
-        
+
+    def HealthLive(self, request, context):
+        try:
+            result = self.service.health_live()
+
+            return historial_pb2.HealthCheckResponse(
+                success=result["success"],
+                status=result["status"],
+                service=result["service"],
+                message=result["message"]
+            )
+
+        except Exception as error:
+            print(f"ERROR EN HEALTH LIVE DE HISTORIAL: {str(error)}")
+
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details("Error interno en HealthLive")
+
+            return historial_pb2.HealthCheckResponse(
+                success=False,
+                status="ERROR",
+                service="historial-service",
+                message="Error interno en HealthLive"
+            )
+
+    def HealthReady(self, request, context):
+        try:
+            result = self.service.health_ready()
+
+            if not result["success"]:
+                context.set_code(grpc.StatusCode.UNAVAILABLE)
+                context.set_details(result["message"])
+
+            return historial_pb2.HealthCheckResponse(
+                success=result["success"],
+                status=result["status"],
+                service=result["service"],
+                message=result["message"]
+            )
+
+        except Exception as error:
+            print(f"ERROR EN HEALTH READY DE HISTORIAL: {str(error)}")
+
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details("Historial service no está listo")
+
+            return historial_pb2.HealthCheckResponse(
+                success=False,
+                status="NOT_READY",
+                service="historial-service",
+                message="Historial service no está listo"
+            )
+
     def convertir_json_a_string(self, value):
         if value is None:
             return ""

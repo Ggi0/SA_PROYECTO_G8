@@ -162,3 +162,12 @@ class HistorialRepository:
                     offset
                 ))
                 return cursor.fetchall()
+
+    def verificar_conexion_base_datos(self):
+        query = "SELECT 1 AS ok;"
+
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+                resultado = cursor.fetchone()
+                return bool(resultado)
