@@ -230,6 +230,162 @@ message CreatePersonRequest {
 }
 
 // ---------------------------------------------------------------------------
+// ADMIN CRUD — mensajes nuevos Fase 2
+// ---------------------------------------------------------------------------
+
+message DeleteContentRequest {
+  string content_id  = 1;
+  string changed_by  = 2; // ID del admin (para auditoría)
+}
+
+message DeleteContentResponse {
+  bool success = 1;
+}
+
+message CreateGenreRequest {
+  string name = 1;
+  string slug = 2;
+}
+
+message UpdateGenreRequest {
+  int32  genre_id = 1;
+  string name     = 2;
+  string slug     = 3;
+}
+
+message DeleteGenreRequest {
+  int32  genre_id   = 1;
+  string changed_by = 2;
+}
+
+message DeleteGenreResponse {
+  bool success = 1;
+}
+
+message UpdatePersonRequest {
+  string person_id   = 1;
+  string full_name   = 2;
+  string birth_date  = 3;
+  string nationality = 4;
+  string bio         = 5;
+  string photo_url   = 6;
+}
+
+message DeletePersonRequest {
+  string person_id  = 1;
+  string changed_by = 2;
+}
+
+message DeletePersonResponse {
+  bool success = 1;
+}
+
+message RemovePersonFromContentRequest {
+  string content_id = 1;
+  string person_id  = 2;
+  string role_type  = 3;
+}
+
+message RemovePersonFromContentResponse {
+  bool success = 1;
+}
+
+// Series structure
+message CreateSeasonRequest {
+  string content_id   = 1;
+  int32  season_num   = 2;
+  string title        = 3;
+  int32  release_year = 4;
+}
+
+message SeasonInfo {
+  string season_id    = 1;
+  string content_id   = 2;
+  int32  season_num   = 3;
+  string title        = 4;
+  int32  release_year = 5;
+}
+
+message DeleteSeasonRequest {
+  string season_id  = 1;
+  string changed_by = 2;
+}
+
+message DeleteSeasonResponse {
+  bool success = 1;
+}
+
+message CreateEpisodeRequest {
+  string season_id    = 1;
+  int32  episode_num  = 2;
+  string title        = 3;
+  string synopsis     = 4;
+  int32  duration_min = 5;
+  string video_ref    = 6;
+  string video_source = 7;
+}
+
+message UpdateEpisodeRequest {
+  string episode_id   = 1;
+  string title        = 2;
+  string synopsis     = 3;
+  int32  duration_min = 4;
+  string video_ref    = 5;
+  string video_source = 6;
+}
+
+message DeleteEpisodeRequest {
+  string episode_id = 1;
+  string changed_by = 2;
+}
+
+message DeleteEpisodeResponse {
+  bool success = 1;
+}
+
+// Programación de estrenos
+message ScheduleContentRequest {
+  string content_id    = 1;
+  string premiere_date = 2; // ISO 8601: "2026-07-15T20:00:00Z" — vacío para quitar la fecha
+  string changed_by    = 3;
+}
+
+message ScheduleContentResponse {
+  bool   success       = 1;
+  string premiere_date = 2; // fecha confirmada o vacío si se limpió
+}
+
+// ---------------------------------------------------------------------------
+// AUDITORÍA (expuesta vía HTTP en /audit/logs y /audit/export)
+// ---------------------------------------------------------------------------
+
+message AuditLogEntry {
+  int64  id         = 1;
+  string table_name = 2;
+  string operation  = 3; // INSERT | UPDATE | DELETE
+  string changed_by = 4;
+  string changed_at = 5;
+  string old_data   = 6; // JSON del estado anterior
+  string new_data   = 7; // JSON del estado nuevo
+}
+
+message GetAuditLogRequest {
+  string table_name = 1; // filtro opcional: content, genres, people, content_people
+  string operation  = 2; // filtro opcional: INSERT, UPDATE, DELETE
+  string from       = 3; // filtro opcional: fecha inicio ISO 8601
+  string to         = 4; // filtro opcional: fecha fin ISO 8601
+  int32  page       = 5;
+  int32  page_size  = 6;
+}
+
+message GetAuditLogResponse {
+  repeated AuditLogEntry entries = 1;
+  int32                  total   = 2;
+  int32                  page    = 3;
+  int32                  page_size = 4;
+}
+
+// ---------------------------------------------------------------------------
 // SERVICIO
 // ---------------------------------------------------------------------------
 
@@ -248,10 +404,33 @@ service CatalogService {
   rpc RateContent          (RateContentRequest)          returns (RateContentResponse);
   rpc GetUserRating        (GetUserRatingRequest)        returns (UserRating);
 
-  // Admin
-  rpc CreateContent        (CreateContentRequest)        returns (ContentCard);
-  rpc UpdateContent        (UpdateContentRequest)        returns (ContentCard);
-  rpc PublishContent       (PublishContentRequest)       returns (PublishContentResponse);
-  rpc CreatePerson         (CreatePersonRequest)         returns (PersonDetail);
-  rpc AddPersonToContent   (AddPersonToContentRequest)   returns (AddPersonToContentResponse);
+  // Admin — contenido
+  rpc CreateContent             (CreateContentRequest)             returns (ContentCard);
+  rpc UpdateContent             (UpdateContentRequest)             returns (ContentCard);
+  rpc PublishContent            (PublishContentRequest)            returns (PublishContentResponse);
+  rpc DeleteContent             (DeleteContentRequest)             returns (DeleteContentResponse);
+
+  // Admin — géneros
+  rpc CreateGenre               (CreateGenreRequest)               returns (Genre);
+  rpc UpdateGenre               (UpdateGenreRequest)               returns (Genre);
+  rpc DeleteGenre               (DeleteGenreRequest)               returns (DeleteGenreResponse);
+
+  // Admin — personas / actores
+  rpc CreatePerson              (CreatePersonRequest)              returns (PersonDetail);
+  rpc UpdatePerson              (UpdatePersonRequest)              returns (PersonDetail);
+  rpc DeletePerson              (DeletePersonRequest)              returns (DeletePersonResponse);
+
+  // Admin — elenco
+  rpc AddPersonToContent        (AddPersonToContentRequest)        returns (AddPersonToContentResponse);
+  rpc RemovePersonFromContent   (RemovePersonFromContentRequest)   returns (RemovePersonFromContentResponse);
+
+  // Admin — temporadas y episodios
+  rpc CreateSeason              (CreateSeasonRequest)              returns (SeasonInfo);
+  rpc DeleteSeason              (DeleteSeasonRequest)              returns (DeleteSeasonResponse);
+  rpc CreateEpisode             (CreateEpisodeRequest)             returns (Episode);
+  rpc UpdateEpisode             (UpdateEpisodeRequest)             returns (Episode);
+  rpc DeleteEpisode             (DeleteEpisodeRequest)             returns (DeleteEpisodeResponse);
+
+  // Admin — programar estreno
+  rpc ScheduleContent           (ScheduleContentRequest)           returns (ScheduleContentResponse);
 }

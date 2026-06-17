@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata: { name: fx-db-pvc, namespace: quetxal-tv-prod }
 spec:
   accessModes: [ReadWriteOnce]
-  resources: { requests: { storage: 5Gi } }
+  resources: { requests: { storage: 3Gi } }
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -11,6 +11,8 @@ metadata: { name: fx-db, namespace: quetxal-tv-prod }
 spec:
   replicas: 1
   selector: { matchLabels: { app: fx-db } }
+  strategy:
+    type: Recreate
   template:
     metadata: { labels: { app: fx-db } }
     spec:
@@ -19,9 +21,11 @@ spec:
           image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/fx-db:${IMAGE_TAG}
           ports: [{ containerPort: 5432 }]
           resources:
-            requests: { cpu: "100m", memory: "256Mi" }
-            limits: { cpu: "500m", memory: "512Mi" }
+            requests: { cpu: "75m", memory: "256Mi" }
+            limits: { cpu: "300m", memory: "512Mi" }
           env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
             - name: POSTGRES_USER
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: FX_DB_USER } }
             - name: POSTGRES_PASSWORD
@@ -29,8 +33,8 @@ spec:
             - name: POSTGRES_DB
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: FX_DB_NAME } }
           volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
-          readinessProbe: { exec: { command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""] }, initialDelaySeconds: 10, periodSeconds: 10, failureThreshold: 5 }
-          livenessProbe: { exec: { command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""] }, initialDelaySeconds: 20, periodSeconds: 30, failureThreshold: 3 }
+          readinessProbe: { exec: { command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""] }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { exec: { command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""] }, initialDelaySeconds: 90, periodSeconds: 30, failureThreshold: 3 }
       volumes: [{ name: data, persistentVolumeClaim: { claimName: fx-db-pvc } }]
 ---
 apiVersion: v1

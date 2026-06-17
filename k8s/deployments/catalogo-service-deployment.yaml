@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: { name: catalogo-service, namespace: quetxal-tv-prod }
 spec:
-  replicas: 2
+  replicas: 1
   selector: { matchLabels: { app: catalogo-service } }
   strategy:
     type: RollingUpdate
-    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+    rollingUpdate: { maxSurge: 0, maxUnavailable: 1 }
   template:
     metadata: { labels: { app: catalogo-service } }
     spec:
@@ -15,8 +15,8 @@ spec:
           image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/catalogo-service:${IMAGE_TAG}
           ports: [{ containerPort: 50052 }]
           resources:
-            requests: { cpu: "100m", memory: "128Mi" }
-            limits: { cpu: "300m", memory: "256Mi" }
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "250m", memory: "256Mi" }
           env:
             - { name: GRPC_PORT, value: "50052" }
             - name: DB_HOST
@@ -30,5 +30,5 @@ spec:
             - name: DB_NAME
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: CATALOGO_DB_NAME } }
             - { name: DB_SSLMODE, value: "disable" }
-          readinessProbe: { tcpSocket: { port: 50052 }, initialDelaySeconds: 10, periodSeconds: 8, failureThreshold: 3 }
-          livenessProbe: { tcpSocket: { port: 50052 }, initialDelaySeconds: 25, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { tcpSocket: { port: 50052 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { tcpSocket: { port: 50052 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

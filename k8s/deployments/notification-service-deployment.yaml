@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: { name: notification-service, namespace: quetxal-tv-prod }
 spec:
-  replicas: 2
+  replicas: 1
   selector: { matchLabels: { app: notification-service } }
   strategy:
     type: RollingUpdate
-    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+    rollingUpdate: { maxSurge: 0, maxUnavailable: 1 }
   template:
     metadata: { labels: { app: notification-service } }
     spec:
@@ -15,8 +15,8 @@ spec:
           image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/notification-service:${IMAGE_TAG}
           ports: [{ containerPort: 50056 }]
           resources:
-            requests: { cpu: "100m", memory: "128Mi" }
-            limits: { cpu: "300m", memory: "256Mi" }
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "250m", memory: "256Mi" }
           envFrom: [{ configMapRef: { name: quetxal-tv-config } }]
           env:
             - { name: GRPC_PORT, value: "50056" }
@@ -39,5 +39,5 @@ spec:
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SMTP_PASSWORD } }
             - name: SMTP_FROM
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SMTP_FROM } }
-          readinessProbe: { tcpSocket: { port: 50056 }, initialDelaySeconds: 10, periodSeconds: 8, failureThreshold: 3 }
-          livenessProbe: { tcpSocket: { port: 50056 }, initialDelaySeconds: 25, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { tcpSocket: { port: 50056 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { tcpSocket: { port: 50056 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.35.0
-// source: catalog.proto
+// source: proto/catalog.proto
 
 package catalog
 
@@ -32,7 +32,7 @@ type Genre struct {
 
 func (x *Genre) Reset() {
 	*x = Genre{}
-	mi := &file_catalog_proto_msgTypes[0]
+	mi := &file_proto_catalog_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *Genre) String() string {
 func (*Genre) ProtoMessage() {}
 
 func (x *Genre) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[0]
+	mi := &file_proto_catalog_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *Genre) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Genre.ProtoReflect.Descriptor instead.
 func (*Genre) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{0}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Genre) GetGenreId() int32 {
@@ -95,7 +95,7 @@ type Person struct {
 
 func (x *Person) Reset() {
 	*x = Person{}
-	mi := &file_catalog_proto_msgTypes[1]
+	mi := &file_proto_catalog_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -107,7 +107,7 @@ func (x *Person) String() string {
 func (*Person) ProtoMessage() {}
 
 func (x *Person) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[1]
+	mi := &file_proto_catalog_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -120,7 +120,7 @@ func (x *Person) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Person.ProtoReflect.Descriptor instead.
 func (*Person) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{1}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Person) GetPersonId() string {
@@ -185,7 +185,7 @@ type ContentCard struct {
 
 func (x *ContentCard) Reset() {
 	*x = ContentCard{}
-	mi := &file_catalog_proto_msgTypes[2]
+	mi := &file_proto_catalog_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -197,7 +197,7 @@ func (x *ContentCard) String() string {
 func (*ContentCard) ProtoMessage() {}
 
 func (x *ContentCard) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[2]
+	mi := &file_proto_catalog_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -210,7 +210,7 @@ func (x *ContentCard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContentCard.ProtoReflect.Descriptor instead.
 func (*ContentCard) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{2}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ContentCard) GetContentId() string {
@@ -315,7 +315,7 @@ type ContentDetail struct {
 
 func (x *ContentDetail) Reset() {
 	*x = ContentDetail{}
-	mi := &file_catalog_proto_msgTypes[3]
+	mi := &file_proto_catalog_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -327,7 +327,7 @@ func (x *ContentDetail) String() string {
 func (*ContentDetail) ProtoMessage() {}
 
 func (x *ContentDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[3]
+	mi := &file_proto_catalog_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -340,7 +340,7 @@ func (x *ContentDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContentDetail.ProtoReflect.Descriptor instead.
 func (*ContentDetail) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{3}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ContentDetail) GetContentId() string {
@@ -470,7 +470,7 @@ type Episode struct {
 
 func (x *Episode) Reset() {
 	*x = Episode{}
-	mi := &file_catalog_proto_msgTypes[4]
+	mi := &file_proto_catalog_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -482,7 +482,7 @@ func (x *Episode) String() string {
 func (*Episode) ProtoMessage() {}
 
 func (x *Episode) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[4]
+	mi := &file_proto_catalog_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -495,7 +495,7 @@ func (x *Episode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Episode.ProtoReflect.Descriptor instead.
 func (*Episode) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{4}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Episode) GetEpisodeId() string {
@@ -560,7 +560,7 @@ type Season struct {
 
 func (x *Season) Reset() {
 	*x = Season{}
-	mi := &file_catalog_proto_msgTypes[5]
+	mi := &file_proto_catalog_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -572,7 +572,7 @@ func (x *Season) String() string {
 func (*Season) ProtoMessage() {}
 
 func (x *Season) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[5]
+	mi := &file_proto_catalog_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -585,7 +585,7 @@ func (x *Season) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Season.ProtoReflect.Descriptor instead.
 func (*Season) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{5}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Season) GetSeasonId() string {
@@ -635,7 +635,7 @@ type GetCatalogRequest struct {
 
 func (x *GetCatalogRequest) Reset() {
 	*x = GetCatalogRequest{}
-	mi := &file_catalog_proto_msgTypes[6]
+	mi := &file_proto_catalog_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -647,7 +647,7 @@ func (x *GetCatalogRequest) String() string {
 func (*GetCatalogRequest) ProtoMessage() {}
 
 func (x *GetCatalogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[6]
+	mi := &file_proto_catalog_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -660,7 +660,7 @@ func (x *GetCatalogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCatalogRequest.ProtoReflect.Descriptor instead.
 func (*GetCatalogRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{6}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetCatalogRequest) GetContentType() string {
@@ -701,7 +701,7 @@ type GetCatalogResponse struct {
 
 func (x *GetCatalogResponse) Reset() {
 	*x = GetCatalogResponse{}
-	mi := &file_catalog_proto_msgTypes[7]
+	mi := &file_proto_catalog_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -713,7 +713,7 @@ func (x *GetCatalogResponse) String() string {
 func (*GetCatalogResponse) ProtoMessage() {}
 
 func (x *GetCatalogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[7]
+	mi := &file_proto_catalog_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -726,7 +726,7 @@ func (x *GetCatalogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCatalogResponse.ProtoReflect.Descriptor instead.
 func (*GetCatalogResponse) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{7}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetCatalogResponse) GetItems() []*ContentCard {
@@ -752,7 +752,7 @@ type GetContentDetailRequest struct {
 
 func (x *GetContentDetailRequest) Reset() {
 	*x = GetContentDetailRequest{}
-	mi := &file_catalog_proto_msgTypes[8]
+	mi := &file_proto_catalog_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -764,7 +764,7 @@ func (x *GetContentDetailRequest) String() string {
 func (*GetContentDetailRequest) ProtoMessage() {}
 
 func (x *GetContentDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[8]
+	mi := &file_proto_catalog_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -777,7 +777,7 @@ func (x *GetContentDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetContentDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetContentDetailRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{8}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetContentDetailRequest) GetContentId() string {
@@ -796,7 +796,7 @@ type GetSeriesStructureRequest struct {
 
 func (x *GetSeriesStructureRequest) Reset() {
 	*x = GetSeriesStructureRequest{}
-	mi := &file_catalog_proto_msgTypes[9]
+	mi := &file_proto_catalog_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -808,7 +808,7 @@ func (x *GetSeriesStructureRequest) String() string {
 func (*GetSeriesStructureRequest) ProtoMessage() {}
 
 func (x *GetSeriesStructureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[9]
+	mi := &file_proto_catalog_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -821,7 +821,7 @@ func (x *GetSeriesStructureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeriesStructureRequest.ProtoReflect.Descriptor instead.
 func (*GetSeriesStructureRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{9}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetSeriesStructureRequest) GetContentId() string {
@@ -842,7 +842,7 @@ type GetSeriesStructureResponse struct {
 
 func (x *GetSeriesStructureResponse) Reset() {
 	*x = GetSeriesStructureResponse{}
-	mi := &file_catalog_proto_msgTypes[10]
+	mi := &file_proto_catalog_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -854,7 +854,7 @@ func (x *GetSeriesStructureResponse) String() string {
 func (*GetSeriesStructureResponse) ProtoMessage() {}
 
 func (x *GetSeriesStructureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[10]
+	mi := &file_proto_catalog_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -867,7 +867,7 @@ func (x *GetSeriesStructureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeriesStructureResponse.ProtoReflect.Descriptor instead.
 func (*GetSeriesStructureResponse) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{10}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetSeriesStructureResponse) GetContentId() string {
@@ -901,7 +901,7 @@ type SearchContentRequest struct {
 
 func (x *SearchContentRequest) Reset() {
 	*x = SearchContentRequest{}
-	mi := &file_catalog_proto_msgTypes[11]
+	mi := &file_proto_catalog_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -913,7 +913,7 @@ func (x *SearchContentRequest) String() string {
 func (*SearchContentRequest) ProtoMessage() {}
 
 func (x *SearchContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[11]
+	mi := &file_proto_catalog_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -926,7 +926,7 @@ func (x *SearchContentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchContentRequest.ProtoReflect.Descriptor instead.
 func (*SearchContentRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{11}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SearchContentRequest) GetQuery() string {
@@ -952,7 +952,7 @@ type SearchContentResponse struct {
 
 func (x *SearchContentResponse) Reset() {
 	*x = SearchContentResponse{}
-	mi := &file_catalog_proto_msgTypes[12]
+	mi := &file_proto_catalog_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -964,7 +964,7 @@ func (x *SearchContentResponse) String() string {
 func (*SearchContentResponse) ProtoMessage() {}
 
 func (x *SearchContentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[12]
+	mi := &file_proto_catalog_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -977,7 +977,7 @@ func (x *SearchContentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchContentResponse.ProtoReflect.Descriptor instead.
 func (*SearchContentResponse) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{12}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SearchContentResponse) GetResults() []*ContentCard {
@@ -995,7 +995,7 @@ type ListGenresRequest struct {
 
 func (x *ListGenresRequest) Reset() {
 	*x = ListGenresRequest{}
-	mi := &file_catalog_proto_msgTypes[13]
+	mi := &file_proto_catalog_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1007,7 +1007,7 @@ func (x *ListGenresRequest) String() string {
 func (*ListGenresRequest) ProtoMessage() {}
 
 func (x *ListGenresRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[13]
+	mi := &file_proto_catalog_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1020,7 +1020,7 @@ func (x *ListGenresRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGenresRequest.ProtoReflect.Descriptor instead.
 func (*ListGenresRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{13}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{13}
 }
 
 type ListGenresResponse struct {
@@ -1032,7 +1032,7 @@ type ListGenresResponse struct {
 
 func (x *ListGenresResponse) Reset() {
 	*x = ListGenresResponse{}
-	mi := &file_catalog_proto_msgTypes[14]
+	mi := &file_proto_catalog_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1044,7 +1044,7 @@ func (x *ListGenresResponse) String() string {
 func (*ListGenresResponse) ProtoMessage() {}
 
 func (x *ListGenresResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[14]
+	mi := &file_proto_catalog_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1057,7 +1057,7 @@ func (x *ListGenresResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGenresResponse.ProtoReflect.Descriptor instead.
 func (*ListGenresResponse) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{14}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListGenresResponse) GetGenres() []*Genre {
@@ -1076,7 +1076,7 @@ type GetPersonRequest struct {
 
 func (x *GetPersonRequest) Reset() {
 	*x = GetPersonRequest{}
-	mi := &file_catalog_proto_msgTypes[15]
+	mi := &file_proto_catalog_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1088,7 +1088,7 @@ func (x *GetPersonRequest) String() string {
 func (*GetPersonRequest) ProtoMessage() {}
 
 func (x *GetPersonRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[15]
+	mi := &file_proto_catalog_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1101,7 +1101,7 @@ func (x *GetPersonRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPersonRequest.ProtoReflect.Descriptor instead.
 func (*GetPersonRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{15}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetPersonRequest) GetPersonId() string {
@@ -1125,7 +1125,7 @@ type PersonDetail struct {
 
 func (x *PersonDetail) Reset() {
 	*x = PersonDetail{}
-	mi := &file_catalog_proto_msgTypes[16]
+	mi := &file_proto_catalog_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1137,7 +1137,7 @@ func (x *PersonDetail) String() string {
 func (*PersonDetail) ProtoMessage() {}
 
 func (x *PersonDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[16]
+	mi := &file_proto_catalog_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1150,7 +1150,7 @@ func (x *PersonDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PersonDetail.ProtoReflect.Descriptor instead.
 func (*PersonDetail) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{16}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *PersonDetail) GetPersonId() string {
@@ -1207,7 +1207,7 @@ type RateContentRequest struct {
 
 func (x *RateContentRequest) Reset() {
 	*x = RateContentRequest{}
-	mi := &file_catalog_proto_msgTypes[17]
+	mi := &file_proto_catalog_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1219,7 +1219,7 @@ func (x *RateContentRequest) String() string {
 func (*RateContentRequest) ProtoMessage() {}
 
 func (x *RateContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[17]
+	mi := &file_proto_catalog_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1232,7 +1232,7 @@ func (x *RateContentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RateContentRequest.ProtoReflect.Descriptor instead.
 func (*RateContentRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{17}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *RateContentRequest) GetContentId() string {
@@ -1274,7 +1274,7 @@ type RateContentResponse struct {
 
 func (x *RateContentResponse) Reset() {
 	*x = RateContentResponse{}
-	mi := &file_catalog_proto_msgTypes[18]
+	mi := &file_proto_catalog_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1286,7 +1286,7 @@ func (x *RateContentResponse) String() string {
 func (*RateContentResponse) ProtoMessage() {}
 
 func (x *RateContentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[18]
+	mi := &file_proto_catalog_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1299,7 +1299,7 @@ func (x *RateContentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RateContentResponse.ProtoReflect.Descriptor instead.
 func (*RateContentResponse) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{18}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *RateContentResponse) GetSuccess() bool {
@@ -1333,7 +1333,7 @@ type GetUserRatingRequest struct {
 
 func (x *GetUserRatingRequest) Reset() {
 	*x = GetUserRatingRequest{}
-	mi := &file_catalog_proto_msgTypes[19]
+	mi := &file_proto_catalog_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1345,7 +1345,7 @@ func (x *GetUserRatingRequest) String() string {
 func (*GetUserRatingRequest) ProtoMessage() {}
 
 func (x *GetUserRatingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[19]
+	mi := &file_proto_catalog_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1358,7 +1358,7 @@ func (x *GetUserRatingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRatingRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRatingRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{19}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetUserRatingRequest) GetContentId() string {
@@ -1387,7 +1387,7 @@ type UserRating struct {
 
 func (x *UserRating) Reset() {
 	*x = UserRating{}
-	mi := &file_catalog_proto_msgTypes[20]
+	mi := &file_proto_catalog_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1399,7 +1399,7 @@ func (x *UserRating) String() string {
 func (*UserRating) ProtoMessage() {}
 
 func (x *UserRating) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[20]
+	mi := &file_proto_catalog_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1412,7 +1412,7 @@ func (x *UserRating) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRating.ProtoReflect.Descriptor instead.
 func (*UserRating) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{20}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *UserRating) GetContentId() string {
@@ -1463,7 +1463,7 @@ type CreateContentRequest struct {
 
 func (x *CreateContentRequest) Reset() {
 	*x = CreateContentRequest{}
-	mi := &file_catalog_proto_msgTypes[21]
+	mi := &file_proto_catalog_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1475,7 +1475,7 @@ func (x *CreateContentRequest) String() string {
 func (*CreateContentRequest) ProtoMessage() {}
 
 func (x *CreateContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[21]
+	mi := &file_proto_catalog_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1488,7 +1488,7 @@ func (x *CreateContentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateContentRequest.ProtoReflect.Descriptor instead.
 func (*CreateContentRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{21}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateContentRequest) GetContentType() string {
@@ -1590,7 +1590,7 @@ type UpdateContentRequest struct {
 
 func (x *UpdateContentRequest) Reset() {
 	*x = UpdateContentRequest{}
-	mi := &file_catalog_proto_msgTypes[22]
+	mi := &file_proto_catalog_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1602,7 +1602,7 @@ func (x *UpdateContentRequest) String() string {
 func (*UpdateContentRequest) ProtoMessage() {}
 
 func (x *UpdateContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[22]
+	mi := &file_proto_catalog_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1615,7 +1615,7 @@ func (x *UpdateContentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateContentRequest.ProtoReflect.Descriptor instead.
 func (*UpdateContentRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{22}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateContentRequest) GetContentId() string {
@@ -1676,7 +1676,7 @@ type PublishContentRequest struct {
 
 func (x *PublishContentRequest) Reset() {
 	*x = PublishContentRequest{}
-	mi := &file_catalog_proto_msgTypes[23]
+	mi := &file_proto_catalog_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1688,7 +1688,7 @@ func (x *PublishContentRequest) String() string {
 func (*PublishContentRequest) ProtoMessage() {}
 
 func (x *PublishContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[23]
+	mi := &file_proto_catalog_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1701,7 +1701,7 @@ func (x *PublishContentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishContentRequest.ProtoReflect.Descriptor instead.
 func (*PublishContentRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{23}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *PublishContentRequest) GetContentId() string {
@@ -1721,7 +1721,7 @@ type PublishContentResponse struct {
 
 func (x *PublishContentResponse) Reset() {
 	*x = PublishContentResponse{}
-	mi := &file_catalog_proto_msgTypes[24]
+	mi := &file_proto_catalog_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1733,7 +1733,7 @@ func (x *PublishContentResponse) String() string {
 func (*PublishContentResponse) ProtoMessage() {}
 
 func (x *PublishContentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[24]
+	mi := &file_proto_catalog_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1746,7 +1746,7 @@ func (x *PublishContentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishContentResponse.ProtoReflect.Descriptor instead.
 func (*PublishContentResponse) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{24}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *PublishContentResponse) GetSuccess() bool {
@@ -1776,7 +1776,7 @@ type AddPersonToContentRequest struct {
 
 func (x *AddPersonToContentRequest) Reset() {
 	*x = AddPersonToContentRequest{}
-	mi := &file_catalog_proto_msgTypes[25]
+	mi := &file_proto_catalog_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1788,7 +1788,7 @@ func (x *AddPersonToContentRequest) String() string {
 func (*AddPersonToContentRequest) ProtoMessage() {}
 
 func (x *AddPersonToContentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[25]
+	mi := &file_proto_catalog_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1801,7 +1801,7 @@ func (x *AddPersonToContentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddPersonToContentRequest.ProtoReflect.Descriptor instead.
 func (*AddPersonToContentRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{25}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AddPersonToContentRequest) GetContentId() string {
@@ -1848,7 +1848,7 @@ type AddPersonToContentResponse struct {
 
 func (x *AddPersonToContentResponse) Reset() {
 	*x = AddPersonToContentResponse{}
-	mi := &file_catalog_proto_msgTypes[26]
+	mi := &file_proto_catalog_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1860,7 +1860,7 @@ func (x *AddPersonToContentResponse) String() string {
 func (*AddPersonToContentResponse) ProtoMessage() {}
 
 func (x *AddPersonToContentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[26]
+	mi := &file_proto_catalog_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1873,7 +1873,7 @@ func (x *AddPersonToContentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddPersonToContentResponse.ProtoReflect.Descriptor instead.
 func (*AddPersonToContentResponse) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{26}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AddPersonToContentResponse) GetSuccess() bool {
@@ -1896,7 +1896,7 @@ type CreatePersonRequest struct {
 
 func (x *CreatePersonRequest) Reset() {
 	*x = CreatePersonRequest{}
-	mi := &file_catalog_proto_msgTypes[27]
+	mi := &file_proto_catalog_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1908,7 +1908,7 @@ func (x *CreatePersonRequest) String() string {
 func (*CreatePersonRequest) ProtoMessage() {}
 
 func (x *CreatePersonRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_catalog_proto_msgTypes[27]
+	mi := &file_proto_catalog_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1921,7 +1921,7 @@ func (x *CreatePersonRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePersonRequest.ProtoReflect.Descriptor instead.
 func (*CreatePersonRequest) Descriptor() ([]byte, []int) {
-	return file_catalog_proto_rawDescGZIP(), []int{27}
+	return file_proto_catalog_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *CreatePersonRequest) GetFullName() string {
@@ -1959,11 +1959,1469 @@ func (x *CreatePersonRequest) GetPhotoUrl() string {
 	return ""
 }
 
-var File_catalog_proto protoreflect.FileDescriptor
+type DeleteContentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContentId     string                 `protobuf:"bytes,1,opt,name=content_id,json=contentId,proto3" json:"content_id,omitempty"`
+	ChangedBy     string                 `protobuf:"bytes,2,opt,name=changed_by,json=changedBy,proto3" json:"changed_by,omitempty"` // ID del admin (para auditoría)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_catalog_proto_rawDesc = "" +
+func (x *DeleteContentRequest) Reset() {
+	*x = DeleteContentRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteContentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteContentRequest) ProtoMessage() {}
+
+func (x *DeleteContentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteContentRequest.ProtoReflect.Descriptor instead.
+func (*DeleteContentRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *DeleteContentRequest) GetContentId() string {
+	if x != nil {
+		return x.ContentId
+	}
+	return ""
+}
+
+func (x *DeleteContentRequest) GetChangedBy() string {
+	if x != nil {
+		return x.ChangedBy
+	}
+	return ""
+}
+
+type DeleteContentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteContentResponse) Reset() {
+	*x = DeleteContentResponse{}
+	mi := &file_proto_catalog_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteContentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteContentResponse) ProtoMessage() {}
+
+func (x *DeleteContentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteContentResponse.ProtoReflect.Descriptor instead.
+func (*DeleteContentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *DeleteContentResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+type CreateGenreRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Slug          string                 `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateGenreRequest) Reset() {
+	*x = CreateGenreRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateGenreRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateGenreRequest) ProtoMessage() {}
+
+func (x *CreateGenreRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateGenreRequest.ProtoReflect.Descriptor instead.
+func (*CreateGenreRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *CreateGenreRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateGenreRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+type UpdateGenreRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GenreId       int32                  `protobuf:"varint,1,opt,name=genre_id,json=genreId,proto3" json:"genre_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Slug          string                 `protobuf:"bytes,3,opt,name=slug,proto3" json:"slug,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateGenreRequest) Reset() {
+	*x = UpdateGenreRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateGenreRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateGenreRequest) ProtoMessage() {}
+
+func (x *UpdateGenreRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateGenreRequest.ProtoReflect.Descriptor instead.
+func (*UpdateGenreRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *UpdateGenreRequest) GetGenreId() int32 {
+	if x != nil {
+		return x.GenreId
+	}
+	return 0
+}
+
+func (x *UpdateGenreRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateGenreRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+type DeleteGenreRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GenreId       int32                  `protobuf:"varint,1,opt,name=genre_id,json=genreId,proto3" json:"genre_id,omitempty"`
+	ChangedBy     string                 `protobuf:"bytes,2,opt,name=changed_by,json=changedBy,proto3" json:"changed_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteGenreRequest) Reset() {
+	*x = DeleteGenreRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteGenreRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGenreRequest) ProtoMessage() {}
+
+func (x *DeleteGenreRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGenreRequest.ProtoReflect.Descriptor instead.
+func (*DeleteGenreRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *DeleteGenreRequest) GetGenreId() int32 {
+	if x != nil {
+		return x.GenreId
+	}
+	return 0
+}
+
+func (x *DeleteGenreRequest) GetChangedBy() string {
+	if x != nil {
+		return x.ChangedBy
+	}
+	return ""
+}
+
+type DeleteGenreResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteGenreResponse) Reset() {
+	*x = DeleteGenreResponse{}
+	mi := &file_proto_catalog_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteGenreResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGenreResponse) ProtoMessage() {}
+
+func (x *DeleteGenreResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGenreResponse.ProtoReflect.Descriptor instead.
+func (*DeleteGenreResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *DeleteGenreResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+type UpdatePersonRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PersonId      string                 `protobuf:"bytes,1,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`
+	FullName      string                 `protobuf:"bytes,2,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
+	BirthDate     string                 `protobuf:"bytes,3,opt,name=birth_date,json=birthDate,proto3" json:"birth_date,omitempty"`
+	Nationality   string                 `protobuf:"bytes,4,opt,name=nationality,proto3" json:"nationality,omitempty"`
+	Bio           string                 `protobuf:"bytes,5,opt,name=bio,proto3" json:"bio,omitempty"`
+	PhotoUrl      string                 `protobuf:"bytes,6,opt,name=photo_url,json=photoUrl,proto3" json:"photo_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePersonRequest) Reset() {
+	*x = UpdatePersonRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePersonRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePersonRequest) ProtoMessage() {}
+
+func (x *UpdatePersonRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePersonRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePersonRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *UpdatePersonRequest) GetPersonId() string {
+	if x != nil {
+		return x.PersonId
+	}
+	return ""
+}
+
+func (x *UpdatePersonRequest) GetFullName() string {
+	if x != nil {
+		return x.FullName
+	}
+	return ""
+}
+
+func (x *UpdatePersonRequest) GetBirthDate() string {
+	if x != nil {
+		return x.BirthDate
+	}
+	return ""
+}
+
+func (x *UpdatePersonRequest) GetNationality() string {
+	if x != nil {
+		return x.Nationality
+	}
+	return ""
+}
+
+func (x *UpdatePersonRequest) GetBio() string {
+	if x != nil {
+		return x.Bio
+	}
+	return ""
+}
+
+func (x *UpdatePersonRequest) GetPhotoUrl() string {
+	if x != nil {
+		return x.PhotoUrl
+	}
+	return ""
+}
+
+type DeletePersonRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PersonId      string                 `protobuf:"bytes,1,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`
+	ChangedBy     string                 `protobuf:"bytes,2,opt,name=changed_by,json=changedBy,proto3" json:"changed_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePersonRequest) Reset() {
+	*x = DeletePersonRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePersonRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePersonRequest) ProtoMessage() {}
+
+func (x *DeletePersonRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePersonRequest.ProtoReflect.Descriptor instead.
+func (*DeletePersonRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *DeletePersonRequest) GetPersonId() string {
+	if x != nil {
+		return x.PersonId
+	}
+	return ""
+}
+
+func (x *DeletePersonRequest) GetChangedBy() string {
+	if x != nil {
+		return x.ChangedBy
+	}
+	return ""
+}
+
+type DeletePersonResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePersonResponse) Reset() {
+	*x = DeletePersonResponse{}
+	mi := &file_proto_catalog_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePersonResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePersonResponse) ProtoMessage() {}
+
+func (x *DeletePersonResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePersonResponse.ProtoReflect.Descriptor instead.
+func (*DeletePersonResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *DeletePersonResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+type RemovePersonFromContentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContentId     string                 `protobuf:"bytes,1,opt,name=content_id,json=contentId,proto3" json:"content_id,omitempty"`
+	PersonId      string                 `protobuf:"bytes,2,opt,name=person_id,json=personId,proto3" json:"person_id,omitempty"`
+	RoleType      string                 `protobuf:"bytes,3,opt,name=role_type,json=roleType,proto3" json:"role_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemovePersonFromContentRequest) Reset() {
+	*x = RemovePersonFromContentRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemovePersonFromContentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemovePersonFromContentRequest) ProtoMessage() {}
+
+func (x *RemovePersonFromContentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemovePersonFromContentRequest.ProtoReflect.Descriptor instead.
+func (*RemovePersonFromContentRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *RemovePersonFromContentRequest) GetContentId() string {
+	if x != nil {
+		return x.ContentId
+	}
+	return ""
+}
+
+func (x *RemovePersonFromContentRequest) GetPersonId() string {
+	if x != nil {
+		return x.PersonId
+	}
+	return ""
+}
+
+func (x *RemovePersonFromContentRequest) GetRoleType() string {
+	if x != nil {
+		return x.RoleType
+	}
+	return ""
+}
+
+type RemovePersonFromContentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemovePersonFromContentResponse) Reset() {
+	*x = RemovePersonFromContentResponse{}
+	mi := &file_proto_catalog_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemovePersonFromContentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemovePersonFromContentResponse) ProtoMessage() {}
+
+func (x *RemovePersonFromContentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemovePersonFromContentResponse.ProtoReflect.Descriptor instead.
+func (*RemovePersonFromContentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *RemovePersonFromContentResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+// Series structure
+type CreateSeasonRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContentId     string                 `protobuf:"bytes,1,opt,name=content_id,json=contentId,proto3" json:"content_id,omitempty"`
+	SeasonNum     int32                  `protobuf:"varint,2,opt,name=season_num,json=seasonNum,proto3" json:"season_num,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	ReleaseYear   int32                  `protobuf:"varint,4,opt,name=release_year,json=releaseYear,proto3" json:"release_year,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSeasonRequest) Reset() {
+	*x = CreateSeasonRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSeasonRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSeasonRequest) ProtoMessage() {}
+
+func (x *CreateSeasonRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSeasonRequest.ProtoReflect.Descriptor instead.
+func (*CreateSeasonRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *CreateSeasonRequest) GetContentId() string {
+	if x != nil {
+		return x.ContentId
+	}
+	return ""
+}
+
+func (x *CreateSeasonRequest) GetSeasonNum() int32 {
+	if x != nil {
+		return x.SeasonNum
+	}
+	return 0
+}
+
+func (x *CreateSeasonRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateSeasonRequest) GetReleaseYear() int32 {
+	if x != nil {
+		return x.ReleaseYear
+	}
+	return 0
+}
+
+type SeasonInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SeasonId      string                 `protobuf:"bytes,1,opt,name=season_id,json=seasonId,proto3" json:"season_id,omitempty"`
+	ContentId     string                 `protobuf:"bytes,2,opt,name=content_id,json=contentId,proto3" json:"content_id,omitempty"`
+	SeasonNum     int32                  `protobuf:"varint,3,opt,name=season_num,json=seasonNum,proto3" json:"season_num,omitempty"`
+	Title         string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
+	ReleaseYear   int32                  `protobuf:"varint,5,opt,name=release_year,json=releaseYear,proto3" json:"release_year,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SeasonInfo) Reset() {
+	*x = SeasonInfo{}
+	mi := &file_proto_catalog_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SeasonInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SeasonInfo) ProtoMessage() {}
+
+func (x *SeasonInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SeasonInfo.ProtoReflect.Descriptor instead.
+func (*SeasonInfo) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *SeasonInfo) GetSeasonId() string {
+	if x != nil {
+		return x.SeasonId
+	}
+	return ""
+}
+
+func (x *SeasonInfo) GetContentId() string {
+	if x != nil {
+		return x.ContentId
+	}
+	return ""
+}
+
+func (x *SeasonInfo) GetSeasonNum() int32 {
+	if x != nil {
+		return x.SeasonNum
+	}
+	return 0
+}
+
+func (x *SeasonInfo) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SeasonInfo) GetReleaseYear() int32 {
+	if x != nil {
+		return x.ReleaseYear
+	}
+	return 0
+}
+
+type DeleteSeasonRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SeasonId      string                 `protobuf:"bytes,1,opt,name=season_id,json=seasonId,proto3" json:"season_id,omitempty"`
+	ChangedBy     string                 `protobuf:"bytes,2,opt,name=changed_by,json=changedBy,proto3" json:"changed_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSeasonRequest) Reset() {
+	*x = DeleteSeasonRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSeasonRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSeasonRequest) ProtoMessage() {}
+
+func (x *DeleteSeasonRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSeasonRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSeasonRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *DeleteSeasonRequest) GetSeasonId() string {
+	if x != nil {
+		return x.SeasonId
+	}
+	return ""
+}
+
+func (x *DeleteSeasonRequest) GetChangedBy() string {
+	if x != nil {
+		return x.ChangedBy
+	}
+	return ""
+}
+
+type DeleteSeasonResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSeasonResponse) Reset() {
+	*x = DeleteSeasonResponse{}
+	mi := &file_proto_catalog_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSeasonResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSeasonResponse) ProtoMessage() {}
+
+func (x *DeleteSeasonResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSeasonResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSeasonResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *DeleteSeasonResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+type CreateEpisodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SeasonId      string                 `protobuf:"bytes,1,opt,name=season_id,json=seasonId,proto3" json:"season_id,omitempty"`
+	EpisodeNum    int32                  `protobuf:"varint,2,opt,name=episode_num,json=episodeNum,proto3" json:"episode_num,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Synopsis      string                 `protobuf:"bytes,4,opt,name=synopsis,proto3" json:"synopsis,omitempty"`
+	DurationMin   int32                  `protobuf:"varint,5,opt,name=duration_min,json=durationMin,proto3" json:"duration_min,omitempty"`
+	VideoRef      string                 `protobuf:"bytes,6,opt,name=video_ref,json=videoRef,proto3" json:"video_ref,omitempty"`
+	VideoSource   string                 `protobuf:"bytes,7,opt,name=video_source,json=videoSource,proto3" json:"video_source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateEpisodeRequest) Reset() {
+	*x = CreateEpisodeRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateEpisodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateEpisodeRequest) ProtoMessage() {}
+
+func (x *CreateEpisodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateEpisodeRequest.ProtoReflect.Descriptor instead.
+func (*CreateEpisodeRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *CreateEpisodeRequest) GetSeasonId() string {
+	if x != nil {
+		return x.SeasonId
+	}
+	return ""
+}
+
+func (x *CreateEpisodeRequest) GetEpisodeNum() int32 {
+	if x != nil {
+		return x.EpisodeNum
+	}
+	return 0
+}
+
+func (x *CreateEpisodeRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateEpisodeRequest) GetSynopsis() string {
+	if x != nil {
+		return x.Synopsis
+	}
+	return ""
+}
+
+func (x *CreateEpisodeRequest) GetDurationMin() int32 {
+	if x != nil {
+		return x.DurationMin
+	}
+	return 0
+}
+
+func (x *CreateEpisodeRequest) GetVideoRef() string {
+	if x != nil {
+		return x.VideoRef
+	}
+	return ""
+}
+
+func (x *CreateEpisodeRequest) GetVideoSource() string {
+	if x != nil {
+		return x.VideoSource
+	}
+	return ""
+}
+
+type UpdateEpisodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EpisodeId     string                 `protobuf:"bytes,1,opt,name=episode_id,json=episodeId,proto3" json:"episode_id,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Synopsis      string                 `protobuf:"bytes,3,opt,name=synopsis,proto3" json:"synopsis,omitempty"`
+	DurationMin   int32                  `protobuf:"varint,4,opt,name=duration_min,json=durationMin,proto3" json:"duration_min,omitempty"`
+	VideoRef      string                 `protobuf:"bytes,5,opt,name=video_ref,json=videoRef,proto3" json:"video_ref,omitempty"`
+	VideoSource   string                 `protobuf:"bytes,6,opt,name=video_source,json=videoSource,proto3" json:"video_source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEpisodeRequest) Reset() {
+	*x = UpdateEpisodeRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEpisodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEpisodeRequest) ProtoMessage() {}
+
+func (x *UpdateEpisodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEpisodeRequest.ProtoReflect.Descriptor instead.
+func (*UpdateEpisodeRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *UpdateEpisodeRequest) GetEpisodeId() string {
+	if x != nil {
+		return x.EpisodeId
+	}
+	return ""
+}
+
+func (x *UpdateEpisodeRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *UpdateEpisodeRequest) GetSynopsis() string {
+	if x != nil {
+		return x.Synopsis
+	}
+	return ""
+}
+
+func (x *UpdateEpisodeRequest) GetDurationMin() int32 {
+	if x != nil {
+		return x.DurationMin
+	}
+	return 0
+}
+
+func (x *UpdateEpisodeRequest) GetVideoRef() string {
+	if x != nil {
+		return x.VideoRef
+	}
+	return ""
+}
+
+func (x *UpdateEpisodeRequest) GetVideoSource() string {
+	if x != nil {
+		return x.VideoSource
+	}
+	return ""
+}
+
+type DeleteEpisodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EpisodeId     string                 `protobuf:"bytes,1,opt,name=episode_id,json=episodeId,proto3" json:"episode_id,omitempty"`
+	ChangedBy     string                 `protobuf:"bytes,2,opt,name=changed_by,json=changedBy,proto3" json:"changed_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteEpisodeRequest) Reset() {
+	*x = DeleteEpisodeRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteEpisodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteEpisodeRequest) ProtoMessage() {}
+
+func (x *DeleteEpisodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteEpisodeRequest.ProtoReflect.Descriptor instead.
+func (*DeleteEpisodeRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *DeleteEpisodeRequest) GetEpisodeId() string {
+	if x != nil {
+		return x.EpisodeId
+	}
+	return ""
+}
+
+func (x *DeleteEpisodeRequest) GetChangedBy() string {
+	if x != nil {
+		return x.ChangedBy
+	}
+	return ""
+}
+
+type DeleteEpisodeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteEpisodeResponse) Reset() {
+	*x = DeleteEpisodeResponse{}
+	mi := &file_proto_catalog_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteEpisodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteEpisodeResponse) ProtoMessage() {}
+
+func (x *DeleteEpisodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteEpisodeResponse.ProtoReflect.Descriptor instead.
+func (*DeleteEpisodeResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *DeleteEpisodeResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+// Programación de estrenos
+type ScheduleContentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContentId     string                 `protobuf:"bytes,1,opt,name=content_id,json=contentId,proto3" json:"content_id,omitempty"`
+	PremiereDate  string                 `protobuf:"bytes,2,opt,name=premiere_date,json=premiereDate,proto3" json:"premiere_date,omitempty"` // ISO 8601: "2026-07-15T20:00:00Z" — vacío para quitar la fecha
+	ChangedBy     string                 `protobuf:"bytes,3,opt,name=changed_by,json=changedBy,proto3" json:"changed_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScheduleContentRequest) Reset() {
+	*x = ScheduleContentRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScheduleContentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScheduleContentRequest) ProtoMessage() {}
+
+func (x *ScheduleContentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScheduleContentRequest.ProtoReflect.Descriptor instead.
+func (*ScheduleContentRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *ScheduleContentRequest) GetContentId() string {
+	if x != nil {
+		return x.ContentId
+	}
+	return ""
+}
+
+func (x *ScheduleContentRequest) GetPremiereDate() string {
+	if x != nil {
+		return x.PremiereDate
+	}
+	return ""
+}
+
+func (x *ScheduleContentRequest) GetChangedBy() string {
+	if x != nil {
+		return x.ChangedBy
+	}
+	return ""
+}
+
+type ScheduleContentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	PremiereDate  string                 `protobuf:"bytes,2,opt,name=premiere_date,json=premiereDate,proto3" json:"premiere_date,omitempty"` // fecha confirmada o vacío si se limpió
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScheduleContentResponse) Reset() {
+	*x = ScheduleContentResponse{}
+	mi := &file_proto_catalog_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScheduleContentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScheduleContentResponse) ProtoMessage() {}
+
+func (x *ScheduleContentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScheduleContentResponse.ProtoReflect.Descriptor instead.
+func (*ScheduleContentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *ScheduleContentResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ScheduleContentResponse) GetPremiereDate() string {
+	if x != nil {
+		return x.PremiereDate
+	}
+	return ""
+}
+
+type AuditLogEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	TableName     string                 `protobuf:"bytes,2,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
+	Operation     string                 `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"` // INSERT | UPDATE | DELETE
+	ChangedBy     string                 `protobuf:"bytes,4,opt,name=changed_by,json=changedBy,proto3" json:"changed_by,omitempty"`
+	ChangedAt     string                 `protobuf:"bytes,5,opt,name=changed_at,json=changedAt,proto3" json:"changed_at,omitempty"`
+	OldData       string                 `protobuf:"bytes,6,opt,name=old_data,json=oldData,proto3" json:"old_data,omitempty"` // JSON del estado anterior
+	NewData       string                 `protobuf:"bytes,7,opt,name=new_data,json=newData,proto3" json:"new_data,omitempty"` // JSON del estado nuevo
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuditLogEntry) Reset() {
+	*x = AuditLogEntry{}
+	mi := &file_proto_catalog_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuditLogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuditLogEntry) ProtoMessage() {}
+
+func (x *AuditLogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuditLogEntry.ProtoReflect.Descriptor instead.
+func (*AuditLogEntry) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *AuditLogEntry) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AuditLogEntry) GetTableName() string {
+	if x != nil {
+		return x.TableName
+	}
+	return ""
+}
+
+func (x *AuditLogEntry) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *AuditLogEntry) GetChangedBy() string {
+	if x != nil {
+		return x.ChangedBy
+	}
+	return ""
+}
+
+func (x *AuditLogEntry) GetChangedAt() string {
+	if x != nil {
+		return x.ChangedAt
+	}
+	return ""
+}
+
+func (x *AuditLogEntry) GetOldData() string {
+	if x != nil {
+		return x.OldData
+	}
+	return ""
+}
+
+func (x *AuditLogEntry) GetNewData() string {
+	if x != nil {
+		return x.NewData
+	}
+	return ""
+}
+
+type GetAuditLogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TableName     string                 `protobuf:"bytes,1,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"` // filtro opcional: content, genres, people, content_people
+	Operation     string                 `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`                  // filtro opcional: INSERT, UPDATE, DELETE
+	From          string                 `protobuf:"bytes,3,opt,name=from,proto3" json:"from,omitempty"`                            // filtro opcional: fecha inicio ISO 8601
+	To            string                 `protobuf:"bytes,4,opt,name=to,proto3" json:"to,omitempty"`                                // filtro opcional: fecha fin ISO 8601
+	Page          int32                  `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAuditLogRequest) Reset() {
+	*x = GetAuditLogRequest{}
+	mi := &file_proto_catalog_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAuditLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuditLogRequest) ProtoMessage() {}
+
+func (x *GetAuditLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuditLogRequest.ProtoReflect.Descriptor instead.
+func (*GetAuditLogRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *GetAuditLogRequest) GetTableName() string {
+	if x != nil {
+		return x.TableName
+	}
+	return ""
+}
+
+func (x *GetAuditLogRequest) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *GetAuditLogRequest) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *GetAuditLogRequest) GetTo() string {
+	if x != nil {
+		return x.To
+	}
+	return ""
+}
+
+func (x *GetAuditLogRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetAuditLogRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type GetAuditLogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*AuditLogEntry       `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAuditLogResponse) Reset() {
+	*x = GetAuditLogResponse{}
+	mi := &file_proto_catalog_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAuditLogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuditLogResponse) ProtoMessage() {}
+
+func (x *GetAuditLogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuditLogResponse.ProtoReflect.Descriptor instead.
+func (*GetAuditLogResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *GetAuditLogResponse) GetEntries() []*AuditLogEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *GetAuditLogResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *GetAuditLogResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetAuditLogResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+var File_proto_catalog_proto protoreflect.FileDescriptor
+
+const file_proto_catalog_proto_rawDesc = "" +
 	"\n" +
-	"\rcatalog.proto\x12\acatalog\"J\n" +
+	"\x13proto/catalog.proto\x12\acatalog\"J\n" +
 	"\x05Genre\x12\x19\n" +
 	"\bgenre_id\x18\x01 \x01(\x05R\agenreId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -2138,7 +3596,127 @@ const file_catalog_proto_rawDesc = "" +
 	"birth_date\x18\x02 \x01(\tR\tbirthDate\x12 \n" +
 	"\vnationality\x18\x03 \x01(\tR\vnationality\x12\x10\n" +
 	"\x03bio\x18\x04 \x01(\tR\x03bio\x12\x1b\n" +
-	"\tphoto_url\x18\x05 \x01(\tR\bphotoUrl2\xec\a\n" +
+	"\tphoto_url\x18\x05 \x01(\tR\bphotoUrl\"T\n" +
+	"\x14DeleteContentRequest\x12\x1d\n" +
+	"\n" +
+	"content_id\x18\x01 \x01(\tR\tcontentId\x12\x1d\n" +
+	"\n" +
+	"changed_by\x18\x02 \x01(\tR\tchangedBy\"1\n" +
+	"\x15DeleteContentResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"<\n" +
+	"\x12CreateGenreRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04slug\x18\x02 \x01(\tR\x04slug\"W\n" +
+	"\x12UpdateGenreRequest\x12\x19\n" +
+	"\bgenre_id\x18\x01 \x01(\x05R\agenreId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04slug\x18\x03 \x01(\tR\x04slug\"N\n" +
+	"\x12DeleteGenreRequest\x12\x19\n" +
+	"\bgenre_id\x18\x01 \x01(\x05R\agenreId\x12\x1d\n" +
+	"\n" +
+	"changed_by\x18\x02 \x01(\tR\tchangedBy\"/\n" +
+	"\x13DeleteGenreResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\xbf\x01\n" +
+	"\x13UpdatePersonRequest\x12\x1b\n" +
+	"\tperson_id\x18\x01 \x01(\tR\bpersonId\x12\x1b\n" +
+	"\tfull_name\x18\x02 \x01(\tR\bfullName\x12\x1d\n" +
+	"\n" +
+	"birth_date\x18\x03 \x01(\tR\tbirthDate\x12 \n" +
+	"\vnationality\x18\x04 \x01(\tR\vnationality\x12\x10\n" +
+	"\x03bio\x18\x05 \x01(\tR\x03bio\x12\x1b\n" +
+	"\tphoto_url\x18\x06 \x01(\tR\bphotoUrl\"Q\n" +
+	"\x13DeletePersonRequest\x12\x1b\n" +
+	"\tperson_id\x18\x01 \x01(\tR\bpersonId\x12\x1d\n" +
+	"\n" +
+	"changed_by\x18\x02 \x01(\tR\tchangedBy\"0\n" +
+	"\x14DeletePersonResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"y\n" +
+	"\x1eRemovePersonFromContentRequest\x12\x1d\n" +
+	"\n" +
+	"content_id\x18\x01 \x01(\tR\tcontentId\x12\x1b\n" +
+	"\tperson_id\x18\x02 \x01(\tR\bpersonId\x12\x1b\n" +
+	"\trole_type\x18\x03 \x01(\tR\broleType\";\n" +
+	"\x1fRemovePersonFromContentResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\x8c\x01\n" +
+	"\x13CreateSeasonRequest\x12\x1d\n" +
+	"\n" +
+	"content_id\x18\x01 \x01(\tR\tcontentId\x12\x1d\n" +
+	"\n" +
+	"season_num\x18\x02 \x01(\x05R\tseasonNum\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12!\n" +
+	"\frelease_year\x18\x04 \x01(\x05R\vreleaseYear\"\xa0\x01\n" +
+	"\n" +
+	"SeasonInfo\x12\x1b\n" +
+	"\tseason_id\x18\x01 \x01(\tR\bseasonId\x12\x1d\n" +
+	"\n" +
+	"content_id\x18\x02 \x01(\tR\tcontentId\x12\x1d\n" +
+	"\n" +
+	"season_num\x18\x03 \x01(\x05R\tseasonNum\x12\x14\n" +
+	"\x05title\x18\x04 \x01(\tR\x05title\x12!\n" +
+	"\frelease_year\x18\x05 \x01(\x05R\vreleaseYear\"Q\n" +
+	"\x13DeleteSeasonRequest\x12\x1b\n" +
+	"\tseason_id\x18\x01 \x01(\tR\bseasonId\x12\x1d\n" +
+	"\n" +
+	"changed_by\x18\x02 \x01(\tR\tchangedBy\"0\n" +
+	"\x14DeleteSeasonResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\xe9\x01\n" +
+	"\x14CreateEpisodeRequest\x12\x1b\n" +
+	"\tseason_id\x18\x01 \x01(\tR\bseasonId\x12\x1f\n" +
+	"\vepisode_num\x18\x02 \x01(\x05R\n" +
+	"episodeNum\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x1a\n" +
+	"\bsynopsis\x18\x04 \x01(\tR\bsynopsis\x12!\n" +
+	"\fduration_min\x18\x05 \x01(\x05R\vdurationMin\x12\x1b\n" +
+	"\tvideo_ref\x18\x06 \x01(\tR\bvideoRef\x12!\n" +
+	"\fvideo_source\x18\a \x01(\tR\vvideoSource\"\xca\x01\n" +
+	"\x14UpdateEpisodeRequest\x12\x1d\n" +
+	"\n" +
+	"episode_id\x18\x01 \x01(\tR\tepisodeId\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
+	"\bsynopsis\x18\x03 \x01(\tR\bsynopsis\x12!\n" +
+	"\fduration_min\x18\x04 \x01(\x05R\vdurationMin\x12\x1b\n" +
+	"\tvideo_ref\x18\x05 \x01(\tR\bvideoRef\x12!\n" +
+	"\fvideo_source\x18\x06 \x01(\tR\vvideoSource\"T\n" +
+	"\x14DeleteEpisodeRequest\x12\x1d\n" +
+	"\n" +
+	"episode_id\x18\x01 \x01(\tR\tepisodeId\x12\x1d\n" +
+	"\n" +
+	"changed_by\x18\x02 \x01(\tR\tchangedBy\"1\n" +
+	"\x15DeleteEpisodeResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"{\n" +
+	"\x16ScheduleContentRequest\x12\x1d\n" +
+	"\n" +
+	"content_id\x18\x01 \x01(\tR\tcontentId\x12#\n" +
+	"\rpremiere_date\x18\x02 \x01(\tR\fpremiereDate\x12\x1d\n" +
+	"\n" +
+	"changed_by\x18\x03 \x01(\tR\tchangedBy\"X\n" +
+	"\x17ScheduleContentResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rpremiere_date\x18\x02 \x01(\tR\fpremiereDate\"\xd0\x01\n" +
+	"\rAuditLogEntry\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
+	"\n" +
+	"table_name\x18\x02 \x01(\tR\ttableName\x12\x1c\n" +
+	"\toperation\x18\x03 \x01(\tR\toperation\x12\x1d\n" +
+	"\n" +
+	"changed_by\x18\x04 \x01(\tR\tchangedBy\x12\x1d\n" +
+	"\n" +
+	"changed_at\x18\x05 \x01(\tR\tchangedAt\x12\x19\n" +
+	"\bold_data\x18\x06 \x01(\tR\aoldData\x12\x19\n" +
+	"\bnew_data\x18\a \x01(\tR\anewData\"\xa6\x01\n" +
+	"\x12GetAuditLogRequest\x12\x1d\n" +
+	"\n" +
+	"table_name\x18\x01 \x01(\tR\ttableName\x12\x1c\n" +
+	"\toperation\x18\x02 \x01(\tR\toperation\x12\x12\n" +
+	"\x04from\x18\x03 \x01(\tR\x04from\x12\x0e\n" +
+	"\x02to\x18\x04 \x01(\tR\x02to\x12\x12\n" +
+	"\x04page\x18\x05 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\"\x8e\x01\n" +
+	"\x13GetAuditLogResponse\x120\n" +
+	"\aentries\x18\x01 \x03(\v2\x16.catalog.AuditLogEntryR\aentries\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xb8\x0f\n" +
 	"\x0eCatalogService\x12E\n" +
 	"\n" +
 	"GetCatalog\x12\x1a.catalog.GetCatalogRequest\x1a\x1b.catalog.GetCatalogResponse\x12L\n" +
@@ -2152,54 +3730,91 @@ const file_catalog_proto_rawDesc = "" +
 	"\rGetUserRating\x12\x1d.catalog.GetUserRatingRequest\x1a\x13.catalog.UserRating\x12D\n" +
 	"\rCreateContent\x12\x1d.catalog.CreateContentRequest\x1a\x14.catalog.ContentCard\x12D\n" +
 	"\rUpdateContent\x12\x1d.catalog.UpdateContentRequest\x1a\x14.catalog.ContentCard\x12Q\n" +
-	"\x0ePublishContent\x12\x1e.catalog.PublishContentRequest\x1a\x1f.catalog.PublishContentResponse\x12C\n" +
-	"\fCreatePerson\x12\x1c.catalog.CreatePersonRequest\x1a\x15.catalog.PersonDetail\x12]\n" +
-	"\x12AddPersonToContent\x12\".catalog.AddPersonToContentRequest\x1a#.catalog.AddPersonToContentResponseB4Z2github.com/quetxaltv/catalog-service/proto/catalogb\x06proto3"
+	"\x0ePublishContent\x12\x1e.catalog.PublishContentRequest\x1a\x1f.catalog.PublishContentResponse\x12N\n" +
+	"\rDeleteContent\x12\x1d.catalog.DeleteContentRequest\x1a\x1e.catalog.DeleteContentResponse\x12:\n" +
+	"\vCreateGenre\x12\x1b.catalog.CreateGenreRequest\x1a\x0e.catalog.Genre\x12:\n" +
+	"\vUpdateGenre\x12\x1b.catalog.UpdateGenreRequest\x1a\x0e.catalog.Genre\x12H\n" +
+	"\vDeleteGenre\x12\x1b.catalog.DeleteGenreRequest\x1a\x1c.catalog.DeleteGenreResponse\x12C\n" +
+	"\fCreatePerson\x12\x1c.catalog.CreatePersonRequest\x1a\x15.catalog.PersonDetail\x12C\n" +
+	"\fUpdatePerson\x12\x1c.catalog.UpdatePersonRequest\x1a\x15.catalog.PersonDetail\x12K\n" +
+	"\fDeletePerson\x12\x1c.catalog.DeletePersonRequest\x1a\x1d.catalog.DeletePersonResponse\x12]\n" +
+	"\x12AddPersonToContent\x12\".catalog.AddPersonToContentRequest\x1a#.catalog.AddPersonToContentResponse\x12l\n" +
+	"\x17RemovePersonFromContent\x12'.catalog.RemovePersonFromContentRequest\x1a(.catalog.RemovePersonFromContentResponse\x12A\n" +
+	"\fCreateSeason\x12\x1c.catalog.CreateSeasonRequest\x1a\x13.catalog.SeasonInfo\x12K\n" +
+	"\fDeleteSeason\x12\x1c.catalog.DeleteSeasonRequest\x1a\x1d.catalog.DeleteSeasonResponse\x12@\n" +
+	"\rCreateEpisode\x12\x1d.catalog.CreateEpisodeRequest\x1a\x10.catalog.Episode\x12@\n" +
+	"\rUpdateEpisode\x12\x1d.catalog.UpdateEpisodeRequest\x1a\x10.catalog.Episode\x12N\n" +
+	"\rDeleteEpisode\x12\x1d.catalog.DeleteEpisodeRequest\x1a\x1e.catalog.DeleteEpisodeResponse\x12T\n" +
+	"\x0fScheduleContent\x12\x1f.catalog.ScheduleContentRequest\x1a .catalog.ScheduleContentResponseB4Z2github.com/quetxaltv/catalog-service/proto/catalogb\x06proto3"
 
 var (
-	file_catalog_proto_rawDescOnce sync.Once
-	file_catalog_proto_rawDescData []byte
+	file_proto_catalog_proto_rawDescOnce sync.Once
+	file_proto_catalog_proto_rawDescData []byte
 )
 
-func file_catalog_proto_rawDescGZIP() []byte {
-	file_catalog_proto_rawDescOnce.Do(func() {
-		file_catalog_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_catalog_proto_rawDesc), len(file_catalog_proto_rawDesc)))
+func file_proto_catalog_proto_rawDescGZIP() []byte {
+	file_proto_catalog_proto_rawDescOnce.Do(func() {
+		file_proto_catalog_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_catalog_proto_rawDesc), len(file_proto_catalog_proto_rawDesc)))
 	})
-	return file_catalog_proto_rawDescData
+	return file_proto_catalog_proto_rawDescData
 }
 
-var file_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
-var file_catalog_proto_goTypes = []any{
-	(*Genre)(nil),                      // 0: catalog.Genre
-	(*Person)(nil),                     // 1: catalog.Person
-	(*ContentCard)(nil),                // 2: catalog.ContentCard
-	(*ContentDetail)(nil),              // 3: catalog.ContentDetail
-	(*Episode)(nil),                    // 4: catalog.Episode
-	(*Season)(nil),                     // 5: catalog.Season
-	(*GetCatalogRequest)(nil),          // 6: catalog.GetCatalogRequest
-	(*GetCatalogResponse)(nil),         // 7: catalog.GetCatalogResponse
-	(*GetContentDetailRequest)(nil),    // 8: catalog.GetContentDetailRequest
-	(*GetSeriesStructureRequest)(nil),  // 9: catalog.GetSeriesStructureRequest
-	(*GetSeriesStructureResponse)(nil), // 10: catalog.GetSeriesStructureResponse
-	(*SearchContentRequest)(nil),       // 11: catalog.SearchContentRequest
-	(*SearchContentResponse)(nil),      // 12: catalog.SearchContentResponse
-	(*ListGenresRequest)(nil),          // 13: catalog.ListGenresRequest
-	(*ListGenresResponse)(nil),         // 14: catalog.ListGenresResponse
-	(*GetPersonRequest)(nil),           // 15: catalog.GetPersonRequest
-	(*PersonDetail)(nil),               // 16: catalog.PersonDetail
-	(*RateContentRequest)(nil),         // 17: catalog.RateContentRequest
-	(*RateContentResponse)(nil),        // 18: catalog.RateContentResponse
-	(*GetUserRatingRequest)(nil),       // 19: catalog.GetUserRatingRequest
-	(*UserRating)(nil),                 // 20: catalog.UserRating
-	(*CreateContentRequest)(nil),       // 21: catalog.CreateContentRequest
-	(*UpdateContentRequest)(nil),       // 22: catalog.UpdateContentRequest
-	(*PublishContentRequest)(nil),      // 23: catalog.PublishContentRequest
-	(*PublishContentResponse)(nil),     // 24: catalog.PublishContentResponse
-	(*AddPersonToContentRequest)(nil),  // 25: catalog.AddPersonToContentRequest
-	(*AddPersonToContentResponse)(nil), // 26: catalog.AddPersonToContentResponse
-	(*CreatePersonRequest)(nil),        // 27: catalog.CreatePersonRequest
+var file_proto_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
+var file_proto_catalog_proto_goTypes = []any{
+	(*Genre)(nil),                           // 0: catalog.Genre
+	(*Person)(nil),                          // 1: catalog.Person
+	(*ContentCard)(nil),                     // 2: catalog.ContentCard
+	(*ContentDetail)(nil),                   // 3: catalog.ContentDetail
+	(*Episode)(nil),                         // 4: catalog.Episode
+	(*Season)(nil),                          // 5: catalog.Season
+	(*GetCatalogRequest)(nil),               // 6: catalog.GetCatalogRequest
+	(*GetCatalogResponse)(nil),              // 7: catalog.GetCatalogResponse
+	(*GetContentDetailRequest)(nil),         // 8: catalog.GetContentDetailRequest
+	(*GetSeriesStructureRequest)(nil),       // 9: catalog.GetSeriesStructureRequest
+	(*GetSeriesStructureResponse)(nil),      // 10: catalog.GetSeriesStructureResponse
+	(*SearchContentRequest)(nil),            // 11: catalog.SearchContentRequest
+	(*SearchContentResponse)(nil),           // 12: catalog.SearchContentResponse
+	(*ListGenresRequest)(nil),               // 13: catalog.ListGenresRequest
+	(*ListGenresResponse)(nil),              // 14: catalog.ListGenresResponse
+	(*GetPersonRequest)(nil),                // 15: catalog.GetPersonRequest
+	(*PersonDetail)(nil),                    // 16: catalog.PersonDetail
+	(*RateContentRequest)(nil),              // 17: catalog.RateContentRequest
+	(*RateContentResponse)(nil),             // 18: catalog.RateContentResponse
+	(*GetUserRatingRequest)(nil),            // 19: catalog.GetUserRatingRequest
+	(*UserRating)(nil),                      // 20: catalog.UserRating
+	(*CreateContentRequest)(nil),            // 21: catalog.CreateContentRequest
+	(*UpdateContentRequest)(nil),            // 22: catalog.UpdateContentRequest
+	(*PublishContentRequest)(nil),           // 23: catalog.PublishContentRequest
+	(*PublishContentResponse)(nil),          // 24: catalog.PublishContentResponse
+	(*AddPersonToContentRequest)(nil),       // 25: catalog.AddPersonToContentRequest
+	(*AddPersonToContentResponse)(nil),      // 26: catalog.AddPersonToContentResponse
+	(*CreatePersonRequest)(nil),             // 27: catalog.CreatePersonRequest
+	(*DeleteContentRequest)(nil),            // 28: catalog.DeleteContentRequest
+	(*DeleteContentResponse)(nil),           // 29: catalog.DeleteContentResponse
+	(*CreateGenreRequest)(nil),              // 30: catalog.CreateGenreRequest
+	(*UpdateGenreRequest)(nil),              // 31: catalog.UpdateGenreRequest
+	(*DeleteGenreRequest)(nil),              // 32: catalog.DeleteGenreRequest
+	(*DeleteGenreResponse)(nil),             // 33: catalog.DeleteGenreResponse
+	(*UpdatePersonRequest)(nil),             // 34: catalog.UpdatePersonRequest
+	(*DeletePersonRequest)(nil),             // 35: catalog.DeletePersonRequest
+	(*DeletePersonResponse)(nil),            // 36: catalog.DeletePersonResponse
+	(*RemovePersonFromContentRequest)(nil),  // 37: catalog.RemovePersonFromContentRequest
+	(*RemovePersonFromContentResponse)(nil), // 38: catalog.RemovePersonFromContentResponse
+	(*CreateSeasonRequest)(nil),             // 39: catalog.CreateSeasonRequest
+	(*SeasonInfo)(nil),                      // 40: catalog.SeasonInfo
+	(*DeleteSeasonRequest)(nil),             // 41: catalog.DeleteSeasonRequest
+	(*DeleteSeasonResponse)(nil),            // 42: catalog.DeleteSeasonResponse
+	(*CreateEpisodeRequest)(nil),            // 43: catalog.CreateEpisodeRequest
+	(*UpdateEpisodeRequest)(nil),            // 44: catalog.UpdateEpisodeRequest
+	(*DeleteEpisodeRequest)(nil),            // 45: catalog.DeleteEpisodeRequest
+	(*DeleteEpisodeResponse)(nil),           // 46: catalog.DeleteEpisodeResponse
+	(*ScheduleContentRequest)(nil),          // 47: catalog.ScheduleContentRequest
+	(*ScheduleContentResponse)(nil),         // 48: catalog.ScheduleContentResponse
+	(*AuditLogEntry)(nil),                   // 49: catalog.AuditLogEntry
+	(*GetAuditLogRequest)(nil),              // 50: catalog.GetAuditLogRequest
+	(*GetAuditLogResponse)(nil),             // 51: catalog.GetAuditLogResponse
 }
-var file_catalog_proto_depIdxs = []int32{
+var file_proto_catalog_proto_depIdxs = []int32{
 	0,  // 0: catalog.ContentCard.genres:type_name -> catalog.Genre
 	0,  // 1: catalog.ContentDetail.genres:type_name -> catalog.Genre
 	1,  // 2: catalog.ContentDetail.cast_and_crew:type_name -> catalog.Person
@@ -2208,59 +3823,86 @@ var file_catalog_proto_depIdxs = []int32{
 	5,  // 5: catalog.GetSeriesStructureResponse.seasons:type_name -> catalog.Season
 	2,  // 6: catalog.SearchContentResponse.results:type_name -> catalog.ContentCard
 	0,  // 7: catalog.ListGenresResponse.genres:type_name -> catalog.Genre
-	6,  // 8: catalog.CatalogService.GetCatalog:input_type -> catalog.GetCatalogRequest
-	8,  // 9: catalog.CatalogService.GetContentDetail:input_type -> catalog.GetContentDetailRequest
-	9,  // 10: catalog.CatalogService.GetSeriesStructure:input_type -> catalog.GetSeriesStructureRequest
-	11, // 11: catalog.CatalogService.SearchContent:input_type -> catalog.SearchContentRequest
-	13, // 12: catalog.CatalogService.ListGenres:input_type -> catalog.ListGenresRequest
-	15, // 13: catalog.CatalogService.GetPerson:input_type -> catalog.GetPersonRequest
-	17, // 14: catalog.CatalogService.RateContent:input_type -> catalog.RateContentRequest
-	19, // 15: catalog.CatalogService.GetUserRating:input_type -> catalog.GetUserRatingRequest
-	21, // 16: catalog.CatalogService.CreateContent:input_type -> catalog.CreateContentRequest
-	22, // 17: catalog.CatalogService.UpdateContent:input_type -> catalog.UpdateContentRequest
-	23, // 18: catalog.CatalogService.PublishContent:input_type -> catalog.PublishContentRequest
-	27, // 19: catalog.CatalogService.CreatePerson:input_type -> catalog.CreatePersonRequest
-	25, // 20: catalog.CatalogService.AddPersonToContent:input_type -> catalog.AddPersonToContentRequest
-	7,  // 21: catalog.CatalogService.GetCatalog:output_type -> catalog.GetCatalogResponse
-	3,  // 22: catalog.CatalogService.GetContentDetail:output_type -> catalog.ContentDetail
-	10, // 23: catalog.CatalogService.GetSeriesStructure:output_type -> catalog.GetSeriesStructureResponse
-	12, // 24: catalog.CatalogService.SearchContent:output_type -> catalog.SearchContentResponse
-	14, // 25: catalog.CatalogService.ListGenres:output_type -> catalog.ListGenresResponse
-	16, // 26: catalog.CatalogService.GetPerson:output_type -> catalog.PersonDetail
-	18, // 27: catalog.CatalogService.RateContent:output_type -> catalog.RateContentResponse
-	20, // 28: catalog.CatalogService.GetUserRating:output_type -> catalog.UserRating
-	2,  // 29: catalog.CatalogService.CreateContent:output_type -> catalog.ContentCard
-	2,  // 30: catalog.CatalogService.UpdateContent:output_type -> catalog.ContentCard
-	24, // 31: catalog.CatalogService.PublishContent:output_type -> catalog.PublishContentResponse
-	16, // 32: catalog.CatalogService.CreatePerson:output_type -> catalog.PersonDetail
-	26, // 33: catalog.CatalogService.AddPersonToContent:output_type -> catalog.AddPersonToContentResponse
-	21, // [21:34] is the sub-list for method output_type
-	8,  // [8:21] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	49, // 8: catalog.GetAuditLogResponse.entries:type_name -> catalog.AuditLogEntry
+	6,  // 9: catalog.CatalogService.GetCatalog:input_type -> catalog.GetCatalogRequest
+	8,  // 10: catalog.CatalogService.GetContentDetail:input_type -> catalog.GetContentDetailRequest
+	9,  // 11: catalog.CatalogService.GetSeriesStructure:input_type -> catalog.GetSeriesStructureRequest
+	11, // 12: catalog.CatalogService.SearchContent:input_type -> catalog.SearchContentRequest
+	13, // 13: catalog.CatalogService.ListGenres:input_type -> catalog.ListGenresRequest
+	15, // 14: catalog.CatalogService.GetPerson:input_type -> catalog.GetPersonRequest
+	17, // 15: catalog.CatalogService.RateContent:input_type -> catalog.RateContentRequest
+	19, // 16: catalog.CatalogService.GetUserRating:input_type -> catalog.GetUserRatingRequest
+	21, // 17: catalog.CatalogService.CreateContent:input_type -> catalog.CreateContentRequest
+	22, // 18: catalog.CatalogService.UpdateContent:input_type -> catalog.UpdateContentRequest
+	23, // 19: catalog.CatalogService.PublishContent:input_type -> catalog.PublishContentRequest
+	28, // 20: catalog.CatalogService.DeleteContent:input_type -> catalog.DeleteContentRequest
+	30, // 21: catalog.CatalogService.CreateGenre:input_type -> catalog.CreateGenreRequest
+	31, // 22: catalog.CatalogService.UpdateGenre:input_type -> catalog.UpdateGenreRequest
+	32, // 23: catalog.CatalogService.DeleteGenre:input_type -> catalog.DeleteGenreRequest
+	27, // 24: catalog.CatalogService.CreatePerson:input_type -> catalog.CreatePersonRequest
+	34, // 25: catalog.CatalogService.UpdatePerson:input_type -> catalog.UpdatePersonRequest
+	35, // 26: catalog.CatalogService.DeletePerson:input_type -> catalog.DeletePersonRequest
+	25, // 27: catalog.CatalogService.AddPersonToContent:input_type -> catalog.AddPersonToContentRequest
+	37, // 28: catalog.CatalogService.RemovePersonFromContent:input_type -> catalog.RemovePersonFromContentRequest
+	39, // 29: catalog.CatalogService.CreateSeason:input_type -> catalog.CreateSeasonRequest
+	41, // 30: catalog.CatalogService.DeleteSeason:input_type -> catalog.DeleteSeasonRequest
+	43, // 31: catalog.CatalogService.CreateEpisode:input_type -> catalog.CreateEpisodeRequest
+	44, // 32: catalog.CatalogService.UpdateEpisode:input_type -> catalog.UpdateEpisodeRequest
+	45, // 33: catalog.CatalogService.DeleteEpisode:input_type -> catalog.DeleteEpisodeRequest
+	47, // 34: catalog.CatalogService.ScheduleContent:input_type -> catalog.ScheduleContentRequest
+	7,  // 35: catalog.CatalogService.GetCatalog:output_type -> catalog.GetCatalogResponse
+	3,  // 36: catalog.CatalogService.GetContentDetail:output_type -> catalog.ContentDetail
+	10, // 37: catalog.CatalogService.GetSeriesStructure:output_type -> catalog.GetSeriesStructureResponse
+	12, // 38: catalog.CatalogService.SearchContent:output_type -> catalog.SearchContentResponse
+	14, // 39: catalog.CatalogService.ListGenres:output_type -> catalog.ListGenresResponse
+	16, // 40: catalog.CatalogService.GetPerson:output_type -> catalog.PersonDetail
+	18, // 41: catalog.CatalogService.RateContent:output_type -> catalog.RateContentResponse
+	20, // 42: catalog.CatalogService.GetUserRating:output_type -> catalog.UserRating
+	2,  // 43: catalog.CatalogService.CreateContent:output_type -> catalog.ContentCard
+	2,  // 44: catalog.CatalogService.UpdateContent:output_type -> catalog.ContentCard
+	24, // 45: catalog.CatalogService.PublishContent:output_type -> catalog.PublishContentResponse
+	29, // 46: catalog.CatalogService.DeleteContent:output_type -> catalog.DeleteContentResponse
+	0,  // 47: catalog.CatalogService.CreateGenre:output_type -> catalog.Genre
+	0,  // 48: catalog.CatalogService.UpdateGenre:output_type -> catalog.Genre
+	33, // 49: catalog.CatalogService.DeleteGenre:output_type -> catalog.DeleteGenreResponse
+	16, // 50: catalog.CatalogService.CreatePerson:output_type -> catalog.PersonDetail
+	16, // 51: catalog.CatalogService.UpdatePerson:output_type -> catalog.PersonDetail
+	36, // 52: catalog.CatalogService.DeletePerson:output_type -> catalog.DeletePersonResponse
+	26, // 53: catalog.CatalogService.AddPersonToContent:output_type -> catalog.AddPersonToContentResponse
+	38, // 54: catalog.CatalogService.RemovePersonFromContent:output_type -> catalog.RemovePersonFromContentResponse
+	40, // 55: catalog.CatalogService.CreateSeason:output_type -> catalog.SeasonInfo
+	42, // 56: catalog.CatalogService.DeleteSeason:output_type -> catalog.DeleteSeasonResponse
+	4,  // 57: catalog.CatalogService.CreateEpisode:output_type -> catalog.Episode
+	4,  // 58: catalog.CatalogService.UpdateEpisode:output_type -> catalog.Episode
+	46, // 59: catalog.CatalogService.DeleteEpisode:output_type -> catalog.DeleteEpisodeResponse
+	48, // 60: catalog.CatalogService.ScheduleContent:output_type -> catalog.ScheduleContentResponse
+	35, // [35:61] is the sub-list for method output_type
+	9,  // [9:35] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
-func init() { file_catalog_proto_init() }
-func file_catalog_proto_init() {
-	if File_catalog_proto != nil {
+func init() { file_proto_catalog_proto_init() }
+func file_proto_catalog_proto_init() {
+	if File_proto_catalog_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_catalog_proto_rawDesc), len(file_catalog_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_catalog_proto_rawDesc), len(file_proto_catalog_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   28,
+			NumMessages:   52,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_catalog_proto_goTypes,
-		DependencyIndexes: file_catalog_proto_depIdxs,
-		MessageInfos:      file_catalog_proto_msgTypes,
+		GoTypes:           file_proto_catalog_proto_goTypes,
+		DependencyIndexes: file_proto_catalog_proto_depIdxs,
+		MessageInfos:      file_proto_catalog_proto_msgTypes,
 	}.Build()
-	File_catalog_proto = out.File
-	file_catalog_proto_goTypes = nil
-	file_catalog_proto_depIdxs = nil
+	File_proto_catalog_proto = out.File
+	file_proto_catalog_proto_goTypes = nil
+	file_proto_catalog_proto_depIdxs = nil
 }
