@@ -37,6 +37,7 @@ type mockRepo struct {
 	scheduleContentFn         func(string, string, string) (string, error)
 	getAuditLogsFn            func(AuditLogFilter) ([]AuditLogRow, int, error)
 	setChangedByFn            func(string) error
+	listAllContentFn          func(string, int, int, int) ([]CatalogCardRow, int, error)
 }
 
 func (m *mockRepo) GetCatalog(ct string, gid, p, ps int) ([]CatalogCardRow, int, error) {
@@ -212,4 +213,10 @@ func (m *mockRepo) SetChangedBy(by string) error {
 		return m.setChangedByFn(by)
 	}
 	return nil
+}
+func (m *mockRepo) ListAllContent(ct string, gid, p, ps int) ([]CatalogCardRow, int, error) {
+	if m.listAllContentFn != nil {
+		return m.listAllContentFn(ct, gid, p, ps)
+	}
+	return nil, 0, nil
 }

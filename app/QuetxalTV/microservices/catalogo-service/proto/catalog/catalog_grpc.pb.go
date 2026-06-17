@@ -45,6 +45,7 @@ const (
 	CatalogService_UpdateEpisode_FullMethodName           = "/catalog.CatalogService/UpdateEpisode"
 	CatalogService_DeleteEpisode_FullMethodName           = "/catalog.CatalogService/DeleteEpisode"
 	CatalogService_ScheduleContent_FullMethodName         = "/catalog.CatalogService/ScheduleContent"
+	CatalogService_ListAllContent_FullMethodName          = "/catalog.CatalogService/ListAllContent"
 )
 
 // CatalogServiceClient is the client API for CatalogService service.
@@ -86,6 +87,8 @@ type CatalogServiceClient interface {
 	DeleteEpisode(ctx context.Context, in *DeleteEpisodeRequest, opts ...grpc.CallOption) (*DeleteEpisodeResponse, error)
 	// Admin — programar estreno
 	ScheduleContent(ctx context.Context, in *ScheduleContentRequest, opts ...grpc.CallOption) (*ScheduleContentResponse, error)
+	// Admin — listar todo el contenido (publicado y no publicado)
+	ListAllContent(ctx context.Context, in *GetCatalogRequest, opts ...grpc.CallOption) (*GetCatalogResponse, error)
 }
 
 type catalogServiceClient struct {
@@ -356,6 +359,16 @@ func (c *catalogServiceClient) ScheduleContent(ctx context.Context, in *Schedule
 	return out, nil
 }
 
+func (c *catalogServiceClient) ListAllContent(ctx context.Context, in *GetCatalogRequest, opts ...grpc.CallOption) (*GetCatalogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCatalogResponse)
+	err := c.cc.Invoke(ctx, CatalogService_ListAllContent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CatalogServiceServer is the server API for CatalogService service.
 // All implementations must embed UnimplementedCatalogServiceServer
 // for forward compatibility.
@@ -395,6 +408,8 @@ type CatalogServiceServer interface {
 	DeleteEpisode(context.Context, *DeleteEpisodeRequest) (*DeleteEpisodeResponse, error)
 	// Admin — programar estreno
 	ScheduleContent(context.Context, *ScheduleContentRequest) (*ScheduleContentResponse, error)
+	// Admin — listar todo el contenido (publicado y no publicado)
+	ListAllContent(context.Context, *GetCatalogRequest) (*GetCatalogResponse, error)
 	mustEmbedUnimplementedCatalogServiceServer()
 }
 
@@ -482,6 +497,9 @@ func (UnimplementedCatalogServiceServer) DeleteEpisode(context.Context, *DeleteE
 }
 func (UnimplementedCatalogServiceServer) ScheduleContent(context.Context, *ScheduleContentRequest) (*ScheduleContentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ScheduleContent not implemented")
+}
+func (UnimplementedCatalogServiceServer) ListAllContent(context.Context, *GetCatalogRequest) (*GetCatalogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAllContent not implemented")
 }
 func (UnimplementedCatalogServiceServer) mustEmbedUnimplementedCatalogServiceServer() {}
 func (UnimplementedCatalogServiceServer) testEmbeddedByValue()                        {}
@@ -972,6 +990,24 @@ func _CatalogService_ScheduleContent_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CatalogService_ListAllContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCatalogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).ListAllContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_ListAllContent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).ListAllContent(ctx, req.(*GetCatalogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CatalogService_ServiceDesc is the grpc.ServiceDesc for CatalogService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1082,6 +1118,10 @@ var CatalogService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ScheduleContent",
 			Handler:    _CatalogService_ScheduleContent_Handler,
+		},
+		{
+			MethodName: "ListAllContent",
+			Handler:    _CatalogService_ListAllContent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
