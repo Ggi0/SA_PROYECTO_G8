@@ -222,6 +222,23 @@ export class CatalogController {
     this.catalogService.proxyGet('/admin/download-url', qs, res);
   }
 
+  // ===== Admin — listar todo el contenido (publicado y no publicado) =====
+
+  @Get('admin/content/all')
+  listAllContent(
+    @Query('type') type?: string,
+    @Query('genre_id') genreId?: string,
+    @Query('page') page?: string,
+    @Query('page_size') pageSize?: string,
+  ) {
+    return this.catalogService.listAllContent(
+      type || '',
+      Number(genreId) || 0,
+      Number(page) || 1,
+      Number(pageSize) || 24,
+    );
+  }
+
   // ===== Admin — episodios =====
 
   @Post('admin/seasons/:id/episodes')

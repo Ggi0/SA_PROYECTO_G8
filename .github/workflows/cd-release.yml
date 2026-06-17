@@ -122,6 +122,8 @@ jobs:
             --from-literal=CATALOGO_DB_PASSWORD="${{ secrets.CATALOGO_DB_PASSWORD }}" \
             --from-literal=CATALOGO_DB_NAME="${{ secrets.CATALOGO_DB_NAME }}" \
             --from-literal=CATALOGO_DB_SCHEMA="${{ secrets.CATALOGO_DB_SCHEMA }}" \
+            --from-literal=GCS_BUCKET_NAME="quetxal-tv-videos" \
+            --from-literal=GCS_SERVICE_ACCOUNT_EMAIL="${{ secrets.GCP_SA_EMAIL }}" \
             --from-literal=FX_DB_HOST="fx-db" \
             --from-literal=FX_DB_PORT="5432" \
             --from-literal=FX_DB_USER="${{ secrets.FX_DB_USER }}" \
@@ -157,10 +159,11 @@ jobs:
         run: |
           export IMAGE_TAG="${{ env.VER }}"
           export GCP_PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+          export GCP_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
           export ARTIFACT_REGISTRY_LOCATION="${{ secrets.ARTIFACT_REGISTRY_LOCATION }}"
           export ARTIFACT_REGISTRY_REPOSITORY="${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}"
           for f in k8s/databases/*.yaml k8s/deployments/*.yaml k8s/services/*.yaml k8s/jobs/*.yaml; do
-            envsubst '${IMAGE_TAG} ${GCP_PROJECT_ID} ${ARTIFACT_REGISTRY_LOCATION} ${ARTIFACT_REGISTRY_REPOSITORY}' < "$f" | kubectl apply -f -
+            envsubst '${IMAGE_TAG} ${GCP_PROJECT_ID} ${GCP_SA_EMAIL} ${ARTIFACT_REGISTRY_LOCATION} ${ARTIFACT_REGISTRY_REPOSITORY}' < "$f" | kubectl apply -f -
           done
           kubectl apply -f k8s/ingress.yaml
       - name: Esperar migración de auditoría (corto-circuito si falla)
@@ -195,3 +198,14 @@ jobs:
           done
           [ "$FAILED" -eq 0 ] || exit 1
           echo "🎉 Deploy ${{ env.VER }} OK"
+
+  backup-after-deploy:
+    name: Backup after deploy
+    needs: deploy
+    uses: ./.github/workflows/backup.yml
+    with:
+      target: gke
+    permissions:
+      id-token: write
+      contents: read
+    secrets: inherit
