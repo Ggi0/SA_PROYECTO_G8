@@ -145,16 +145,34 @@ jobs:
             --from-literal=SMTP_FROM="${{ secrets.SMTP_FROM }}" \
             --from-literal=EXCHANGE_API_KEY="${{ secrets.EXCHANGE_API_KEY }}" \
             --save-config --dry-run=client -o yaml | kubectl apply -f -
+      - name: ConfigMap de migración de auditoría (subscription)
+        run: |
+          kubectl create configmap subscription-audit-migration-sql \
+            --namespace=${{ env.NAMESPACE }} \
+            --from-file=002_audit_upgrade.sql=app/QuetxalTV/microservices/subscription-service/internal/database/migrations/002_audit_upgrade.sql \
+            --dry-run=client -o yaml | kubectl apply -f -
+          # Borra el Job anterior para forzar su re-ejecución con el SQL vigente.
+          kubectl delete job subscription-audit-migration -n ${{ env.NAMESPACE }} --ignore-not-found=true
       - name: Aplicar todos los manifiestos
         run: |
           export IMAGE_TAG="${{ env.VER }}"
           export GCP_PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
           export ARTIFACT_REGISTRY_LOCATION="${{ secrets.ARTIFACT_REGISTRY_LOCATION }}"
           export ARTIFACT_REGISTRY_REPOSITORY="${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}"
-          for f in k8s/databases/*.yaml k8s/deployments/*.yaml k8s/services/*.yaml; do
+          for f in k8s/databases/*.yaml k8s/deployments/*.yaml k8s/services/*.yaml k8s/jobs/*.yaml; do
             envsubst '${IMAGE_TAG} ${GCP_PROJECT_ID} ${ARTIFACT_REGISTRY_LOCATION} ${ARTIFACT_REGISTRY_REPOSITORY}' < "$f" | kubectl apply -f -
           done
           kubectl apply -f k8s/ingress.yaml
+      - name: Esperar migración de auditoría (corto-circuito si falla)
+        run: |
+          JOB=subscription-audit-migration
+          if ! kubectl wait --for=condition=complete --timeout=300s job/$JOB -n ${{ env.NAMESPACE }}; then
+            echo "❌ Migración de auditoría falló; logs:"
+            kubectl logs -n ${{ env.NAMESPACE }} -l app=subscription-audit-migration --tail=200 || true
+            kubectl describe job/$JOB -n ${{ env.NAMESPACE }} || true
+            exit 1
+          fi
+          echo "✅ Migración de auditoría aplicada"
       - name: Verificar RollingUpdate + rollback autom\xe1tico
         run: |
           FAILED=0
