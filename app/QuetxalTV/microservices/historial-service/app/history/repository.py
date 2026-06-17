@@ -142,8 +142,8 @@ class HistorialRepository:
                 cursor.execute(query, (profile_id, content_id))
                 return cursor.fetchone()
 
-        def obtener_logs_auditoria(self, table_name=None, action=None, limit=100, offset=0):
-            query = f"""
+    def obtener_logs_auditoria(self, table_name=None, action=None, limit=100, offset=0):
+        query = f"""
             SELECT *
             FROM {self.config.DB_SCHEMA}.fn_get_history_audit_logs(
                 %s,
