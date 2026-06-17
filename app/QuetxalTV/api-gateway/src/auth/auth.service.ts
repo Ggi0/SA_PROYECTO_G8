@@ -24,22 +24,30 @@ console.log('TOKEN=', AUTH_SERVICE_GRPC);
 
 interface AuthGrpcService {
   // Autenticación
-  Register(data: unknown):       Observable<unknown>;
-  Login(data: unknown):          Observable<unknown>;
-  RefreshToken(data: unknown):   Observable<unknown>;
-  Logout(data: unknown):         Observable<unknown>;
-  LogoutAll(data: unknown):      Observable<unknown>;
+  Register(data: unknown): Observable<unknown>;
+  Login(data: unknown): Observable<unknown>;
+  RefreshToken(data: unknown): Observable<unknown>;
+  Logout(data: unknown): Observable<unknown>;
+  LogoutAll(data: unknown): Observable<unknown>;
   // Cuenta
-  GetMe(data: unknown):          Observable<unknown>;
+  GetMe(data: unknown): Observable<unknown>;
   ChangePassword(data: unknown): Observable<unknown>;
   ForgotPassword(data: unknown): Observable<unknown>;
-  ResetPassword(data: unknown):  Observable<unknown>;
+  ResetPassword(data: unknown): Observable<unknown>;
   // Perfiles
-  ListProfiles(data: unknown):   Observable<unknown>;
-  CreateProfile(data: unknown):  Observable<unknown>;
-  UpdateProfile(data: unknown):  Observable<unknown>;
-  DeleteProfile(data: unknown):  Observable<unknown>;
-  SelectProfile(data: unknown):  Observable<unknown>;
+  ListProfiles(data: unknown): Observable<unknown>;
+  CreateProfile(data: unknown): Observable<unknown>;
+  UpdateProfile(data: unknown): Observable<unknown>;
+  DeleteProfile(data: unknown): Observable<unknown>;
+  SelectProfile(data: unknown): Observable<unknown>;
+
+  // ── Auditoría ─────────────────────────
+  GetAuditLogs(data: unknown): Observable<unknown>;
+  ExportAuditLogs(data: unknown): Observable<unknown>;
+
+  // ── Health ─────────────────────────
+  HealthLive(data: unknown): Observable<unknown>;
+  HealthReady(data: unknown): Observable<unknown>;
 }
 
 @Injectable()
@@ -49,13 +57,14 @@ export class AuthGatewayService implements OnModuleInit {
   constructor(
     @Inject(AUTH_SERVICE_GRPC)
     private readonly client: any,
-  ) {}
-  
+  ) { }
+
 
   onModuleInit() {
     // 'AuthService' debe coincidir exactamente con el nombre en auth.proto
-    this.authSvc = this.client.getService('AuthService');  }
-  
+    this.authSvc = this.client.getService('AuthService');
+  }
+
 
   // ─────────────────────────────────────────────
   //  Helper — convierte Observable a Promise
@@ -111,28 +120,28 @@ export class AuthGatewayService implements OnModuleInit {
   //  AUTENTICACIÓN
   // ─────────────────────────────────────────────
 
-register(data: { email: string; password: string; display_name: string }) {
-  const payload = {
-    email:        data.email,
-    password:     data.password,
-    display_name: data.display_name,  // ← snake_case, igual que el proto
-  };
-  
-  console.log('GRPC PAYLOAD=', payload);
-  return this.call(this.authSvc.Register(payload));
-}
+  register(data: { email: string; password: string; display_name: string }) {
+    const payload = {
+      email: data.email,
+      password: data.password,
+      display_name: data.display_name,  // ← snake_case, igual que el proto
+    };
+
+    console.log('GRPC PAYLOAD=', payload);
+    return this.call(this.authSvc.Register(payload));
+  }
 
   login(data: {
-    email:       string;
-    password:    string;
+    email: string;
+    password: string;
     deviceInfo?: string;
-    ipAddress?:  string;
+    ipAddress?: string;
   }) {
     return this.call(this.authSvc.Login({
-      email:       data.email,
-      password:    data.password,
+      email: data.email,
+      password: data.password,
       device_info: data.deviceInfo ?? '',
-      ip_address:  data.ipAddress  ?? '',
+      ip_address: data.ipAddress ?? '',
     }));
   }
 
@@ -154,20 +163,20 @@ register(data: { email: string; password: string; display_name: string }) {
 
   getMe(userId: string, activeProfileId: string | null) {
     return this.call(this.authSvc.GetMe({
-      userId:           userId,
+      userId: userId,
       activeProfileId: activeProfileId ?? '',
     }));
   }
 
   changePassword(data: {
-    userId:          string;
+    userId: string;
     currentPassword: string;
-    newPassword:     string;
+    newPassword: string;
   }) {
     return this.call(this.authSvc.ChangePassword({
-      userId:          data.userId,
+      userId: data.userId,
       current_password: data.currentPassword,
-      new_password:     data.newPassword,
+      new_password: data.newPassword,
     }));
   }
 
@@ -191,46 +200,100 @@ register(data: { email: string; password: string; display_name: string }) {
   }
 
   createProfile(data: {
-    userId:      string;
+    userId: string;
     displayName: string;
     isKidsMode?: boolean;
-    avatarUrl?:  string;
+    avatarUrl?: string;
   }) {
     return this.call(this.authSvc.CreateProfile({
-      userId:      data.userId,
+      userId: data.userId,
       displayName: data.displayName,
       isKidsMode: data.isKidsMode ?? false,
-      avatarUrl:   data.avatarUrl  ?? '',
+      avatarUrl: data.avatarUrl ?? '',
     }));
   }
 
   updateProfile(data: {
-    userId:       string;
-    profileId:    string;
+    userId: string;
+    profileId: string;
     displayName?: string;
-    avatarUrl?:   string;
-    isKidsMode?:  boolean;
+    avatarUrl?: string;
+    isKidsMode?: boolean;
   }) {
     return this.call(this.authSvc.UpdateProfile({
-      userId:      data.userId,
-      profileId:   data.profileId,
+      userId: data.userId,
+      profileId: data.profileId,
       displayName: data.displayName ?? '',
-      avatarUrl:   data.avatarUrl   ?? '',
-      isKidsMode: data.isKidsMode  ?? false,
+      avatarUrl: data.avatarUrl ?? '',
+      isKidsMode: data.isKidsMode ?? false,
     }));
   }
 
   deleteProfile(userId: string, profileId: string) {
     return this.call(this.authSvc.DeleteProfile({
-      userId:    userId,
+      userId: userId,
       profileId: profileId,
     }));
   }
 
   selectProfile(userId: string, profileId: string) {
     return this.call(this.authSvc.SelectProfile({
-      userId:    userId,
+      userId: userId,
       profileId: profileId,
     }));
   }
+
+
+
+  // ─────────────────────────────────────────────
+//  AUDITORÍA
+// ─────────────────────────────────────────────
+
+getAuditLogs(data: {
+  adminUserId: string;
+  userId?: string;
+  tableName?: string;
+  operation?: string;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  return this.call(this.authSvc.GetAuditLogs({
+    adminUserId: data.adminUserId, // ✅ snake_case aquí
+    userId: data.userId,
+    tableName: data.tableName,
+    operation: data.operation,
+    fromDate: data.fromDate,
+    toDate: data.toDate,
+    page: data.page ?? 1,
+    pageSize: data.pageSize ?? 10,
+  }));
+}
+
+exportAuditLogs(data: {
+  adminUserId: string;
+  format?: string;
+}) {
+  return this.call(this.authSvc.ExportAuditLogs({
+    adminUserId: data.adminUserId, // ✅ snake_case
+    format: data.format ?? 'csv',
+  }));
+}
+
+
+// ─────────────────────────────────────────────
+//  HEALTH
+// ─────────────────────────────────────────────
+
+healthLive() {
+  return this.call(this.authSvc.HealthLive({}));
+}
+
+healthReady() {
+  return this.call(this.authSvc.HealthReady({}));
+}
+
+
+
 }

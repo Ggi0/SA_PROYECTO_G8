@@ -31,7 +31,22 @@ service AuthService {
   // ── Validación inter-servicios ─────────────
   rpc ValidateToken   (ValidateTokenRequest)  returns (ValidateTokenResponse);
   rpc GetUserById     (GetUserByIdRequest)    returns (GetUserByIdResponse);
+
+  // ── Auditoría ─────────────────────────────
+  rpc GetAuditLogs     (GetAuditLogsRequest) returns (GetAuditLogsResponse);
+  rpc ExportAuditLogs  (ExportAuditLogsRequest) returns (ExportAuditLogsResponse);
+
+  // ── Health checks ─────────────────────────
+  rpc HealthLive  (HealthRequest) returns (HealthResponse);
+  rpc HealthReady (HealthRequest) returns (HealthResponse);
+
+
+
 }
+
+
+
+
 
 // ─────────────────────────────────────────────
 //  MENSAJES COMPARTIDOS
@@ -232,6 +247,82 @@ message GetUserByIdResponse {
   string role      = 3;
   bool   is_active = 4;
 }
+
+// ─────────────────────────────────────────────
+//  AUDITORÍA
+// ─────────────────────────────────────────────
+
+message GetAuditLogsRequest {
+  string admin_user_id = 1;
+
+  string user_id    = 2;
+  string table_name = 3;
+  string operation  = 4; // INSERT, UPDATE, DELETE
+
+  string from_date  = 5;
+  string to_date    = 6;
+
+  int32 page      = 7;
+  int32 page_size = 8;
+
+  bool include_old_data = 9;
+  bool include_new_data = 10;
+}
+
+message AuditLogMessage {
+  string audit_id = 1;
+
+  string table_name = 2;
+  string operation  = 3;
+
+  string user_id  = 4;
+  string record_id = 5;
+
+  string changed_at = 6;
+
+  string old_data = 7;
+  string new_data = 8;
+}
+
+message GetAuditLogsResponse {
+  repeated AuditLogMessage logs = 1;
+
+  int32 total_records = 2;
+  int32 page          = 3;
+  int32 page_size     = 4;
+}
+
+
+// ─────────────────────────────────────────────
+//  EXPORTACIÓN DE REPORTES
+// ─────────────────────────────────────────────
+
+message ExportAuditLogsRequest {
+  string admin_user_id = 1;
+
+  string format = 2; // "csv" | "pdf"
+
+  string user_id    = 3;
+  string table_name = 4;
+  string operation  = 5;
+
+  string from_date = 6;
+  string to_date   = 7;
+}
+
+message ExportAuditLogsResponse {
+  bytes  file      = 1;
+  string file_name = 2;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  string message = 2;
+}
+
+
 
 // ─────────────────────────────────────────────
 //  NOTIFICATION SERVICE  (futuro — cliente gRPC)
