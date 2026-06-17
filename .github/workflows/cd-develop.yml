@@ -188,3 +188,8 @@ jobs:
     name: Backup after deploy
     needs: deploy
     uses: ./.github/workflows/backup.yml
+    permissions:
+      id-token: write
+      contents: read
+
+    
