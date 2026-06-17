@@ -4,15 +4,15 @@ metadata:
   name: api-gateway
   namespace: quetxal-tv-prod
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: api-gateway
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      maxSurge: 0
+      maxUnavailable: 1
   template:
     metadata:
       labels:
@@ -25,10 +25,10 @@ spec:
             - containerPort: 3000
           resources:
             requests:
-              cpu: "150m"
+              cpu: "75m"
               memory: "192Mi"
             limits:
-              cpu: "400m"
+              cpu: "300m"
               memory: "384Mi"
           envFrom:
             - configMapRef:
@@ -53,13 +53,13 @@ spec:
             httpGet:
               path: /health
               port: 3000
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
-            failureThreshold: 3
+            failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /health
               port: 3000
-            initialDelaySeconds: 30
+            initialDelaySeconds: 90
             periodSeconds: 20
             failureThreshold: 3

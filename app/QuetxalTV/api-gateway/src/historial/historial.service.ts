@@ -25,10 +25,20 @@ export interface HistoryAuditLogsResponse {
   items: HistoryAuditLogItem[];
 }
 
+export interface HealthCheckResponse {
+  success: boolean;
+  status: string;
+  service: string;
+  message: string;
+}
+
 export interface HistorialGrpcService {
   getHistoryAuditLogs(
     data: GetHistoryAuditLogsRequest,
   ): Observable<HistoryAuditLogsResponse>;
+    healthLive(data: Record<string, never>): Observable<HealthCheckResponse>;
+
+  healthReady(data: Record<string, never>): Observable<HealthCheckResponse>;
 }
 
 @Injectable()
@@ -57,5 +67,12 @@ export class HistorialService implements OnModuleInit {
       limit,
       offset,
     });
+  }
+    healthLive(): Observable<HealthCheckResponse> {
+    return this.grpcClient.healthLive({});
+  }
+
+  healthReady(): Observable<HealthCheckResponse> {
+    return this.grpcClient.healthReady({});
   }
 }

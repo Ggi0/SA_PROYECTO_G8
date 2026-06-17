@@ -1,8 +1,9 @@
 name: DB Backup - Quetxal TV
 on:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '40 1 * * *'
   workflow_dispatch:
+  workflow_call:
 jobs:
   backup:
     name: Backup PostgreSQL → GCS
@@ -48,6 +49,7 @@ jobs:
             service_account: ${{ secrets.GCP_SA_EMAIL }}
         - uses: google-github-actions/get-gke-credentials@v2
           with:
+            project_id: ${{ secrets.GCP_PROJECT_ID }}
             cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
             location: ${{ secrets.GKE_CLUSTER_ZONE }}
         - name: Backup DBs in GKE

@@ -3,6 +3,7 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(__file__))
 
 from src.grpc import fx_pb2, fx_pb2_grpc
 from src.services.fx_service import fx_service
