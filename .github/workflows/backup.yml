@@ -39,7 +39,7 @@ jobs:
               C=$1
               echo "🔄 $C..."
               docker exec $C sh -c 'pg_dumpall -U "$POSTGRES_USER"' | gzip > /tmp/${C}_${TS}.sql.gz
-              gcloud storage cp /tmp/${C}_${TS}.sql.gz $BUCKET/$C/${C}_${TS}.sql.gz
+              gsutil cp /tmp/${C}_${TS}.sql.gz $BUCKET/$C/${C}_${TS}.sql.gz
               rm -f /tmp/${C}_${TS}.sql.gz
               echo "✅ $C"
             }
