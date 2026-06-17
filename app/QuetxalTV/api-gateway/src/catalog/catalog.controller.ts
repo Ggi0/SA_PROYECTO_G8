@@ -212,14 +212,30 @@ export class CatalogController {
   }
 
   @Post('admin/upload-url')
-  getUploadUrl(@Req() req: Request, @Res() res: Response) {
-    this.catalogService.proxyPost('/admin/upload-url', req, res);
+  getUploadUrl(@Body() body: { filename?: string; contentType?: string; content_type?: string }) {
+    return this.catalogService.getUploadURL(body.filename || '', body.contentType || body.content_type || '');
   }
 
   @Get('admin/download-url')
-  getDownloadUrl(@Query() query: Record<string, string>, @Res() res: Response) {
-    const qs = new URLSearchParams(query).toString();
-    this.catalogService.proxyGet('/admin/download-url', qs, res);
+  getDownloadUrl(@Query('object') object?: string, @Query('object_name') objectName?: string) {
+    return this.catalogService.getDownloadURL(objectName || object || '');
+  }
+
+  // ===== Admin — listar todo el contenido (publicado y no publicado) =====
+
+  @Get('admin/content/all')
+  listAllContent(
+    @Query('type') type?: string,
+    @Query('genre_id') genreId?: string,
+    @Query('page') page?: string,
+    @Query('page_size') pageSize?: string,
+  ) {
+    return this.catalogService.listAllContent(
+      type || '',
+      Number(genreId) || 0,
+      Number(page) || 1,
+      Number(pageSize) || 24,
+    );
   }
 
   // ===== Admin — episodios =====

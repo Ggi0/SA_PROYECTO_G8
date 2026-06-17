@@ -2,7 +2,10 @@ package catalog
 
 import (
 	"context"
+	"mime"
+	"path/filepath"
 
+	"github.com/quetxaltv/catalog-service/internal/storage"
 	pb "github.com/quetxaltv/catalog-service/proto/catalog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -104,6 +107,36 @@ func (h *Handler) GetUserRating(ctx context.Context, req *pb.GetUserRatingReques
 		return nil, status.Errorf(codes.Internal, "error obteniendo calificación: %v", err)
 	}
 	return resp, nil
+}
+
+func (h *Handler) GetUploadURL(ctx context.Context, req *pb.GetUploadURLRequest) (*pb.GetUploadURLResponse, error) {
+	if req.Filename == "" {
+		return nil, status.Error(codes.InvalidArgument, "filename es requerido")
+	}
+	contentType := req.ContentType
+	if contentType == "" {
+		contentType = mime.TypeByExtension(filepath.Ext(req.Filename))
+		if contentType == "" {
+			contentType = "application/octet-stream"
+		}
+	}
+	objectName := storage.BuildObjectName(req.Filename)
+	uploadURL, err := storage.NewSigner().UploadURL(ctx, objectName, contentType)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error generando URL de carga: %v", err)
+	}
+	return &pb.GetUploadURLResponse{UploadUrl: uploadURL, ObjectName: objectName}, nil
+}
+
+func (h *Handler) GetDownloadURL(ctx context.Context, req *pb.GetDownloadURLRequest) (*pb.GetDownloadURLResponse, error) {
+	if req.ObjectName == "" {
+		return nil, status.Error(codes.InvalidArgument, "object_name es requerido")
+	}
+	downloadURL, err := storage.NewSigner().DownloadURL(ctx, req.ObjectName)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error generando URL de descarga: %v", err)
+	}
+	return &pb.GetDownloadURLResponse{DownloadUrl: downloadURL, ObjectName: req.ObjectName}, nil
 }
 
 func (h *Handler) CreateContent(ctx context.Context, req *pb.CreateContentRequest) (*pb.ContentCard, error) {
@@ -371,6 +404,14 @@ func (h *Handler) DeleteEpisode(ctx context.Context, req *pb.DeleteEpisodeReques
 	resp, err := h.svc.DeleteEpisode(req.EpisodeId, req.ChangedBy)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error eliminando episodio: %v", err)
+	}
+	return resp, nil
+}
+
+func (h *Handler) ListAllContent(ctx context.Context, req *pb.GetCatalogRequest) (*pb.GetCatalogResponse, error) {
+	resp, err := h.svc.ListAllContent(req.ContentType, int(req.GenreId), int(req.Page), int(req.PageSize))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error listando todo el contenido: %v", err)
 	}
 	return resp, nil
 }

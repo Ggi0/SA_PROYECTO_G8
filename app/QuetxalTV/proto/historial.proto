@@ -7,6 +7,10 @@ service HistorialService {
   rpc UpdateEpisodeProgress (UpdateEpisodeProgressRequest) returns (ProgressResponse);
   rpc GetContinueWatching (GetContinueWatchingRequest) returns (ContinueWatchingResponse);
   rpc GetContentProgress (GetContentProgressRequest) returns (ProgressResponse);
+  rpc GetHistoryAuditLogs (GetHistoryAuditLogsRequest) returns (HistoryAuditLogsResponse);
+
+  rpc HealthLive (HealthCheckRequest) returns (HealthCheckResponse);
+  rpc HealthReady (HealthCheckRequest) returns (HealthCheckResponse);
 }
 
 message UpdateMovieProgressRequest {
@@ -86,4 +90,13 @@ message HistoryAuditLogItem {
   string old_state = 7;
   string new_state = 8;
   string created_at = 9;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  bool success = 1;
+  string status = 2;
+  string service = 3;
+  string message = 4;
 }

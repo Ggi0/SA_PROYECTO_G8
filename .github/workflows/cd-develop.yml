@@ -128,6 +128,9 @@ jobs:
             set_env() {
               grep -q "^$1=" .env && sed -i "s|^$1=.*|$1=$2|" .env || echo "$1=$2" >> .env
             }
+            set_env_if_not_empty() {
+              [ -n "$2" ] && set_env "$1" "$2"
+            }
             set_env IMAGE_TAG develop
             set_env FRONTEND_PUBLIC_PORT 8080
             set_env AUTH_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
@@ -151,6 +154,9 @@ jobs:
             set_env CATALOGO_DB_NAME "${{ secrets.CATALOGO_DB_NAME }}"
             set_env CATALOGO_DB_SCHEMA catalog
             set_env CATALOGO_DB_SSLMODE disable
+            set_env CATALOG_HTTP_URL http://catalogo-service:8082
+            set_env GCS_BUCKET_NAME quetxal-tv-videos
+            set_env_if_not_empty GCS_SERVICE_ACCOUNT_EMAIL "${{ secrets.GCP_SA_EMAIL }}"
             set_env FX_DB_HOST "${{ secrets.GCE_DB_PRIVATE_IP }}"
             set_env FX_DB_PORT 5435
             set_env FX_DB_USER "${{ secrets.FX_DB_USER }}"
@@ -188,6 +194,8 @@ jobs:
     name: Backup after deploy
     needs: deploy
     uses: ./.github/workflows/backup.yml
+    with:
+      target: gce
     permissions:
       id-token: write
       contents: read
