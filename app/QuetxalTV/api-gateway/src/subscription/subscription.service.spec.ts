@@ -67,6 +67,45 @@ describe('SubscriptionService', () => {
     });
   });
 
+  it('queries audit logs with normalized defaults', (done) => {
+    const grpcMethods = {
+      getAuditLogs: jest.fn().mockReturnValue(of({ entries: [], total: 0 })),
+    };
+    const service = buildService(grpcMethods);
+
+    service.getAuditLogs({ tableName: 'subscriptions' }).subscribe((resp) => {
+      expect(resp).toEqual({ entries: [], total: 0 });
+      expect(grpcMethods.getAuditLogs).toHaveBeenCalledWith({
+        tableName: 'subscriptions',
+        operation: '',
+        from: '',
+        to: '',
+        page: 1,
+        pageSize: 20,
+      });
+      done();
+    });
+  });
+
+  it('exports audit log with default csv format', (done) => {
+    const grpcMethods = {
+      exportAuditLog: jest.fn().mockReturnValue(of({ content: Buffer.from('x'), contentType: 'text/csv', filename: 'a.csv' })),
+    };
+    const service = buildService(grpcMethods);
+
+    service.exportAuditLog({ format: 'pdf', operation: 'UPDATE' }).subscribe((resp) => {
+      expect(resp.filename).toBe('a.csv');
+      expect(grpcMethods.exportAuditLog).toHaveBeenCalledWith({
+        format: 'pdf',
+        tableName: '',
+        operation: 'UPDATE',
+        from: '',
+        to: '',
+      });
+      done();
+    });
+  });
+
   it('delegates cancellation and current subscription requests', (done) => {
     const grpcMethods = {
       cancelSubscription: jest.fn().mockReturnValue(of({ success: true })),
