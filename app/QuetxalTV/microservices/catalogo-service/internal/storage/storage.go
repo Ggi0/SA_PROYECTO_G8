@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,10 +15,11 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/iamcredentials/v1"
 	"google.golang.org/api/option"
 )
 
-// Uploader sube un archivo y devuelve su URL (usado para upload directo desde el backend).
+// Uploader sube un archivo y devuelve su URL (upload directo desde backend).
 type Uploader interface {
 	Upload(ctx context.Context, name string, r io.Reader, contentType string) (string, error)
 }
@@ -28,37 +30,51 @@ type URLSigner interface {
 	DownloadURL(ctx context.Context, objectName string) (string, error)
 }
 
-// New devuelve el Uploader apropiado según las variables de entorno.
+// ---------------------------------------------------------------------------
+// Constructores — detectan el entorno automáticamente
+// ---------------------------------------------------------------------------
+
+// New devuelve el Uploader apropiado:
+//   - GCS si GCS_BUCKET_NAME está configurado
+//   - Local si no (desarrollo sin GCS)
 func New() Uploader {
 	bucket := os.Getenv("GCS_BUCKET_NAME")
 	creds := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	if bucket != "" && creds != "" {
 		return &GCSUploader{bucket: bucket, credsFile: creds}
 	}
+	if bucket != "" {
+		// GKE Workload Identity — usa ADC
+		return &GCSUploader{bucket: bucket}
+	}
 	dir := os.Getenv("LOCAL_UPLOAD_DIR")
 	if dir == "" {
 		dir = "./uploads"
 	}
-	baseURL := os.Getenv("LOCAL_UPLOAD_BASE_URL")
-	if baseURL == "" {
-		baseURL = "http://localhost:8082/uploads"
-	}
+	baseURL := localBaseURL()
 	os.MkdirAll(dir, 0755)
 	return &LocalUploader{dir: dir, baseURL: baseURL}
 }
 
-// NewSigner devuelve el URLSigner apropiado según las variables de entorno.
+// NewSigner devuelve el URLSigner apropiado:
+//   - GCSSigner con creds file (local con JSON key)
+//   - GCSSigner con IAM signing (GKE Workload Identity — requiere GCS_SERVICE_ACCOUNT_EMAIL)
+//   - LocalSigner (desarrollo sin GCS)
 func NewSigner() URLSigner {
 	bucket := os.Getenv("GCS_BUCKET_NAME")
-	creds := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if bucket != "" && creds != "" {
-		return &GCSSigner{bucket: bucket, credsFile: creds}
+	credsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	saEmail := os.Getenv("GCS_SERVICE_ACCOUNT_EMAIL")
+	if bucket != "" && (credsFile != "" || saEmail != "") {
+		return &GCSSigner{bucket: bucket, credsFile: credsFile, saEmail: saEmail}
 	}
-	baseURL := os.Getenv("LOCAL_UPLOAD_BASE_URL")
-	if baseURL == "" {
-		baseURL = "http://localhost:8082/uploads"
+	return &LocalSigner{baseURL: localBaseURL()}
+}
+
+func localBaseURL() string {
+	if v := os.Getenv("LOCAL_UPLOAD_BASE_URL"); v != "" {
+		return v
 	}
-	return &LocalSigner{baseURL: baseURL}
+	return "http://localhost:8082/uploads"
 }
 
 // ---------------------------------------------------------------------------
@@ -67,11 +83,18 @@ func NewSigner() URLSigner {
 
 type GCSUploader struct {
 	bucket    string
-	credsFile string
+	credsFile string // vacío = ADC (Workload Identity en GKE)
+}
+
+func (g *GCSUploader) newClient(ctx context.Context) (*storage.Client, error) {
+	if g.credsFile != "" {
+		return storage.NewClient(ctx, option.WithCredentialsFile(g.credsFile))
+	}
+	return storage.NewClient(ctx) // ADC
 }
 
 func (g *GCSUploader) Upload(ctx context.Context, name string, r io.Reader, contentType string) (string, error) {
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(g.credsFile))
+	client, err := g.newClient(ctx)
 	if err != nil {
 		return "", fmt.Errorf("gcs client: %w", err)
 	}
@@ -79,7 +102,6 @@ func (g *GCSUploader) Upload(ctx context.Context, name string, r io.Reader, cont
 
 	wc := client.Bucket(g.bucket).Object(name).NewWriter(ctx)
 	wc.ContentType = contentType
-	wc.CacheControl = "public, max-age=86400"
 	if _, err = io.Copy(wc, r); err != nil {
 		wc.Close()
 		return "", fmt.Errorf("gcs write: %w", err)
@@ -91,51 +113,92 @@ func (g *GCSUploader) Upload(ctx context.Context, name string, r io.Reader, cont
 }
 
 // ---------------------------------------------------------------------------
-// GCS — signed URLs V4 (el cliente sube/descarga directamente)
+// GCS — signed URLs V4
+// Soporta dos modos:
+//   1. credsFile != "" → firma con la llave del service account JSON (local/dev)
+//   2. credsFile == "" → firma via IAM credentials API (GKE Workload Identity)
 // ---------------------------------------------------------------------------
 
 type GCSSigner struct {
 	bucket    string
-	credsFile string
+	credsFile string // vacío en GKE con Workload Identity
+	saEmail   string // necesario para IAM signing (GCS_SERVICE_ACCOUNT_EMAIL)
 }
 
-// UploadURL genera una signed URL PUT válida por 15 minutos para subir desde el frontend.
+func (g *GCSSigner) newClient(ctx context.Context) (*storage.Client, error) {
+	if g.credsFile != "" {
+		return storage.NewClient(ctx, option.WithCredentialsFile(g.credsFile))
+	}
+	return storage.NewClient(ctx) // ADC
+}
+
+func (g *GCSSigner) buildOpts(ctx context.Context, method, contentType string, expiry time.Duration) *storage.SignedURLOptions {
+	opts := &storage.SignedURLOptions{
+		Method:  method,
+		Expires: time.Now().Add(expiry),
+		Scheme:  storage.SigningSchemeV4,
+	}
+	if contentType != "" {
+		opts.ContentType = contentType
+	}
+	// Workload Identity: firma via IAM en lugar de llave privada local
+	if g.credsFile == "" && g.saEmail != "" {
+		saEmail := g.saEmail
+		opts.GoogleAccessID = saEmail
+		opts.SignBytes = func(b []byte) ([]byte, error) {
+			return iamSignBytes(ctx, saEmail, b)
+		}
+	}
+	return opts
+}
+
+// UploadURL genera una signed URL PUT válida 15 minutos para subir directamente desde el frontend.
 func (g *GCSSigner) UploadURL(ctx context.Context, objectName, contentType string) (string, error) {
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(g.credsFile))
+	client, err := g.newClient(ctx)
 	if err != nil {
 		return "", fmt.Errorf("gcs client: %w", err)
 	}
 	defer client.Close()
 
-	url, err := client.Bucket(g.bucket).SignedURL(objectName, &storage.SignedURLOptions{
-		Method:      "PUT",
-		ContentType: contentType,
-		Expires:     time.Now().Add(15 * time.Minute),
-		Scheme:      storage.SigningSchemeV4,
-	})
+	url, err := client.Bucket(g.bucket).SignedURL(objectName, g.buildOpts(ctx, "PUT", contentType, 15*time.Minute))
 	if err != nil {
 		return "", fmt.Errorf("gcs sign upload url: %w", err)
 	}
 	return url, nil
 }
 
-// DownloadURL genera una signed URL GET válida por 1 hora para reproducir desde el frontend.
+// DownloadURL genera una signed URL GET válida 1 hora para reproducir desde el frontend.
 func (g *GCSSigner) DownloadURL(ctx context.Context, objectName string) (string, error) {
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(g.credsFile))
+	client, err := g.newClient(ctx)
 	if err != nil {
 		return "", fmt.Errorf("gcs client: %w", err)
 	}
 	defer client.Close()
 
-	url, err := client.Bucket(g.bucket).SignedURL(objectName, &storage.SignedURLOptions{
-		Method:  "GET",
-		Expires: time.Now().Add(1 * time.Hour),
-		Scheme:  storage.SigningSchemeV4,
-	})
+	url, err := client.Bucket(g.bucket).SignedURL(objectName, g.buildOpts(ctx, "GET", "", 1*time.Hour))
 	if err != nil {
 		return "", fmt.Errorf("gcs sign download url: %w", err)
 	}
 	return url, nil
+}
+
+// iamSignBytes llama a la IAM Credentials API para firmar bytes usando el service account.
+// Funciona con GKE Workload Identity sin necesitar una llave JSON.
+func iamSignBytes(ctx context.Context, saEmail string, payload []byte) ([]byte, error) {
+	svc, err := iamcredentials.NewService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("iam credentials service: %w", err)
+	}
+	resp, err := svc.Projects.ServiceAccounts.SignBlob(
+		"projects/-/serviceAccounts/"+saEmail,
+		&iamcredentials.SignBlobRequest{
+			Payload: base64.StdEncoding.EncodeToString(payload),
+		},
+	).Context(ctx).Do()
+	if err != nil {
+		return nil, fmt.Errorf("iam sign blob: %w", err)
+	}
+	return base64.StdEncoding.DecodeString(resp.SignedBlob)
 }
 
 // ---------------------------------------------------------------------------
@@ -163,14 +226,11 @@ func (l *LocalUploader) Upload(_ context.Context, name string, r io.Reader, _ st
 	return l.baseURL + "/" + name, nil
 }
 
-type LocalSigner struct {
-	baseURL string
-}
+type LocalSigner struct{ baseURL string }
 
 func (l *LocalSigner) UploadURL(_ context.Context, objectName, _ string) (string, error) {
 	return l.baseURL + "/" + objectName, nil
 }
-
 func (l *LocalSigner) DownloadURL(_ context.Context, objectName string) (string, error) {
 	return l.baseURL + "/" + objectName, nil
 }
@@ -179,7 +239,7 @@ func (l *LocalSigner) DownloadURL(_ context.Context, objectName string) (string,
 // HTTP handlers
 // ---------------------------------------------------------------------------
 
-// RegisterRoutes registra todos los endpoints HTTP de storage en el mux.
+// RegisterRoutes registra los 4 endpoints HTTP de storage en el mux.
 func RegisterRoutes(mux *http.ServeMux, up Uploader, signer URLSigner) {
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 	mux.HandleFunc("/admin/upload", makeDirectUploadHandler(up))
@@ -187,7 +247,7 @@ func RegisterRoutes(mux *http.ServeMux, up Uploader, signer URLSigner) {
 	mux.HandleFunc("/admin/download-url", makeSignedDownloadURLHandler(signer))
 }
 
-// POST /admin/upload — upload directo desde backend (fallback / posters pequeños)
+// POST /admin/upload — upload directo desde backend (para posters pequeños o fallback)
 func makeDirectUploadHandler(up Uploader) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -205,7 +265,6 @@ func makeDirectUploadHandler(up Uploader) http.HandlerFunc {
 			return
 		}
 		defer file.Close()
-
 		objectName := buildObjectName(header)
 		ct := detectContentType(header)
 		url, err := up.Upload(r.Context(), objectName, file, ct)
@@ -218,8 +277,8 @@ func makeDirectUploadHandler(up Uploader) http.HandlerFunc {
 	}
 }
 
-// POST /admin/upload-url — el backend genera una signed URL y el frontend sube directo a GCS
-// Body: { "filename": "video.mp4", "content_type": "video/mp4" }
+// POST /admin/upload-url
+// Body:     { "filename": "video.mp4", "content_type": "video/mp4" }
 // Response: { "upload_url": "https://...", "object_name": "videos/..." }
 func makeSignedUploadURLHandler(signer URLSigner) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -235,7 +294,6 @@ func makeSignedUploadURLHandler(signer URLSigner) http.HandlerFunc {
 			http.Error(w, `body requerido: {"filename":"video.mp4","content_type":"video/mp4"}`, http.StatusBadRequest)
 			return
 		}
-
 		ext := filepath.Ext(body.Filename)
 		ct := body.ContentType
 		if ct == "" {
@@ -249,21 +307,17 @@ func makeSignedUploadURLHandler(signer URLSigner) http.HandlerFunc {
 			sanitizeName(strings.TrimSuffix(filepath.Base(body.Filename), ext)),
 			ext,
 		)
-
 		uploadURL, err := signer.UploadURL(r.Context(), objectName, ct)
 		if err != nil {
 			http.Error(w, "error generando URL: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]string{
-			"upload_url":  uploadURL,
-			"object_name": objectName,
-		})
+		_ = json.NewEncoder(w).Encode(map[string]string{"upload_url": uploadURL, "object_name": objectName})
 	}
 }
 
-// GET /admin/download-url?object=videos/1234-nombre.mp4
+// GET /admin/download-url?object=videos/1234-pelicula.mp4
 // Response: { "download_url": "https://...", "object_name": "videos/..." }
 func makeSignedDownloadURLHandler(signer URLSigner) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -282,21 +336,18 @@ func makeSignedDownloadURLHandler(signer URLSigner) http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]string{
-			"download_url": downloadURL,
-			"object_name":  objectName,
-		})
+		_ = json.NewEncoder(w).Encode(map[string]string{"download_url": downloadURL, "object_name": objectName})
 	}
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers internos
 // ---------------------------------------------------------------------------
 
 func buildObjectName(h *multipart.FileHeader) string {
 	ext := filepath.Ext(h.Filename)
-	base := sanitizeName(strings.TrimSuffix(filepath.Base(h.Filename), ext))
-	return fmt.Sprintf("%s/%d-%s%s", classifyAsset(ext), time.Now().UnixMilli(), base, ext)
+	return fmt.Sprintf("%s/%d-%s%s", classifyAsset(ext), time.Now().UnixMilli(),
+		sanitizeName(strings.TrimSuffix(filepath.Base(h.Filename), ext)), ext)
 }
 
 func classifyAsset(ext string) string {
