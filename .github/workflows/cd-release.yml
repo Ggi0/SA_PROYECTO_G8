@@ -91,19 +91,11 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
           location: ${{ secrets.GKE_CLUSTER_ZONE }}
-      - name: Ingress Controller
-        run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/cloud/deploy.yaml
-          kubectl wait --namespace ingress-nginx \
-            --for=condition=ready pod \
-            --selector=app.kubernetes.io/component=controller \
-            --timeout=180s
-          kubectl get ingressclass
-          kubectl get service ingress-nginx-controller -n ingress-nginx
       - name: Namespace + ConfigMap
         run: |
           kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/backendconfig.yaml
       - name: K8s Secrets
         run: |
           kubectl create secret generic quetxal-tv-secrets \
