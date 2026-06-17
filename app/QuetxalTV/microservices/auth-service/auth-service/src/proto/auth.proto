@@ -36,6 +36,10 @@ service AuthService {
   rpc GetAuditLogs     (GetAuditLogsRequest) returns (GetAuditLogsResponse);
   rpc ExportAuditLogs  (ExportAuditLogsRequest) returns (ExportAuditLogsResponse);
 
+  // ── Health checks ─────────────────────────
+  rpc HealthLive  (HealthRequest) returns (HealthResponse);
+  rpc HealthReady (HealthRequest) returns (HealthResponse);
+
 
 
 }
@@ -310,6 +314,15 @@ message ExportAuditLogsResponse {
   bytes  file      = 1;
   string file_name = 2;
 }
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  string message = 2;
+}
+
+
 
 // ─────────────────────────────────────────────
 //  NOTIFICATION SERVICE  (futuro — cliente gRPC)

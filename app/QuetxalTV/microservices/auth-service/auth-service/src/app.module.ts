@@ -4,6 +4,12 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { PerfilModule } from './perfil/perfil.module';
 import { AdminModule } from './admin/admin.module'
+
+
+import { AppService } from './app.service';
+import { AppController } from './app.controller';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -12,5 +18,9 @@ import { AdminModule } from './admin/admin.module'
    PerfilModule,
    AdminModule,
   ],
+
+  controllers: [AppController],
+  providers: [AppService]
+
 })
 export class AppModule {}
