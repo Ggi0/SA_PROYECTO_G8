@@ -14,6 +14,8 @@ interface CatalogGrpcService {
   getPerson(data: { personId: string }): Observable<unknown>;
   rateContent(data: { contentId: string; profileId: string; thumb: string; stars: number }): Observable<unknown>;
   getUserRating(data: { contentId: string; profileId: string }): Observable<unknown>;
+  getUploadURL(data: { filename: string; contentType: string }): Observable<unknown>;
+  getDownloadURL(data: { objectName: string }): Observable<unknown>;
   // Admin — contenido
   createContent(data: Record<string, unknown>): Observable<unknown>;
   updateContent(data: Record<string, unknown>): Observable<unknown>;
@@ -75,6 +77,12 @@ export class CatalogService implements OnModuleInit {
   }
   getUserRating(contentId: string, profileId: string) {
     return this.grpcClient.getUserRating({ contentId, profileId });
+  }
+  getUploadURL(filename: string, contentType = '') {
+    return this.grpcClient.getUploadURL({ filename, contentType });
+  }
+  getDownloadURL(objectName: string) {
+    return this.grpcClient.getDownloadURL({ objectName });
   }
 
   // ---------- Admin — contenido ----------
@@ -157,12 +165,20 @@ export class CatalogService implements OnModuleInit {
 
   proxyPost(path: string, req: Request, res: Response): void {
     const parsed = new URL(this.catalogHttpUrl + path);
+    const body = req.body && Object.keys(req.body as Record<string, unknown>).length > 0
+      ? JSON.stringify(req.body)
+      : undefined;
+    const headers: http.OutgoingHttpHeaders = { ...req.headers, host: parsed.host };
+    if (body) {
+      headers['content-type'] = 'application/json';
+      headers['content-length'] = Buffer.byteLength(body);
+    }
     const options: http.RequestOptions = {
       hostname: parsed.hostname,
       port: Number(parsed.port) || 8082,
       path: parsed.pathname,
       method: 'POST',
-      headers: { ...req.headers, host: parsed.host },
+      headers,
     };
     const upstream = http.request(options, (upRes) => {
       res.status(upRes.statusCode ?? 200);
@@ -171,6 +187,10 @@ export class CatalogService implements OnModuleInit {
       upRes.pipe(res);
     });
     upstream.on('error', (e) => res.status(502).json({ error: 'catalog upload proxy: ' + e.message }));
+    if (body) {
+      upstream.end(body);
+      return;
+    }
     req.pipe(upstream);
   }
 }
