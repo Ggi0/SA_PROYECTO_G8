@@ -211,6 +211,17 @@ export class CatalogController {
     this.catalogService.proxyPost('/admin/upload', req, res);
   }
 
+  @Post('admin/upload-url')
+  getUploadUrl(@Req() req: Request, @Res() res: Response) {
+    this.catalogService.proxyPost('/admin/upload-url', req, res);
+  }
+
+  @Get('admin/download-url')
+  getDownloadUrl(@Query() query: Record<string, string>, @Res() res: Response) {
+    const qs = new URLSearchParams(query).toString();
+    this.catalogService.proxyGet('/admin/download-url', qs, res);
+  }
+
   // ===== Admin — episodios =====
 
   @Post('admin/seasons/:id/episodes')

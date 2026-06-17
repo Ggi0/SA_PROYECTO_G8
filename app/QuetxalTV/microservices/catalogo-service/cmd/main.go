@@ -36,6 +36,7 @@ func main() {
 
 	// Storage: GCS en producción, local en desarrollo
 	store := storage.New()
+	signer := storage.NewSigner()
 
 	// Servidor HTTP: auditoría + health checks + upload
 	httpPort := os.Getenv("AUDIT_HTTP_PORT")
@@ -44,7 +45,7 @@ func main() {
 	}
 	mux := http.NewServeMux()
 	audit.NewHandler(svc).RegisterRoutes(mux)
-	storage.RegisterRoutes(mux, store)
+	storage.RegisterRoutes(mux, store, signer)
 	registerHealthRoutes(mux, db)
 
 	go func() {
