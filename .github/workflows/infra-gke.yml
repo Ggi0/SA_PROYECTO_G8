@@ -1,6 +1,6 @@
 name: Infra GKE - Ingress Controller
 on:
-  workflow_dispatch:
+  workflow_call:
 jobs:
   ingress-controller:
     runs-on: ubuntu-latest
