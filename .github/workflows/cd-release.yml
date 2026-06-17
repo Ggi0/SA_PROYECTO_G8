@@ -195,3 +195,14 @@ jobs:
           done
           [ "$FAILED" -eq 0 ] || exit 1
           echo "🎉 Deploy ${{ env.VER }} OK"
+
+  backup-after-deploy:
+    name: Backup after deploy
+    needs: deploy
+    uses: ./.github/workflows/backup.yml
+    with:
+      target: gke
+    permissions:
+      id-token: write
+      contents: read
+    secrets: inherit
