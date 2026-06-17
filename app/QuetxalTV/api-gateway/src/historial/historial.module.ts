@@ -23,5 +23,6 @@ import { HistorialService } from './historial.service';
   ],
   controllers: [HistorialController],
   providers: [HistorialService, AuthJwtGuard],
+  exports: [HistorialService],
 })
 export class HistorialModule {}
