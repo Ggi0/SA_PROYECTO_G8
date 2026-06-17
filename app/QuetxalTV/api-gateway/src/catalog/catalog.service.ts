@@ -19,7 +19,7 @@ interface CatalogGrpcService {
   updateContent(data: Record<string, unknown>): Observable<unknown>;
   publishContent(data: { contentId: string }): Observable<unknown>;
   deleteContent(data: { contentId: string; changedBy: string }): Observable<unknown>;
-  scheduleContent(data: { contentId: string; premiereDate: string; changedBy: string }): Observable<unknown>;
+  ScheduleContent(data: { contentId: string; premiereDate: string; changedBy: string }): Observable<unknown>;
   // Admin — géneros
   createGenre(data: { name: string; slug: string }): Observable<unknown>;
   updateGenre(data: { genreId: number; name: string; slug: string }): Observable<unknown>;
@@ -89,7 +89,7 @@ export class CatalogService implements OnModuleInit {
     return this.grpcClient.deleteContent({ contentId, changedBy });
   }
   scheduleContent(contentId: string, premiereDate: string, changedBy: string) {
-    return this.grpcClient.scheduleContent({ contentId, premiereDate, changedBy });
+    return this.grpcClient.ScheduleContent({ contentId, premiereDate, changedBy });
   }
 
   // ---------- Admin — géneros ----------

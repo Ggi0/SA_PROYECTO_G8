@@ -27,6 +27,7 @@ function mapCard(card: Record<string, unknown>): Movie {
     durationMin: (card.durationMin as number) || 0,
     ratingClass: (card.ratingClass as string) || '',
     totalVotes: toLong(card.totalVotes),
+     isPublished: (card.isPublished as boolean) ?? true,
   }
 }
 

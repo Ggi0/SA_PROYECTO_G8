@@ -1,30 +1,15 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Film, Users, Settings } from 'lucide-react'
+import { Film, Users, Settings,ScrollText, FileBarChart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import NavbarADMIN from '@/components/layout/NavbarADMIN'
 
 const NAV_ITEMS = [
-    {
-        label: 'Dashboard',
-        href: '/admin',
-        icon: Film,
-    },
-    {
-        label: 'Usuarios',
-        href: '/admin/users',
-        icon: Users,
-    },
-    {
-        label: 'Configuración',
-        href: '/admin/settings',
-        icon: Settings,
-    },
-    
-    {
-    label: 'Catálogo',
-    href: '/admin/catalog',
-    icon: Film,
-    },
+    { label: 'Dashboard',   href: '/admin',          icon: Film         },
+    { label: 'Catálogo',    href: '/admin/catalog',  icon: Film         },
+    { label: 'Usuarios',    href: '/admin/users',    icon: Users        },
+    { label: 'Auditoría',   href: '/admin/audit',    icon: ScrollText   },
+    { label: 'Reportes',    href: '/admin/reports',  icon: FileBarChart },
+    { label: 'Configuración', href: '/admin/settings', icon: Settings   },
 ]
 
 export default function LayoutAdmin() {
@@ -33,7 +18,7 @@ export default function LayoutAdmin() {
     return (
         <div className="min-h-screen flex bg-[#1a1408]">
             {/* Sidebar */}
-            <NavbarADMIN />
+       
             <aside className="w-64 border-r border-[#3a2e1a] bg-[#1e1810]">
                 <div className="p-6">
 

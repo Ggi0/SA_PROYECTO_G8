@@ -141,8 +141,6 @@ services:
       POSTGRES_DB: catalog_db
     volumes:
       - catalog_db_data:/var/lib/postgresql/data
-      - ./database/catalogo.sql:/docker-entrypoint-initdb.d/01_init.sql
-       - catalog_db_data:/var/lib/postgresql/data
       - ./microservices/catalogo-service/database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
       - ./microservices/catalogo-service/database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
       - ./microservices/catalogo-service/database/audit.sql:/docker-entrypoint-initdb.d/03_audit.sql
