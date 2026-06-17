@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 
+	"subscription-service/internal/audit"
 	"subscription-service/internal/clients"
 	"subscription-service/internal/database"
 	"subscription-service/internal/payments"
@@ -23,6 +24,7 @@ type subscriptionServer struct {
 	plansHandler    *plans.Handler
 	subsHandler     *subscriptions.Handler
 	paymentsHandler *payments.Handler
+	auditHandler    *audit.Handler
 }
 
 func (s *subscriptionServer) GetPlans(ctx context.Context, req *pb.GetPlansRequest) (*pb.GetPlansResponse, error) {
@@ -53,6 +55,14 @@ func (s *subscriptionServer) GetPaymentHistory(ctx context.Context, req *pb.GetP
 	return s.paymentsHandler.GetPaymentHistory(ctx, req)
 }
 
+func (s *subscriptionServer) GetAuditLogs(ctx context.Context, req *pb.GetAuditLogsRequest) (*pb.GetAuditLogsResponse, error) {
+	return s.auditHandler.GetAuditLogs(ctx, req)
+}
+
+func (s *subscriptionServer) ExportAuditLog(ctx context.Context, req *pb.ExportAuditLogRequest) (*pb.ExportAuditLogResponse, error) {
+	return s.auditHandler.ExportAuditLog(ctx, req)
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env found, using environment variables")
@@ -79,10 +89,12 @@ func main() {
 	planRepo := plans.NewRepository(db)
 	subRepo := subscriptions.NewRepository(db)
 	payRepo := payments.NewRepository(db)
+	auditRepo := audit.NewRepository(db)
 
 	planSvc := plans.NewService(planRepo)
 	subSvc := subscriptions.NewService(subRepo, planRepo, fxClient, notifClient)
 	paySvc := payments.NewService(payRepo)
+	auditSvc := audit.NewService(auditRepo)
 
 	port := os.Getenv("GRPC_PORT")
 	if port == "" {
@@ -99,6 +111,7 @@ func main() {
 		plansHandler:    plans.NewHandler(planSvc, fxClient),
 		subsHandler:     subscriptions.NewHandler(subSvc),
 		paymentsHandler: payments.NewHandler(paySvc),
+		auditHandler:    audit.NewHandler(auditSvc),
 	})
 
 	log.Printf("Subscription Service listening on :%s", port)
