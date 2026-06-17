@@ -1,8 +1,9 @@
 name: DB Backup - Quetxal TV
 on:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '40 1 * * *'
   workflow_dispatch:
+  workflow_call:
 jobs:
   backup:
     name: Backup PostgreSQL → GCS
