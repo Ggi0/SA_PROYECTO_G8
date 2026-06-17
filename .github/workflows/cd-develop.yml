@@ -181,3 +181,10 @@ jobs:
             docker compose -f docker-compose.cloud.yml up -d --remove-orphans
             docker system prune -f
             echo "✅ Deploy GCE: $(date)"
+
+
+
+  backup-after-deploy:
+    name: Backup after deploy
+    needs: deploy
+    uses: ./.github/workflows/backup.yml
