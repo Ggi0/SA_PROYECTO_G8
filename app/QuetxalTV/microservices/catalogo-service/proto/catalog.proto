@@ -433,4 +433,7 @@ service CatalogService {
 
   // Admin — programar estreno
   rpc ScheduleContent           (ScheduleContentRequest)           returns (ScheduleContentResponse);
+
+  // Admin — listar todo el contenido sin importar is_published
+  rpc ListAllContent            (GetCatalogRequest)                returns (GetCatalogResponse);
 }

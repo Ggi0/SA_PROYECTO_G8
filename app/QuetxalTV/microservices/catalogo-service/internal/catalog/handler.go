@@ -374,3 +374,11 @@ func (h *Handler) DeleteEpisode(ctx context.Context, req *pb.DeleteEpisodeReques
 	}
 	return resp, nil
 }
+
+func (h *Handler) ListAllContent(ctx context.Context, req *pb.GetCatalogRequest) (*pb.GetCatalogResponse, error) {
+	resp, err := h.svc.ListAllContent(req.ContentType, int(req.GenreId), int(req.Page), int(req.PageSize))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error listando todo el contenido: %v", err)
+	}
+	return resp, nil
+}
