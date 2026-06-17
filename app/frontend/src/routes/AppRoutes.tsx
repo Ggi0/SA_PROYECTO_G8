@@ -10,6 +10,10 @@ import PlansPage from '@/pages/PlansPage'
 import AccountPage from '@/pages/AccountPage'
 import CheckoutPage from '@/pages/CheckoutPage'
 
+import LayoutAdmin from '@/pages/admin/layoutAdmin'
+import MainPage from '@/pages/admin/mainPage'
+
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -38,6 +42,18 @@ export default function AppRoutes() {
       } />
 
       <Route path="/" element={<Navigate to="/login" />} />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <LayoutAdmin />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<MainPage />} />
+      </Route>
+
     </Routes>
   )
 }

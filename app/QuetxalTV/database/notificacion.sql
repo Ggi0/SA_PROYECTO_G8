@@ -30,6 +30,11 @@ CREATE TABLE notification_types (
     is_active    BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+INSERT INTO notification_types(type_code, description, template_file, subject_template, is_active)
+VALUES
+    ('WELCOME', 'Correo de bienvenida', 'welcome.html', 'Bienvenido a Quetxal TV, {{name}}', TRUE),
+    ('PURCHASE_RECEIPT', 'Recibo de compra', 'purchase.html', 'Recibo de compra - {{plan_name}}', TRUE);
+
 
 -- TABLA: notifications
 -- Registro de cada intento de envío de notificación.

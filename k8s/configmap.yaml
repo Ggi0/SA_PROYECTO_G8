@@ -9,6 +9,7 @@ data:
   AUTH_SERVICE_URL: "auth-service:50051"
   SUBSCRIPTION_SERVICE_URL: "subscription-service:50053"
   CATALOG_SERVICE_URL: "catalogo-service:50052"
+  FX_SERVICE_HOST: "fx-service:50054"
   FX_SERVICE_URL: "fx-service:50054"
   NOTIFICATION_SERVICE_URL: "notification-service:50056"
   HISTORIAL_SERVICE_URL: "historial-service:50054"

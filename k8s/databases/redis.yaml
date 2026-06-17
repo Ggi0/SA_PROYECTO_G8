@@ -8,6 +8,8 @@ spec:
   selector:
     matchLabels:
       app: redis
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -20,11 +22,11 @@ spec:
             - containerPort: 6379
           resources:
             requests:
-              cpu: "100m"
-              memory: "128Mi"
+              cpu: "25m"
+              memory: "64Mi"
             limits:
-              cpu: "300m"
-              memory: "256Mi"
+              cpu: "150m"
+              memory: "160Mi"
           readinessProbe:
             exec:
               command: ["redis-cli", "ping"]

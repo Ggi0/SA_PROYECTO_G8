@@ -15,12 +15,36 @@ services:
       AUTH_SERVICE_URL: auth-service:50051
       NOTIFICATION_SERVICE_HOST: notification-service:50056
       CATALOG_SERVICE_URL: catalog-service:50052
+      CATALOG_HTTP_URL: http://catalog-service:8082
     depends_on:
       - auth-service
       - subscription-service
       - notification-service
     networks:
       - quetxal-network
+
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: auth_db
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+      - ./database/auth/auth.sql:/docker-entrypoint-initdb.d/01_auth.sql
+      - ./database/auth/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
 
   auth-service:
     build:
@@ -33,10 +57,24 @@ services:
         required: false
     environment:
       GRPC_PORT: 50051
+
       NOTIFICATION_SERVICE_HOST: notification-service
       NOTIFICATION_SERVICE_PORT: 50056
+
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USER: auth_user
+      DB_PASSWORD: admin
+      DB_NAME: auth_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: auth
+
     depends_on:
-      - notification-service
+      auth-db:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
+
     networks:
       - quetxal-network
 
@@ -70,6 +108,7 @@ services:
     container_name: catalog-service
     ports:
       - "50052:50052"
+      - "8082:8082"
     environment:
       DB_HOST: catalog-db
       DB_PORT: 5432
@@ -78,6 +117,9 @@ services:
       DB_NAME: catalog_db
       DB_SSLMODE: disable
       GRPC_PORT: 50052
+      AUDIT_HTTP_PORT: 8082
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
     depends_on:
       catalog-db:
         condition: service_healthy
@@ -97,6 +139,8 @@ services:
       - catalog_db_data:/var/lib/postgresql/data
       - ./microservices/catalogo-service/database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
       - ./microservices/catalogo-service/database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+      - ./microservices/catalogo-service/database/audit.sql:/docker-entrypoint-initdb.d/03_audit.sql
+      - ./microservices/catalogo-service/database/schedule.sql:/docker-entrypoint-initdb.d/04_schedule.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
       interval: 5s
@@ -125,8 +169,6 @@ services:
       - notification-service
     networks:
       - quetxal-network
-
- 
 
   fx-service:
     build:
@@ -174,6 +216,7 @@ services:
       - quetxal-network
 
 volumes:
+  auth_db_data:
   subscription_db_data:
   catalog_db_data:
 
