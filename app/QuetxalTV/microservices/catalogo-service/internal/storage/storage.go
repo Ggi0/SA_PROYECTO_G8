@@ -345,9 +345,13 @@ func makeSignedDownloadURLHandler(signer URLSigner) http.HandlerFunc {
 // ---------------------------------------------------------------------------
 
 func buildObjectName(h *multipart.FileHeader) string {
-	ext := filepath.Ext(h.Filename)
+	return BuildObjectName(h.Filename)
+}
+
+func BuildObjectName(filename string) string {
+	ext := filepath.Ext(filename)
 	return fmt.Sprintf("%s/%d-%s%s", classifyAsset(ext), time.Now().UnixMilli(),
-		sanitizeName(strings.TrimSuffix(filepath.Base(h.Filename), ext)), ext)
+		sanitizeName(strings.TrimSuffix(filepath.Base(filename), ext)), ext)
 }
 
 func classifyAsset(ext string) string {
