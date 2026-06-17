@@ -5,7 +5,7 @@ import warnings
 
 import historial_pb2 as historial__pb2
 
-GRPC_GENERATED_VERSION = '1.81.1'
+GRPC_GENERATED_VERSION = '1.64.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
