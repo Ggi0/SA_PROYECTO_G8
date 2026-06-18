@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36" pages="10">
   <diagram id="DCbjg-Z8032UT1-NK_Gr" name="Alto Nivel">
-    <mxGraphModel dx="1443" dy="687" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
+    <mxGraphModel dx="1226" dy="687" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -39,16 +39,25 @@
         <mxCell id="LorDX25uxstKlJEC3LuP-19" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Servicio de&lt;br&gt;Correo" vertex="1">
           <mxGeometry height="60" width="30" x="418" y="177" as="geometry" />
         </mxCell>
+        <mxCell id="2p2Lfb7zQY_6ehI6VM3p-12" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Administrador" vertex="1">
+          <mxGeometry height="60" width="30" x="337" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="2p2Lfb7zQY_6ehI6VM3p-13" edge="1" parent="1" source="2p2Lfb7zQY_6ehI6VM3p-12" style="entryX=0.687;entryY=0.017;entryDx=0;entryDy=0;entryPerimeter=0;" target="2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="454" y="222" as="sourcePoint" />
+            <mxPoint x="341" y="187" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="5u3DBCGeKJY0ChIOAHzg" name="Primera Descomposición">
-    <mxGraphModel dx="1519" dy="723" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+    <mxGraphModel dx="1291" dy="723" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="100" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontStyle=1;fontSize=13;" value="Quetxal TV" vertex="1">
-          <mxGeometry height="700" width="700" x="120" y="30" as="geometry">
+          <mxGeometry height="941" width="700" x="120" y="30" as="geometry">
             <mxRectangle height="30" width="110" x="120" y="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -65,13 +74,16 @@
           <mxGeometry height="60" width="260" x="220" y="330" as="geometry" />
         </mxCell>
         <mxCell id="105" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="CDU-005&#xa;Sistema de Calificaciones" vertex="1">
-          <mxGeometry height="60" width="260" x="220" y="420" as="geometry" />
+          <mxGeometry height="60" width="260" x="225" y="420" as="geometry" />
         </mxCell>
         <mxCell id="106" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="CDU-006&#xa;FX-Service (Conversión de Divisas)" vertex="1">
           <mxGeometry height="60" width="260" x="220" y="510" as="geometry" />
         </mxCell>
         <mxCell id="107" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CFCFCF;strokeColor=#666666;fontColor=#333333;" value="CDU-007&#xa;Historial de Reproducción" vertex="1">
           <mxGeometry height="60" width="260" x="220" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="XbDhm0bQSgX33apwolmo-314" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="CDU-008&lt;br&gt;Sistema de Calificaciones" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="690" as="geometry" />
         </mxCell>
         <mxCell id="300" edge="1" parent="1" target="101">
           <mxGeometry relative="1" as="geometry">
@@ -139,6 +151,9 @@
         </mxCell>
         <mxCell id="xa6-zgbDcnXZjGx1uSgj-312" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Sistema de &lt;br&gt;Pago" vertex="1">
           <mxGeometry height="60" width="30" x="870" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="XbDhm0bQSgX33apwolmo-312" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Administrador" vertex="1">
+          <mxGeometry height="60" width="30" x="45" y="703" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

@@ -70,7 +70,7 @@ describe('CatalogService', () => {
       updateContent: jest.fn().mockReturnValue(of({ contentId: 'c1' })),
       publishContent: jest.fn().mockReturnValue(of({ success: true })),
       deleteContent: jest.fn().mockReturnValue(of({ success: true })),
-      scheduleContent: jest.fn().mockReturnValue(of({ success: true })),
+      ScheduleContent: jest.fn().mockReturnValue(of({ success: true })),
     };
     const svc = buildService(g);
     svc.createContent({ title: 'Test', contentType: 'MOVIE' }).subscribe(() => {
@@ -82,7 +82,7 @@ describe('CatalogService', () => {
           svc.deleteContent('c1', 'admin').subscribe(() => {
             expect(g.deleteContent).toHaveBeenCalledWith({ contentId: 'c1', changedBy: 'admin' });
             svc.scheduleContent('c1', '2026-12-25T20:00:00Z', 'admin').subscribe(() => {
-              expect(g.scheduleContent).toHaveBeenCalledWith({
+              expect(g.ScheduleContent).toHaveBeenCalledWith({
                 contentId: 'c1', premiereDate: '2026-12-25T20:00:00Z', changedBy: 'admin',
               });
               done();
