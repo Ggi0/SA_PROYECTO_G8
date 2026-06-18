@@ -8,6 +8,7 @@ import { AuditExportResult, SubscriptionService } from './subscription.service';
 type AuthenticatedRequest = Request & {
   user: {
     id: string;
+    email?: string;
   };
 };
 
@@ -35,7 +36,7 @@ export class SubscriptionController {
   @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.CREATED)
   subscribe(@Body() dto: SubscribeDto, @RequestDecorator() req: AuthenticatedRequest) {
-    return this.subscriptionService.subscribe(req.user.id, dto);
+    return this.subscriptionService.subscribe(req.user.id, dto, req.user.email || '');
   }
 
   @Delete()

@@ -27,7 +27,7 @@ interface NormalizedLog {
 
 // ─── Configuración por servicio ───────────────────────────────────────────────
 
-type ServiceKey = 'catalogo' | 'historial' | 'auth' | 'fx' | 'notificaciones' | 'suscripciones'
+type ServiceKey = 'catalogo'| 'auth' | 'fx' | 'notificaciones' | 'suscripciones'
 
 interface ServiceConfig {
   label: string
@@ -51,34 +51,23 @@ const SERVICE_CONFIG: Record<ServiceKey, ServiceConfig> = {
       newState: item.NewData ?? null,
     }),
   },
-  historial: {
-    label: 'Historial',
-    icon: <History size={14} />,
-    endpoint: '/admin/reporte/historial/auditoria',
-    fieldMap: (item) => ({
-      id: item.audit_id,
-      table: item.table_name,
-      action: item.action,
-      user: item.responsible_user_id || item.responsible_profile_id || '',
-      date: item.created_at,
-      oldState: item.old_state ? JSON.stringify(item.old_state) : null,
-      newState: item.new_state ? JSON.stringify(item.new_state) : null,
-    }),
-  },
+ 
+
   auth: {
-    label: 'Auth',
-    icon: <ShieldCheck size={14} />,
-    endpoint: null,
-    fieldMap: (item) => ({
-      id: item.audit_id ?? item.id,
-      table: item.table_name,
-      action: item.action,
-      user: item.responsible_user_id || '',
-      date: item.created_at,
-      oldState: item.old_state ? JSON.stringify(item.old_state) : null,
-      newState: item.new_state ? JSON.stringify(item.new_state) : null,
+  label: 'Auth',
+  icon: <ShieldCheck size={14} />,
+  endpoint: '/auth/admin/audit',
+  fieldMap: (item) => ({
+    id: item.auditId,
+    table: item.tableName,
+    action: item.operation,
+    user: item.recordId || '',
+    date: item.changedAt || '',
+    oldState: item.oldData || null,
+    newState: item.newData || null,
     }),
   },
+
   fx: {
     label: 'FX',
     icon: <BarChart2 size={14} />,
@@ -91,8 +80,9 @@ const SERVICE_CONFIG: Record<ServiceKey, ServiceConfig> = {
     date: item.requested_at ? item.requested_at.replace(' ', 'T') : '',
     oldState: null,
     newState: JSON.stringify({ rate: item.rate_used }),
-  }),
+    }),
   },
+
   notificaciones: {
   label: 'Notificaciones',
   icon: <Bell size={14} />,
@@ -297,9 +287,8 @@ async function fetchAuditLogs(service: ServiceKey, page: number, pageSize: numbe
   })
 
   const raw      = res.data
-  const rawItems: any[] = raw.data ?? raw.items ?? []
-  const total: number   = raw.total ?? rawItems.length
-
+  const rawItems: any[] = raw.data ?? raw.items ?? raw.logs ?? []
+  const total: number   = raw.total ?? raw.totalRecords ?? rawItems.length
   return {
     items: rawItems.map(config.fieldMap),
     total,
