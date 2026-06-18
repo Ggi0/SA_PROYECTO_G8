@@ -46,5 +46,5 @@ spec:
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: GCS_BUCKET_NAME } }
             - name: GCS_SERVICE_ACCOUNT_EMAIL
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: GCS_SERVICE_ACCOUNT_EMAIL } }
-          readinessProbe: { tcpSocket: { port: 50052 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
-          livenessProbe: { tcpSocket: { port: 50052 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { grpc: { port: 50052, service: catalogo-service-readiness }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { grpc: { port: 50052, service: catalogo-service-liveness }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
