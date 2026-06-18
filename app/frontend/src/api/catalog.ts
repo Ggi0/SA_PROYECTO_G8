@@ -27,6 +27,7 @@ function mapCard(card: Record<string, unknown>): Movie {
     durationMin: (card.durationMin as number) || 0,
     ratingClass: (card.ratingClass as string) || '',
     totalVotes: toLong(card.totalVotes),
+     isPublished: (card.isPublished as boolean) ?? true,
   }
 }
 
@@ -148,4 +149,72 @@ export async function getUserRating(
   } catch {
     return null
   }
+}
+////////////////////// Admin functions
+// ─────────────────────────────────────────────────────────────────────────────
+// AGREGAR estas funciones al final de src/api/catalog.ts
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface CreateContentPayload {
+  contentType: 'MOVIE' | 'SERIES'
+  title: string
+  originalTitle: string
+  synopsis: string
+  releaseYear: number
+  durationMin: number
+  ratingClass: string
+  posterUrl: string
+  trailerUrl: string
+  videoRef: string
+  videoSource: string
+  genreIds: number[]
+}
+
+export interface UpdateContentPayload {
+  title: string
+  synopsis: string
+  posterUrl: string
+  trailerUrl: string
+  videoRef: string
+  genreIds: number[]
+}
+
+export interface CreatePersonPayload {
+  fullName: string
+  birthDate: string
+  nationality: string
+  bio: string
+  photoUrl: string
+}
+
+export interface AddPersonToContentPayload {
+  personId: string
+  roleType: 'ACTOR' | 'DIRECTOR' | 'WRITER'
+  characterName: string
+  billingOrder: number
+}
+
+export async function createContent(payload: CreateContentPayload): Promise<{ contentId: string; title: string }> {
+  const res = await gateway.post('/catalog/content', payload)
+  return res.data as { contentId: string; title: string }
+}
+
+export async function updateContent(id: string, payload: UpdateContentPayload): Promise<{ contentId: string; title: string }> {
+  const res = await gateway.patch(`/catalog/content/${id}`, payload)
+  return res.data as { contentId: string; title: string }
+}
+
+export async function publishContent(id: string): Promise<{ success: boolean; publishedAt: string }> {
+  const res = await gateway.post(`/catalog/content/${id}/publish`)
+  return res.data as { success: boolean; publishedAt: string }
+}
+
+export async function createPerson(payload: CreatePersonPayload): Promise<{ personId: string; fullName: string }> {
+  const res = await gateway.post('/catalog/person', payload)
+  return res.data as { personId: string; fullName: string }
+}
+
+export async function addPersonToContent(contentId: string, payload: AddPersonToContentPayload): Promise<{ success: boolean }> {
+  const res = await gateway.post(`/catalog/content/${contentId}/cast`, payload)
+  return res.data as { success: boolean }
 }

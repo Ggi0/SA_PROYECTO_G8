@@ -1,35 +1,29 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Film, Users, Settings } from 'lucide-react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Film, ScrollText, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import NavbarADMIN from '@/components/layout/NavbarADMIN'
+import { useAuth } from '@/context/AuthContext'
 
 const NAV_ITEMS = [
-    {
-        label: 'Dashboard',
-        href: '/admin',
-        icon: Film,
-    },
-    {
-        label: 'Usuarios',
-        href: '/admin/users',
-        icon: Users,
-    },
-    {
-        label: 'Configuración',
-        href: '/admin/settings',
-        icon: Settings,
-    },
+    { label: 'Dashboard',   href: '/admin',          icon: Film         },
+    { label: 'Catálogo',    href: '/admin/catalog',  icon: Film         },
+    { label: 'Auditoría',   href: '/admin/audit',    icon: ScrollText   },
 ]
 
 export default function LayoutAdmin() {
     const location = useLocation()
+    const navigate = useNavigate()
+    const { logout, user } = useAuth()
+
+    const handleLogout = () => {
+        logout()
+        navigate('/login')
+    }
 
     return (
         <div className="min-h-screen flex bg-[#1a1408]">
             {/* Sidebar */}
-            <NavbarADMIN />
-            <aside className="w-64 border-r border-[#3a2e1a] bg-[#1e1810]">
-                <div className="p-6">
+            <aside className="w-64 border-r border-[#3a2e1a] bg-[#1e1810] flex flex-col">
+                <div className="p-6 flex-1">
 
                     <h2 className="font-display text-2xl font-bold text-spotlight tracking-widest mb-8">
                         QUETXAL TV
@@ -61,6 +55,22 @@ export default function LayoutAdmin() {
                             )
                         })}
                     </nav>
+                </div>
+
+                {/* Footer del sidebar: usuario + logout */}
+                <div className="p-6 border-t border-[#3a2e1a]">
+                    {user?.email && (
+                        <p className="text-silver/40 text-xs mb-3 truncate font-mono">
+                            {user.email}
+                        </p>
+                    )}
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 rounded-md px-4 py-3 text-sm w-full text-silver/70 hover:bg-[#2C2416] hover:text-red-400 transition-colors"
+                    >
+                        <LogOut size={18} />
+                        Cerrar sesión
+                    </button>
                 </div>
             </aside>
 

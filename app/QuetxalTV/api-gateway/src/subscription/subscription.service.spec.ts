@@ -24,6 +24,7 @@ describe('SubscriptionService', () => {
         planId: 'plan-1',
         currency: 'USD',
         paymentMethod: 'unknown',
+        userEmail: '',
       });
       done();
     });

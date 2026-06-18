@@ -1,6 +1,9 @@
+// src/historial/historial.service.ts
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
+
+// ─── Interfaces auditoría ─────────────────────────────────────────────────────
 
 export interface GetHistoryAuditLogsRequest {
   table_name: string;
@@ -32,14 +35,73 @@ export interface HealthCheckResponse {
   message: string;
 }
 
-export interface HistorialGrpcService {
-  getHistoryAuditLogs(
-    data: GetHistoryAuditLogsRequest,
-  ): Observable<HistoryAuditLogsResponse>;
-    healthLive(data: Record<string, never>): Observable<HealthCheckResponse>;
+// ─── Interfaces player ────────────────────────────────────────────────────────
 
-  healthReady(data: Record<string, never>): Observable<HealthCheckResponse>;
+export interface ProgressItem {
+  progress_id: string;
+  profile_id: string;
+  content_id: string;
+  content_type: string;
+  minute_reached: number;
+  total_duration_min: number;
+  completion_pct: number;
+  is_completed: boolean;
+  last_watched_at: string;
+  last_episode_id: string;
+  last_season_num: number;
+  last_episode_num: number;
+  last_ep_minute: number;
 }
+
+export interface ProgressResponse {
+  success: boolean;
+  message: string;
+  progress: ProgressItem;
+}
+
+export interface ContinueWatchingResponse {
+  items: ProgressItem[];
+}
+
+// ─── Interfaz gRPC completa ───────────────────────────────────────────────────
+
+export interface HistorialGrpcService {
+  // Auditoría
+  getHistoryAuditLogs(data: GetHistoryAuditLogsRequest): Observable<HistoryAuditLogsResponse>;
+  healthLive(data: Record<string, never>): Observable<HealthCheckResponse>;
+  healthReady(data: Record<string, never>): Observable<HealthCheckResponse>;
+
+  // Player
+  updateMovieProgress(data: {
+    profile_id: string;
+    content_id: string;
+    minute_reached: number;
+    total_duration_min: number;
+  }): Observable<ProgressResponse>;
+
+  updateEpisodeProgress(data: {
+    profile_id: string;
+    content_id: string;
+    season_id: string;
+    episode_id: string;
+    season_num: number;
+    episode_num: number;
+    minute_reached: number;
+    total_duration_min: number;
+  }): Observable<ProgressResponse>;
+
+  getContinueWatching(data: {
+    profile_id: string;
+    limit: number;
+  }): Observable<ContinueWatchingResponse>;
+
+  getContentProgress(data: {
+    profile_id: string;
+    content_id: string;
+  }): Observable<ProgressResponse>;
+}
+
+// ─── Service ──────────────────────────────────────────────────────────────────
 
 @Injectable()
 export class HistorialService implements OnModuleInit {
@@ -55,6 +117,8 @@ export class HistorialService implements OnModuleInit {
       this.client.getService<HistorialGrpcService>('HistorialService');
   }
 
+  // ── Auditoría ──────────────────────────────────────────────────────────────
+
   getHistoryAuditLogs(
     tableName = '',
     action = '',
@@ -68,11 +132,70 @@ export class HistorialService implements OnModuleInit {
       offset,
     });
   }
-    healthLive(): Observable<HealthCheckResponse> {
+
+  healthLive(): Observable<HealthCheckResponse> {
     return this.grpcClient.healthLive({});
   }
 
   healthReady(): Observable<HealthCheckResponse> {
     return this.grpcClient.healthReady({});
+  }
+
+  // ── Player ─────────────────────────────────────────────────────────────────
+
+  updateMovieProgress(
+    profileId: string,
+    contentId: string,
+    minuteReached: number,
+    totalDurationMin: number,
+  ): Observable<ProgressResponse> {
+    return this.grpcClient.updateMovieProgress({
+      profile_id: profileId,
+      content_id: contentId,
+      minute_reached: minuteReached,
+      total_duration_min: totalDurationMin,
+    });
+  }
+
+  updateEpisodeProgress(
+    profileId: string,
+    contentId: string,
+    seasonId: string,
+    episodeId: string,
+    seasonNum: number,
+    episodeNum: number,
+    minuteReached: number,
+    totalDurationMin: number,
+  ): Observable<ProgressResponse> {
+    return this.grpcClient.updateEpisodeProgress({
+      profile_id: profileId,
+      content_id: contentId,
+      season_id: seasonId,
+      episode_id: episodeId,
+      season_num: seasonNum,
+      episode_num: episodeNum,
+      minute_reached: minuteReached,
+      total_duration_min: totalDurationMin,
+    });
+  }
+
+  getContinueWatching(
+    profileId: string,
+    limit = 10,
+  ): Observable<ContinueWatchingResponse> {
+    return this.grpcClient.getContinueWatching({
+      profile_id: profileId,
+      limit,
+    });
+  }
+
+  getContentProgress(
+    profileId: string,
+    contentId: string,
+  ): Observable<ProgressResponse> {
+    return this.grpcClient.getContentProgress({
+      profile_id: profileId,
+      content_id: contentId,
+    });
   }
 }

@@ -5,9 +5,10 @@ import { CatalogModule } from './catalog/catalog.module';
 import { AuthModule } from './auth/auth.module';
 import { HistorialModule } from './historial/historial.module';
 import { HealthController } from './health.controller';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
-  imports: [SubscriptionModule, FxModule, CatalogModule, AuthModule, HistorialModule],
+  imports: [SubscriptionModule, FxModule, CatalogModule, AuthModule, HistorialModule, AuditModule],
   controllers: [HealthController],
 })
 export class AppModule {}
