@@ -35,5 +35,5 @@ spec:
             - { name: DB_SSLMODE, value: "disable" }
             - name: EXCHANGE_API_KEY
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: EXCHANGE_API_KEY } }
-          readinessProbe: { tcpSocket: { port: 50054 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
-          livenessProbe: { tcpSocket: { port: 50054 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { grpc: { port: 50054, service: fx-service-readiness }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { grpc: { port: 50054, service: fx-service-liveness }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

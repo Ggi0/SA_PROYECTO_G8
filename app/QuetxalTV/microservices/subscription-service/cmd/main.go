@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"subscription-service/internal/audit"
 	"subscription-service/internal/clients"
@@ -25,6 +27,21 @@ type subscriptionServer struct {
 	subsHandler     *subscriptions.Handler
 	paymentsHandler *payments.Handler
 	auditHandler    *audit.Handler
+}
+
+type grpcHealthServer struct {
+	healthpb.UnimplementedHealthServer
+	db *sql.DB
+}
+
+func (s *grpcHealthServer) Check(ctx context.Context, req *healthpb.HealthCheckRequest) (*healthpb.HealthCheckResponse, error) {
+	if req.GetService() == "subscription-service-readiness" {
+		if err := s.db.PingContext(ctx); err != nil {
+			return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_NOT_SERVING}, nil
+		}
+	}
+
+	return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, nil
 }
 
 func (s *subscriptionServer) GetPlans(ctx context.Context, req *pb.GetPlansRequest) (*pb.GetPlansResponse, error) {
@@ -107,6 +124,8 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
+	healthpb.RegisterHealthServer(grpcServer, &grpcHealthServer{db: db})
+
 	pb.RegisterSubscriptionServiceServer(grpcServer, &subscriptionServer{
 		plansHandler:    plans.NewHandler(planSvc, fxClient),
 		subsHandler:     subscriptions.NewHandler(subSvc),

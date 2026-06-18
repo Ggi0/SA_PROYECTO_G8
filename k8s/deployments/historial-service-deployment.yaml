@@ -32,5 +32,5 @@ spec:
             - name: DB_SCHEMA
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: HISTORIAL_DB_SCHEMA } }
             - { name: DB_SSLMODE, value: "disable" }
-          readinessProbe: { tcpSocket: { port: 50054 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
-          livenessProbe: { tcpSocket: { port: 50054 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { grpc: { port: 50054, service: historial-service-readiness }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { grpc: { port: 50054, service: historial-service-liveness }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

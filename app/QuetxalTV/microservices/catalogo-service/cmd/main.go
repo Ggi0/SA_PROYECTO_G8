@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/quetxaltv/catalog-service/internal/audit"
@@ -18,6 +20,21 @@ import (
 	"github.com/quetxaltv/catalog-service/internal/storage"
 	pb "github.com/quetxaltv/catalog-service/proto/catalog"
 )
+
+type grpcHealthServer struct {
+	healthpb.UnimplementedHealthServer
+	db *sql.DB
+}
+
+func (s *grpcHealthServer) Check(ctx context.Context, req *healthpb.HealthCheckRequest) (*healthpb.HealthCheckResponse, error) {
+	if req.GetService() == "catalogo-service-readiness" {
+		if err := s.db.PingContext(ctx); err != nil {
+			return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_NOT_SERVING}, nil
+		}
+	}
+
+	return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, nil
+}
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -66,6 +83,8 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
+	healthpb.RegisterHealthServer(grpcServer, &grpcHealthServer{db: db})
+
 	pb.RegisterCatalogServiceServer(grpcServer, handler)
 	reflection.Register(grpcServer)
 
