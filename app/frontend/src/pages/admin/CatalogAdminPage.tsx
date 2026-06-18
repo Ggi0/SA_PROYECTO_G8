@@ -68,7 +68,7 @@ export default function CatalogAdminPage() {
   const dataWithPublishState = data
     ? {
         ...data,
-        movies: data.movies.map(m => ({ ...m, isPublished: publishedIds.has(m.id) })),
+        movies: data.movies.map(m => ({ ...m, isPublished: publishedIds.has(m.id) } as Movie)),
       }
     : data
 
