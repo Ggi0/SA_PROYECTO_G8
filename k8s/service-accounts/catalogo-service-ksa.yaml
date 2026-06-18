@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: catalogo-service-ksa
+  namespace: quetxal-tv-prod
+  annotations:
+    # GKE Workload Identity: el pod se autentica a GCP como este SA sin llave JSON
+    iam.gke.io/gcp-service-account: ${GCP_SA_EMAIL}

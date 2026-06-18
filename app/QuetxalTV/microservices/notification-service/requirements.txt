@@ -1,5 +1,6 @@
 grpcio
 grpcio-tools
+grpcio-health-checking
 protobuf
 psycopg2-binary
 jinja2
