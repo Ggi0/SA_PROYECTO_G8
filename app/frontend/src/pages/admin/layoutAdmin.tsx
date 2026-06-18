@@ -26,7 +26,7 @@ export default function LayoutAdmin() {
                 <div className="p-6 flex-1">
 
                     <h2 className="font-display text-2xl font-bold text-spotlight tracking-widest mb-8">
-                        QUETXAL TV
+                        Calificacion
                     </h2>
 
                     <nav className="space-y-2">
