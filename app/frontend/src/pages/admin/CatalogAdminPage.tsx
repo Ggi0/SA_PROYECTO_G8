@@ -22,6 +22,7 @@ import {
   adminUpdateContent,
   adminPublishContent,
   adminDeleteContent,
+  adminGetAllContent,
   type CreateContentPayload,
 } from '@/api/catalogAdmin'
 import type { Movie } from '@/types'
@@ -51,8 +52,26 @@ export default function CatalogAdminPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-catalog', tab, page],
-    queryFn: () => getCatalog({ type: tab === 'all' ? '' : tab, page, pageSize: 20 }),
+    queryFn: () => adminGetAllContent({ type: tab === 'all' ? '' : tab, page, pageSize: 20 }),
   })
+
+  // El endpoint admin/content/all no manda isPublished todavía, así que lo
+  // derivamos cruzando contra el catálogo público: si el id aparece ahí,
+  // está publicado. Trae hasta 200 ids publicados, suficiente para cruzar.
+  const { data: publishedData } = useQuery({
+    queryKey: ['admin-catalog-published-ids'],
+    queryFn: () => getCatalog({ pageSize: 200 }),
+    staleTime: 30_000,
+  })
+  const publishedIds = new Set((publishedData?.movies || []).map(m => m.id))
+
+  const dataWithPublishState = data
+    ? {
+        ...data,
+        movies: data.movies.map(m => ({ ...m, isPublished: publishedIds.has(m.id) })),
+      }
+    : data
+
   const { data: genresData } = useQuery({ queryKey: ['genres'], queryFn: getGenres })
   const genres = genresData || []
 
@@ -96,10 +115,10 @@ export default function CatalogAdminPage() {
     }
   }
 
-  const filtered = (data?.movies || []).filter(m =>
+  const filtered = (dataWithPublishState?.movies || []).filter(m =>
     m.title.toLowerCase().includes(search.toLowerCase())
   )
-  const totalPages = Math.ceil((data?.total ?? 0) / 20)
+  const totalPages = Math.ceil((dataWithPublishState?.total ?? 0) / 20)
 
   return (
     <div className="space-y-6">
@@ -108,7 +127,7 @@ export default function CatalogAdminPage() {
         <div>
           <h1 className="text-2xl font-bold text-spotlight tracking-wide">Catálogo</h1>
           <p className="text-silver/50 text-sm mt-0.5">
-            {isLoading ? '—' : `${data?.total ?? 0} títulos`}
+            {isLoading ? '—' : `${dataWithPublishState?.total ?? 0} títulos`}
           </p>
         </div>
         <Button

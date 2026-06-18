@@ -27,8 +27,14 @@ export default function ScheduleModal({ open, content, onClose, onPublishNow, on
 
   const today = new Date().toISOString().split('T')[0]
 
-  const scheduledLabel = date
-    ? new Date(`${date}T${time}`).toLocaleDateString('es-GT', {
+  // El input date/time representa la hora LOCAL del navegador (Guatemala, UTC-6).
+  // `new Date(date + 'T' + time)` sin sufijo Z se interpreta como hora local
+  // por el motor de JS, y `.toISOString()` la convierte correctamente a UTC
+  // para que el backend la guarde sin desfase.
+  const localDateTime = date ? new Date(`${date}T${time}:00`) : null
+
+  const scheduledLabel = localDateTime
+    ? localDateTime.toLocaleDateString('es-GT', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
       })
     : null
@@ -39,9 +45,10 @@ export default function ScheduleModal({ open, content, onClose, onPublishNow, on
     try {
       if (mode === 'now') {
         onPublishNow(content!.id)
-      } else {
-        await adminScheduleContent(content!.id, `${date}T${time}:00`)
-        onSchedule(content!.id, `${date}T${time}:00`)
+      } else if (localDateTime) {
+        const isoUtc = localDateTime.toISOString()  // siempre UTC, con 'Z'
+        await adminScheduleContent(content!.id, isoUtc)
+        onSchedule(content!.id, isoUtc)
       }
     } finally {
       setLoading(false)
@@ -116,7 +123,7 @@ export default function ScheduleModal({ open, content, onClose, onPublishNow, on
               </div>
               <div>
                 <label className="block text-xs text-silver/40 uppercase tracking-wider mb-1.5 font-medium">
-                  Hora (UTC-6, Guatemala)
+                  Hora (tu hora local)
                 </label>
                 <input
                   type="time"
@@ -129,7 +136,7 @@ export default function ScheduleModal({ open, content, onClose, onPublishNow, on
                 <div className="p-3 rounded-lg bg-blue-950/30 border border-blue-800/30">
                   <p className="text-blue-300 text-xs leading-relaxed">
                     Estreno programado para:<br />
-                    <span className="font-semibold">{scheduledLabel} a las {time} hrs</span>
+                    <span className="font-semibold">{scheduledLabel} a las {time} hrs (tu hora local)</span>
                   </p>
                 </div>
               )}
