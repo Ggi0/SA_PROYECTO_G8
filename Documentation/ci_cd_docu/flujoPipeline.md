@@ -102,3 +102,6 @@ La decisión de ejecutar el backup post-despliegue (y no pre-despliegue) respond
 El pipeline implementa el requisito de gobierno de código prohibiendo commits directos a `main` y `develop` mediante la configuración de reglas de protección de ramas en GitHub. Todo cambio debe integrarse mediante Pull Request, lo que activa el CI de forma automática gracias al trigger `pull_request: branches: [develop, release, main]` en `ci.yml`. Esto garantiza que ningún código sin verificar llega a las ramas protegidas.
 
 En cuanto a la seguridad de la información sensible, el pipeline cumple estrictamente la prohibición de hardcoding: todas las contraseñas, tokens JWT, claves de API y credenciales de bases de datos se gestionan como GitHub Secrets encriptados, que se inyectan en tiempo de ejecución. En el lado de Kubernetes, esta información se almacena en el Secret `quetxal-tv-secrets` (tipo Opaque), que Kubernetes gestiona cifrado en etcd, y se inyecta en los Pods mediante `secretKeyRef`, nunca mediante variables de entorno planas en los manifiestos YAML.
+
+
+https://drive.google.com/file/d/1x3hkaS9ob5oArpSbLAwXJ01ugU0HfuKJ/view?usp=sharing
