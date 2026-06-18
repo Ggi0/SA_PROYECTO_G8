@@ -10,7 +10,7 @@ from grpc import aio
 from dotenv import load_dotenv
 from src.grpc import fx_pb2_grpc
 from src.grpc.fx_server import FXServiceServicer
-from src.grpc.audit_http import start_audit_thread
+from src.grpc.audit_http_fx import start_audit_thread
 
 load_dotenv()
 

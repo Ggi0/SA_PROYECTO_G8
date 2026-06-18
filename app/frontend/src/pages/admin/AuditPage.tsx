@@ -82,45 +82,45 @@ const SERVICE_CONFIG: Record<ServiceKey, ServiceConfig> = {
   fx: {
     label: 'FX',
     icon: <BarChart2 size={14} />,
-    endpoint: null,
+    endpoint: '/admin/reporte/fx/auditoria',
     fieldMap: (item) => ({
-      id: item.audit_id ?? item.id,
-      table: item.table_name,
-      action: item.action,
-      user: item.responsible_user_id || '',
-      date: item.created_at,
-      oldState: item.old_state ? JSON.stringify(item.old_state) : null,
-      newState: item.new_state ? JSON.stringify(item.new_state) : null,
-    }),
+    id: String(item.log_id),
+    table: item.target_currency ?? '',
+    action: item.cache_hit ? 'CACHE_HIT' : 'API_CALL',
+    user: item.requested_by || '',
+    date: item.requested_at ? item.requested_at.replace(' ', 'T') : '',
+    oldState: null,
+    newState: JSON.stringify({ rate: item.rate_used }),
+  }),
   },
   notificaciones: {
-    label: 'Notificaciones',
-    icon: <Bell size={14} />,
-    endpoint: null,
-    fieldMap: (item) => ({
-      id: item.audit_id ?? item.id,
-      table: item.table_name,
-      action: item.action,
-      user: item.responsible_user_id || '',
-      date: item.created_at,
-      oldState: item.old_state ? JSON.stringify(item.old_state) : null,
-      newState: item.new_state ? JSON.stringify(item.new_state) : null,
-    }),
-  },
+  label: 'Notificaciones',
+  icon: <Bell size={14} />,
+  endpoint: '/admin/reporte/notification/auditoria',
+  fieldMap: (item) => ({
+    id: String(item.log_id),
+    table: 'notifications',
+    action: item.new_status,
+    user: item.notification_id || '',
+    date: item.created_at ? item.created_at.replace(' ', 'T').replace('+00', '+00:00') : '',
+    oldState: item.old_status ? JSON.stringify({ status: item.old_status }) : null,
+    newState: JSON.stringify({ status: item.new_status, message: item.message }),
+  }),
+},
   suscripciones: {
-    label: 'Suscripciones',
-    icon: <CreditCard size={14} />,
-    endpoint: null,
-    fieldMap: (item) => ({
-      id: item.audit_id ?? item.id,
-      table: item.table_name,
-      action: item.action,
-      user: item.responsible_user_id || '',
-      date: item.created_at,
-      oldState: item.old_state ? JSON.stringify(item.old_state) : null,
-      newState: item.new_state ? JSON.stringify(item.new_state) : null,
-    }),
-  },
+  label: 'Suscripciones',
+  icon: <CreditCard size={14} />,
+  endpoint: '/admin/reporte/subscription/auditoria',
+  fieldMap: (item) => ({
+    id: String(item.log_id),
+    table: 'subscriptions',
+    action: item.event_type,
+    user: item.user_id || '',
+    date: item.created_at ? item.created_at.replace(' ', 'T').replace('+00', '+00:00') : '',
+    oldState: item.old_data ? JSON.stringify(item.old_data) : null,
+    newState: item.new_data ? JSON.stringify(item.new_data) : null,
+  }),
+},
 }
 
 const SERVICE_KEYS = Object.keys(SERVICE_CONFIG) as ServiceKey[]
@@ -128,10 +128,18 @@ const SERVICE_KEYS = Object.keys(SERVICE_CONFIG) as ServiceKey[]
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString('es-GT', {
-    year: 'numeric', month: 'short', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  })
+  if (!iso) return '—'
+  try {
+    const normalized = iso.replace(' ', 'T').replace('+00', '+00:00')
+    const date = new Date(normalized)
+    if (isNaN(date.getTime())) return iso  // si falla, muestra el string original
+    return date.toLocaleString('es-GT', {
+      year: 'numeric', month: 'short', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    })
+  } catch {
+    return iso
+  }
 }
 
 function parseState(raw: string | null): Record<string, unknown> | null {
