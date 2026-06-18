@@ -146,7 +146,7 @@ export default function HomePage() {
           <div className="mb-3 flex items-center gap-2">
             <div className="h-px w-8 bg-spotlight" />
             <span className="font-mono text-xs uppercase tracking-widest text-spotlight">
-              Destacado
+             Calificacion se sustituyó calificacion
             </span>
           </div>
 
