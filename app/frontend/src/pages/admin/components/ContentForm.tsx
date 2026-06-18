@@ -210,11 +210,6 @@ export default function ContentForm({ genres, initial, isLoading, onSubmit, onCa
         )}
       </div>
 
-      {/* Trailer */}
-      <div>
-        <label className={lbl}>URL del trailer</label>
-        <Input value={form.trailerUrl} onChange={e => set('trailerUrl', e.target.value)} className={inp} placeholder="https://youtube.com/..." />
-      </div>
 
       {/* Video principal */}
       <div>
