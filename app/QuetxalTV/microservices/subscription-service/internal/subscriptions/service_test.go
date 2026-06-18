@@ -83,7 +83,7 @@ func TestSubscribeProcessesPaymentWithFXRate(t *testing.T) {
 		fakeNotificationClient{called: notifications},
 	)
 
-	result, err := service.Subscribe(context.Background(), "user-1", "plan-1", "GTQ", "credit_card")
+	result, err := service.Subscribe(context.Background(), "user-1", "plan-1", "GTQ", "credit_card", "")
 	if err != nil {
 		t.Fatalf("Subscribe returned error: %v", err)
 	}
@@ -113,7 +113,7 @@ func TestSubscribeFallsBackToUSDWhenFXFails(t *testing.T) {
 		clients.NewNoopNotificationClient(),
 	)
 
-	_, err := service.Subscribe(context.Background(), "user-1", "plan-1", "GTQ", "paypal")
+	_, err := service.Subscribe(context.Background(), "user-1", "plan-1", "GTQ", "paypal", "")
 	if err != nil {
 		t.Fatalf("Subscribe returned error: %v", err)
 	}
@@ -130,7 +130,7 @@ func TestSubscribeRejectsInvalidPlan(t *testing.T) {
 		clients.NewNoopNotificationClient(),
 	)
 
-	_, err := service.Subscribe(context.Background(), "user-1", "missing", "USD", "paypal")
+	_, err := service.Subscribe(context.Background(), "user-1", "missing", "USD", "paypal", "")
 	if err == nil {
 		t.Fatal("expected invalid plan error")
 	}

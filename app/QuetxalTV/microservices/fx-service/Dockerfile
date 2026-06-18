@@ -1,3 +1,4 @@
+
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -12,13 +13,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+
+# Genera los stubs de gRPC dentro del contenedor
 RUN python -m grpc_tools.protoc \
     -I./proto \
-    --python_out=src/grpc \
-    --pyi_out=src/grpc \
-    --grpc_python_out=src/grpc \
+    --python_out=./src/grpc \
+    --grpc_python_out=./src/grpc \
     ./proto/fx.proto
+# Corregir import relativo en el archivo generado
+RUN sed -i "s/import fx_pb2 as fx__pb2/from src.grpc import fx_pb2 as fx__pb2/" ./src/grpc/fx_pb2_grpc.py
 
-EXPOSE 50054
+EXPOSE 50055
 
 CMD ["python", "-m", "src.main"]

@@ -2,7 +2,6 @@ import asyncio
 import os
 import sys
 
-import grpc
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "grpc"))
@@ -14,6 +13,7 @@ from src.cache.redis_client import redis_client
 from src.db.database import db
 from src.grpc import fx_pb2_grpc
 from src.grpc.fx_server import FXServiceServicer
+from src.grpc.audit_http_fx import start_audit_thread
 
 load_dotenv()
 
@@ -55,7 +55,7 @@ async def serve():
     print(f"[FX Service] Iniciando servidor gRPC en {listen_addr}")
     await server.start()
     print(f"[FX Service] Servidor listo ✓")
-
+    start_audit_thread()
     try:
         await server.wait_for_termination()
     except KeyboardInterrupt:
