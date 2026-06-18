@@ -20,3 +20,5 @@ data:
   EXCHANGE_API_URL: "https://v6.exchangerate-api.com/v6"
   SMTP_HOST: "smtp.gmail.com"
   SMTP_PORT: "465"
+  GCS_BUCKET_NAME: "quetxal-tv-videos"
+  CATALOG_HTTP_URL: "http://catalogo-service:8082"
