@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: quetxal-tv-prod
+  annotations:
+    cloud.google.com/backend-config: '{"default": "api-gateway-backendconfig"}'
+    cloud.google.com/neg: '{"ingress": true}'
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+  ports:
+    - port: 3000
+      targetPort: 3000

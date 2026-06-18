@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: fx-service, namespace: quetxal-tv-prod }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: fx-service } }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 0, maxUnavailable: 1 }
+  template:
+    metadata: { labels: { app: fx-service } }
+    spec:
+      containers:
+        - name: fx-service
+          image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/fx-service:${IMAGE_TAG}
+          ports: [{ containerPort: 50054 }]
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "250m", memory: "256Mi" }
+          envFrom: [{ configMapRef: { name: quetxal-tv-config } }]
+          env:
+            - { name: GRPC_PORT, value: "50054" }
+            - name: DB_HOST
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: FX_DB_HOST } }
+            - name: DB_PORT
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: FX_DB_PORT } }
+            - name: DB_USER
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: FX_DB_USER } }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: FX_DB_PASSWORD } }
+            - name: DB_NAME
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: FX_DB_NAME } }
+            - name: DB_SCHEMA
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: FX_DB_SCHEMA } }
+            - { name: DB_SSLMODE, value: "disable" }
+            - name: EXCHANGE_API_KEY
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: EXCHANGE_API_KEY } }
+          readinessProbe: { grpc: { port: 50054, service: fx-service-readiness }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { grpc: { port: 50054, service: fx-service-liveness }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

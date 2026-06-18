@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quetxal-tv-config
+  namespace: quetxal-tv-prod
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  AUTH_SERVICE_URL: "auth-service:50051"
+  SUBSCRIPTION_SERVICE_URL: "subscription-service:50053"
+  CATALOG_SERVICE_URL: "catalogo-service:50052"
+  CATALOG_HTTP_URL: "http://catalogo-service:8082"
+  FX_SERVICE_HOST: "fx-service:50054"
+  FX_SERVICE_URL: "fx-service:50054"
+  NOTIFICATION_SERVICE_URL: "notification-service:50056"
+  HISTORIAL_SERVICE_URL: "historial-service:50054"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  REDIS_TTL: "3600"
+  EXCHANGE_API_URL: "https://v6.exchangerate-api.com/v6"
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "465"
+  GCS_BUCKET_NAME: "quetxal-tv-videos"
+  CATALOG_HTTP_URL: "http://catalogo-service:8082"

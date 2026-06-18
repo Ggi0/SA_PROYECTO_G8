@@ -78,8 +78,19 @@ func (r *postgresRepository) FindActiveByUserID(ctx context.Context, userID stri
 }
 
 func (r *postgresRepository) ProcessSubscription(ctx context.Context, userID, planID, currency string, exchangeRate float64, paymentMethod string) (*ProcessResult, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Registra al usuario responsable para la auditoría transaccional por triggers.
+	if err := setChangedBy(ctx, tx, userID); err != nil {
+		return nil, err
+	}
+
 	var result ProcessResult
-	err := r.db.QueryRowContext(ctx, `
+	err = tx.QueryRowContext(ctx, `
 		SELECT p_subscription_id::TEXT, p_payment_id::TEXT, p_result_status, p_error_message
 		FROM fn_process_subscription($1, $2::INT, $3, $4, $5)
 	`, userID, planID, currency, exchangeRate, paymentMethod).Scan(
@@ -87,6 +98,9 @@ func (r *postgresRepository) ProcessSubscription(ctx context.Context, userID, pl
 	)
 	if err != nil {
 		return nil, fmt.Errorf("process subscription: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("commit tx: %w", err)
 	}
 	return &result, nil
 }
@@ -96,10 +110,36 @@ func (r *postgresRepository) CancelByUserID(ctx context.Context, userID, reason 
 		reason = "Cancelled by user"
 	}
 
-	_, err := r.db.ExecContext(ctx, `CALL sp_cancel_subscription($1)`, userID)
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Registra al usuario responsable para la auditoría transaccional por triggers.
+	if err := setChangedBy(ctx, tx, userID); err != nil {
+		return err
+	}
+
+	if _, err := tx.ExecContext(ctx, `CALL sp_cancel_subscription($1)`, userID); err != nil {
 		return fmt.Errorf("cancel subscription: %w", err)
 	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit tx: %w", err)
+	}
 	_ = reason
+	return nil
+}
+
+// setChangedBy fija la variable de sesión app.changed_by dentro de la
+// transacción activa. El trigger fn_subscription_audit la lee para registrar
+// el usuario responsable. is_local=true la limita a la transacción actual.
+func setChangedBy(ctx context.Context, tx *sql.Tx, changedBy string) error {
+	if changedBy == "" {
+		changedBy = "system"
+	}
+	if _, err := tx.ExecContext(ctx, `SELECT set_config('app.changed_by', $1, true)`, changedBy); err != nil {
+		return fmt.Errorf("set changed_by: %w", err)
+	}
 	return nil
 }

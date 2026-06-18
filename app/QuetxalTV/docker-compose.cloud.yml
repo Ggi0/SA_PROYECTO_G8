@@ -1,71 +1,187 @@
 services:
-  api-gateway:
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
+  frontend:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/frontend:${IMAGE_TAG:-latest}
     ports:
-      - "3000:3000"
-    env_file:
-      - path: ./api-gateway/.env
-        required: false
+      - "${FRONTEND_PUBLIC_PORT:-8080}:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  api-gateway:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/api-gateway:${IMAGE_TAG:-latest}
+    ports:
+      - "${API_GATEWAY_PUBLIC_PORT:-3000}:3000"
     environment:
       NODE_ENV: production
-      SUBSCRIPTION_SERVICE_URL: subscription-service:50053
+      PORT: ${PORT:-3000}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST:-auth-service:50051}
+      SUBSCRIPTION_SERVICE_URL: ${SUBSCRIPTION_SERVICE_URL:-subscription-service:50053}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-auth-service:50051}
+      CATALOG_SERVICE_URL: ${CATALOG_SERVICE_URL:-catalogo-service:50052}
+      CATALOG_HTTP_URL: ${CATALOG_HTTP_URL:-http://catalogo-service:8082}
+      FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
+      FX_SERVICE_URL: ${FX_SERVICE_URL:-fx-service:50054}
+      HISTORIAL_SERVICE_URL: ${HISTORIAL_SERVICE_URL:-historial-service:50054}
     depends_on:
+      - auth-service
       - subscription-service
+      - fx-service
+      - catalogo-service
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  auth-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/auth-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50051
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      DB_HOST: ${AUTH_DB_HOST}
+      DB_PORT: ${AUTH_DB_PORT:-5432}
+      DB_USER: ${AUTH_DB_USER}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD}
+      DB_NAME: ${AUTH_DB_NAME}
+      DB_SCHEMA: ${AUTH_DB_SCHEMA:-auth}
+      DB_SSLMODE: ${AUTH_DB_SSLMODE:-disable}
+      NOTIFICATION_SERVICE_HOST: notification-service
+      NOTIFICATION_SERVICE_PORT: 50056
+    depends_on:
+      notification-service:
+        condition: service_started
+    expose:
+      - "50051"
     restart: unless-stopped
     networks:
       - quetxal-network
 
   subscription-service:
-    build:
-      context: ./microservices/subscription-service
-      dockerfile: Dockerfile
-    env_file:
-      - path: ./microservices/subscription-service/.env
-        required: false
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/subscription-service:${IMAGE_TAG:-latest}
     environment:
-      DB_HOST: subscription-db
-      DB_PORT: 5432
-      DB_USER: ${DB_USER:-subscription_user}
-      DB_PASSWORD: ${DB_PASSWORD:-subscription_pass}
-      DB_NAME: ${DB_NAME:-subscription_db}
-      DB_SSLMODE: ${DB_SSLMODE:-disable}
-      DB_SCHEMA: ${DB_SCHEMA:-subscription}
+      DB_HOST: ${SUBSCRIPTION_DB_HOST}
+      DB_PORT: ${SUBSCRIPTION_DB_PORT:-5433}
+      DB_USER: ${SUBSCRIPTION_DB_USER}
+      DB_PASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
+      DB_NAME: ${SUBSCRIPTION_DB_NAME}
+      DB_SSLMODE: ${SUBSCRIPTION_DB_SSLMODE:-disable}
+      DB_SCHEMA: ${SUBSCRIPTION_DB_SCHEMA:-subscription}
       GRPC_PORT: 50053
-      FX_SERVICE_HOST: fx-service:50055
-      NOTIFICATION_SERVICE_HOST: notification-service:50056
+      FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
+      NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST:-notification-service:50056}
     depends_on:
-      subscription-db:
-        condition: service_healthy
+      fx-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+    expose:
+      - "50053"
     restart: unless-stopped
     networks:
       - quetxal-network
 
-  subscription-db:
-    image: postgres:16-alpine
-    env_file:
-      - path: ./microservices/subscription-service/.env
-        required: false
+  catalogo-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/catalogo-service:${IMAGE_TAG:-latest}
     environment:
-      POSTGRES_USER: ${DB_USER:-subscription_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-subscription_pass}
-      POSTGRES_DB: ${DB_NAME:-subscription_db}
+      DB_HOST: ${CATALOGO_DB_HOST}
+      DB_PORT: ${CATALOGO_DB_PORT:-5434}
+      DB_USER: ${CATALOGO_DB_USER}
+      DB_PASSWORD: ${CATALOGO_DB_PASSWORD}
+      DB_NAME: ${CATALOGO_DB_NAME}
+      DB_SCHEMA: ${CATALOGO_DB_SCHEMA:-catalog}
+      DB_SSLMODE: ${CATALOGO_DB_SSLMODE:-disable}
+      GRPC_PORT: 50052
+      AUDIT_HTTP_PORT: 8082
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME:-quetxal-tv-videos}
+      GCS_SERVICE_ACCOUNT_EMAIL: ${GCS_SERVICE_ACCOUNT_EMAIL:-}
+    expose:
+      - "50052"
+      - "8082"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  fx-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/fx-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50054
+      DB_HOST: ${FX_DB_HOST}
+      DB_PORT: ${FX_DB_PORT:-5435}
+      DB_NAME: ${FX_DB_NAME}
+      DB_USER: ${FX_DB_USER}
+      DB_PASSWORD: ${FX_DB_PASSWORD}
+      DB_SCHEMA: ${FX_DB_SCHEMA:-fx}
+      DB_SSLMODE: ${FX_DB_SSLMODE:-disable}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_TTL: ${REDIS_TTL:-3600}
+      EXCHANGE_API_KEY: ${EXCHANGE_API_KEY}
+      EXCHANGE_API_URL: ${EXCHANGE_API_URL}
+    depends_on:
+      redis:
+        condition: service_started
+    expose:
+      - "50054"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  notification-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/notification-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50056
+      DB_HOST: ${NOTIFICATION_DB_HOST}
+      DB_PORT: ${NOTIFICATION_DB_PORT:-5436}
+      DB_USER: ${NOTIFICATION_DB_USER}
+      DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      DB_NAME: ${NOTIFICATION_DB_NAME}
+      DB_SSLMODE: ${NOTIFICATION_DB_SSLMODE:-disable}
+      DB_SCHEMA: ${NOTIFICATION_DB_SCHEMA:-notification}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    expose:
+      - "50056"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  historial-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/historial-service:${IMAGE_TAG:-latest}
+    environment:
+      HISTORIAL_SERVICE_PORT: 50054
+      DB_HOST: ${HISTORIAL_DB_HOST}
+      DB_PORT: ${HISTORIAL_DB_PORT:-5437}
+      DB_USER: ${HISTORIAL_DB_USER}
+      DB_PASSWORD: ${HISTORIAL_DB_PASSWORD}
+      DB_NAME: ${HISTORIAL_DB_NAME}
+      DB_SSLMODE: ${HISTORIAL_DB_SSLMODE:-disable}
+      DB_SCHEMA: ${HISTORIAL_DB_SCHEMA:-playback}
+    expose:
+      - "50054"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
     volumes:
-      - subscription_db_data:/var/lib/postgresql/data
-      - ./database/subscription.sql:/docker-entrypoint-initdb.d/001_subscription.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - redis_data:/data
+    expose:
+      - "6379"
     restart: unless-stopped
     networks:
       - quetxal-network
 
 volumes:
-  subscription_db_data:
-    driver: local
+  redis_data:
 
 networks:
   quetxal-network:

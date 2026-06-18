@@ -8,10 +8,144 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
-      JWT_SECRET: local_dev_secret
+      FX_SERVICE_HOST: fx-service:50055
+      JWT_SECRET: ${JWT_SECRET}
       SUBSCRIPTION_SERVICE_URL: subscription-service:50053
+      AUTH_SERVICE_HOST: auth-service:50051
+      AUTH_SERVICE_URL: auth-service:50051
+      NOTIFICATION_SERVICE_HOST: notification-service:50056
+      CATALOG_SERVICE_URL: catalog-service:50052
+      CATALOG_HTTP_URL: http://catalog-service:8082
     depends_on:
+      - auth-service
       - subscription-service
+      - notification-service
+    networks:
+      - quetxal-network
+
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: auth_db
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+      - ./database/auth/auth.sql:/docker-entrypoint-initdb.d/01_auth.sql
+      - ./database/auth/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+
+  auth-service:
+    build:
+      context: ./microservices/auth-service/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    env_file:
+      - path: ./microservices/auth-service/auth-service/.env
+        required: false
+    environment:
+      GRPC_PORT: 50051
+
+      NOTIFICATION_SERVICE_HOST: notification-service
+      NOTIFICATION_SERVICE_PORT: 50056
+
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USER: auth_user
+      DB_PASSWORD: admin
+      DB_NAME: auth_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: auth
+
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
+
+    networks:
+      - quetxal-network
+
+  notification-service:
+    build:
+      context: ./microservices/notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "50056:50056"
+    environment:
+      GRPC_PORT: 50056
+      DB_HOST: ${NOTIFICATION_DB_HOST}
+      DB_PORT: 5432
+      DB_USER: notificacion_user
+      DB_PASSWORD: admin
+      DB_NAME: notificacion_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: notification
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+    networks:
+      - quetxal-network
+
+  catalog-service:
+    build:
+      context: ./microservices/catalogo-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    ports:
+      - "50052:50052"
+      - "8082:8082"
+    environment:
+      DB_HOST: catalog-db
+      DB_PORT: 5432
+      DB_USER: catalog_user
+      DB_PASSWORD: catalog_pass
+      DB_NAME: catalog_db
+      DB_SSLMODE: disable
+      GRPC_PORT: 50052
+      AUDIT_HTTP_PORT: 8082
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+    networks:
+      - quetxal-network
+
+  catalog-db:
+    image: postgres:16-alpine
+    container_name: catalog-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+      - ./microservices/catalogo-service/database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./microservices/catalogo-service/database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+      - ./microservices/catalogo-service/database/audit.sql:/docker-entrypoint-initdb.d/03_audit.sql
+      - ./microservices/catalogo-service/database/schedule.sql:/docker-entrypoint-initdb.d/04_schedule.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - quetxal-network
 
@@ -19,39 +153,72 @@ services:
     build:
       context: ./microservices/subscription-service
       dockerfile: Dockerfile
-    env_file:
-      - path: ./microservices/subscription-service/.env
-        required: false
+   
     ports:
       - "50053:50053"
     environment:
       GRPC_PORT: 50053
       FX_SERVICE_HOST: fx-service:50055
       NOTIFICATION_SERVICE_HOST: notification-service:50056
+      DB_HOST: ${SUBSCRIPTION_DB_HOST}
+      DB_PORT: ${SUBSCRIPTION_DB_PORT}
+      DB_USER: ${SUBSCRIPTION_DB_USER}
+      DB_PASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
+      DB_NAME: ${SUBSCRIPTION_DB_NAME}
+    depends_on:
+      - notification-service
     networks:
       - quetxal-network
 
-  subscription-db:
-    image: postgres:16-alpine
+  fx-service:
+    build:
+      context: ./microservices/fx-service
+      dockerfile: Dockerfile
     ports:
-      - "5435:5432"
+      - "50055:50055"
     environment:
-      POSTGRES_USER: subscription_user
-      POSTGRES_PASSWORD: subscription_pass
-      POSTGRES_DB: subscription_db
-    volumes:
-      - subscription_db_data:/var/lib/postgresql/data
-      - ./database/subscription.sql:/docker-entrypoint-initdb.d/001_subscription.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U subscription_user -d subscription_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      GRPC_PORT: 50055
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_TTL: 3600
+      EXCHANGE_API_KEY: ${EXCHANGE_API_KEY}
+      EXCHANGE_API_URL: https://v6.exchangerate-api.com/v6
+      DB_HOST: ${FX_DB_HOST}
+      DB_PORT: ${FX_DB_PORT}
+      DB_USER: ${FX_DB_USER}
+      DB_PASSWORD: ${FX_DB_PASSWORD}
+      DB_NAME: ${FX_DB_NAME}
+
+    depends_on:
+      - redis
+    networks:
+      - quetxal-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+  historial-service:
+    build:
+      context: ./microservices/historial-service
+      dockerfile: Dockerfile
+    container_name: quetxaltv-historial-service
+    env_file:
+      - path: ./microservices/historial-service/.env
+        required: false
+    ports:
+      - "50054:50054"
+    restart: unless-stopped
     networks:
       - quetxal-network
 
 volumes:
+  auth_db_data:
   subscription_db_data:
+  catalog_db_data:
 
 networks:
   quetxal-network:

@@ -1,7 +1,11 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
+import type { NextFunction, Request, Response } from 'express';
 
 
 async function bootstrap() {
@@ -10,6 +14,12 @@ async function bootstrap() {
     // Necesario para que @Req().cookies funcione en el controlador
   // El refresh_token viaja en cookie HttpOnly y se lee aquí
   app.use(cookieParser());
+
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    if (req.url === '/api') req.url = '/';
+    else if (req.url.startsWith('/api/')) req.url = req.url.slice(4);
+    next();
+  });
 
 
   app.enableCors({ origin: true, credentials: true });

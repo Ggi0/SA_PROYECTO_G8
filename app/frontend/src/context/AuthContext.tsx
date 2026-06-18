@@ -85,7 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(LS_TOKEN)
     localStorage.removeItem(LS_PROFILE)
   }
-
   return (
     <AuthContext.Provider
       value={{

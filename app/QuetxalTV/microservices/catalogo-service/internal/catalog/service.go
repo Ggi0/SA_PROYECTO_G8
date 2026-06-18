@@ -1,17 +1,20 @@
 package catalog
 
 import (
+	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 
+	"github.com/jung-kurt/gofpdf"
 	pb "github.com/quetxaltv/catalog-service/proto/catalog"
 )
 
 type Service struct {
-	repo *Repository
+	repo RepositoryInterface
 }
 
-func NewService(repo *Repository) *Service {
+func NewService(repo RepositoryInterface) *Service {
 	return &Service{repo: repo}
 }
 
@@ -259,6 +262,265 @@ func (s *Service) AddPersonToContent(contentID, personID, roleType, characterNam
 		return nil, fmt.Errorf("AddPersonToContent: %w", err)
 	}
 	return &pb.AddPersonToContentResponse{Success: true}, nil
+}
+
+func (s *Service) ScheduleContent(contentID, premiereDate, changedBy string) (*pb.ScheduleContentResponse, error) {
+	result, err := s.repo.ScheduleContent(contentID, premiereDate, changedBy)
+	if err != nil {
+		return nil, fmt.Errorf("ScheduleContent: %w", err)
+	}
+	return &pb.ScheduleContentResponse{Success: true, PremiereDate: result}, nil
+}
+
+func (s *Service) DeleteContent(contentID, changedBy string) (*pb.DeleteContentResponse, error) {
+	if err := s.repo.DeleteContent(contentID, changedBy); err != nil {
+		return nil, fmt.Errorf("DeleteContent: %w", err)
+	}
+	return &pb.DeleteContentResponse{Success: true}, nil
+}
+
+func (s *Service) CreateGenre(name, slug string) (*pb.Genre, error) {
+	row, err := s.repo.CreateGenre(name, slug)
+	if err != nil {
+		return nil, fmt.Errorf("CreateGenre: %w", err)
+	}
+	return &pb.Genre{GenreId: int32(row.GenreID), Name: row.Name, Slug: row.Slug}, nil
+}
+
+func (s *Service) UpdateGenre(genreID int, name, slug string) (*pb.Genre, error) {
+	row, err := s.repo.UpdateGenre(genreID, name, slug)
+	if err != nil {
+		return nil, fmt.Errorf("UpdateGenre: %w", err)
+	}
+	if row == nil {
+		return nil, nil
+	}
+	return &pb.Genre{GenreId: int32(row.GenreID), Name: row.Name, Slug: row.Slug}, nil
+}
+
+func (s *Service) DeleteGenre(genreID int, changedBy string) (*pb.DeleteGenreResponse, error) {
+	if err := s.repo.DeleteGenre(genreID, changedBy); err != nil {
+		return nil, fmt.Errorf("DeleteGenre: %w", err)
+	}
+	return &pb.DeleteGenreResponse{Success: true}, nil
+}
+
+func (s *Service) UpdatePerson(req UpdatePersonInput) (*pb.PersonDetail, error) {
+	row, err := s.repo.UpdatePerson(req)
+	if err != nil {
+		return nil, fmt.Errorf("UpdatePerson: %w", err)
+	}
+	if row == nil {
+		return nil, nil
+	}
+	return rowToPersonDetail(row), nil
+}
+
+func (s *Service) DeletePerson(personID, changedBy string) (*pb.DeletePersonResponse, error) {
+	if err := s.repo.DeletePerson(personID, changedBy); err != nil {
+		return nil, fmt.Errorf("DeletePerson: %w", err)
+	}
+	return &pb.DeletePersonResponse{Success: true}, nil
+}
+
+func (s *Service) RemovePersonFromContent(contentID, personID, roleType string) (*pb.RemovePersonFromContentResponse, error) {
+	if err := s.repo.RemovePersonFromContent(contentID, personID, roleType); err != nil {
+		return nil, fmt.Errorf("RemovePersonFromContent: %w", err)
+	}
+	return &pb.RemovePersonFromContentResponse{Success: true}, nil
+}
+
+func (s *Service) CreateSeason(req CreateSeasonInput) (*pb.SeasonInfo, error) {
+	row, err := s.repo.CreateSeason(req)
+	if err != nil {
+		return nil, fmt.Errorf("CreateSeason: %w", err)
+	}
+	return &pb.SeasonInfo{
+		SeasonId:    row.SeasonID,
+		ContentId:   row.ContentID,
+		SeasonNum:   int32(row.SeasonNum),
+		Title:       row.Title,
+		ReleaseYear: int32(row.ReleaseYear),
+	}, nil
+}
+
+func (s *Service) DeleteSeason(seasonID, changedBy string) (*pb.DeleteSeasonResponse, error) {
+	if err := s.repo.DeleteSeason(seasonID, changedBy); err != nil {
+		return nil, fmt.Errorf("DeleteSeason: %w", err)
+	}
+	return &pb.DeleteSeasonResponse{Success: true}, nil
+}
+
+func (s *Service) CreateEpisode(req CreateEpisodeInput) (*pb.Episode, error) {
+	row, err := s.repo.CreateEpisode(req)
+	if err != nil {
+		return nil, fmt.Errorf("CreateEpisode: %w", err)
+	}
+	return rowToEpisode(row), nil
+}
+
+func (s *Service) UpdateEpisode(req UpdateEpisodeInput) (*pb.Episode, error) {
+	row, err := s.repo.UpdateEpisode(req)
+	if err != nil {
+		return nil, fmt.Errorf("UpdateEpisode: %w", err)
+	}
+	if row == nil {
+		return nil, nil
+	}
+	return rowToEpisode(row), nil
+}
+
+func (s *Service) DeleteEpisode(episodeID, changedBy string) (*pb.DeleteEpisodeResponse, error) {
+	if err := s.repo.DeleteEpisode(episodeID, changedBy); err != nil {
+		return nil, fmt.Errorf("DeleteEpisode: %w", err)
+	}
+	return &pb.DeleteEpisodeResponse{Success: true}, nil
+}
+
+func (s *Service) ListAllContent(contentType string, genreID, page, pageSize int) (*pb.GetCatalogResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	rows, total, err := s.repo.ListAllContent(contentType, genreID, page, pageSize)
+	if err != nil {
+		return nil, fmt.Errorf("ListAllContent: %w", err)
+	}
+
+	items := make([]*pb.ContentCard, 0, len(rows))
+	for _, r := range rows {
+		genres, _ := parseGenreNames(r.Genres)
+		items = append(items, &pb.ContentCard{
+			ContentId:         r.ContentID,
+			ContentType:       r.ContentType,
+			Title:             r.Title,
+			ReleaseYear:       int32(r.ReleaseYear),
+			DurationMin:       int32(r.DurationMin),
+			RatingClass:       r.RatingClass,
+			PosterUrl:         r.PosterURL,
+			Genres:            genres,
+			RecommendationPct: r.RecommendationPct,
+			AvgStars:          r.AvgStars,
+			TotalVotes:        r.TotalVotes,
+		})
+	}
+
+	return &pb.GetCatalogResponse{Items: items, Total: int32(total)}, nil
+}
+
+func rowToEpisode(r *EpisodeRow) *pb.Episode {
+	return &pb.Episode{
+		EpisodeId:   r.EpisodeID,
+		EpisodeNum:  int32(r.EpisodeNum),
+		Title:       r.Title,
+		Synopsis:    r.Synopsis,
+		DurationMin: int32(r.DurationMin),
+		VideoRef:    r.VideoRef,
+		VideoSource: r.VideoSource,
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Auditoría
+// ---------------------------------------------------------------------------
+
+func (s *Service) GetAuditLogs(f AuditLogFilter) ([]AuditLogRow, int, error) {
+	return s.repo.GetAuditLogs(f)
+}
+
+// ExportAuditCSV genera un archivo CSV con los registros de auditoría.
+func (s *Service) ExportAuditCSV(f AuditLogFilter) ([]byte, error) {
+	f.Page = 1
+	f.PageSize = 10000
+	rows, _, err := s.repo.GetAuditLogs(f)
+	if err != nil {
+		return nil, fmt.Errorf("ExportAuditCSV: %w", err)
+	}
+
+	var buf bytes.Buffer
+	w := csv.NewWriter(&buf)
+	_ = w.Write([]string{"ID", "Tabla", "Operación", "Realizado por", "Fecha/Hora", "Datos anteriores", "Datos nuevos"})
+	for _, r := range rows {
+		_ = w.Write([]string{
+			fmt.Sprintf("%d", r.ID),
+			r.TableName,
+			r.Operation,
+			r.ChangedBy,
+			r.ChangedAt,
+			r.OldData,
+			r.NewData,
+		})
+	}
+	w.Flush()
+	return buf.Bytes(), w.Error()
+}
+
+// ExportAuditPDF genera un PDF tabular con los registros de auditoría.
+func (s *Service) ExportAuditPDF(f AuditLogFilter) ([]byte, error) {
+	f.Page = 1
+	f.PageSize = 10000
+	rows, _, err := s.repo.GetAuditLogs(f)
+	if err != nil {
+		return nil, fmt.Errorf("ExportAuditPDF: %w", err)
+	}
+
+	pdf := gofpdf.New("L", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(0, 10, "QuetxalTV - Log de Auditoría del Catálogo", "", 1, "C", false, 0, "")
+	pdf.Ln(4)
+
+	headers := []string{"ID", "Tabla", "Operación", "Realizado por", "Fecha/Hora", "Datos anteriores", "Datos nuevos"}
+	widths := []float64{12, 30, 22, 35, 42, 62, 62}
+
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetFillColor(30, 80, 160)
+	pdf.SetTextColor(255, 255, 255)
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 7, h, "1", 0, "C", true, 0, "")
+	}
+	pdf.Ln(-1)
+
+	pdf.SetFont("Arial", "", 7)
+	pdf.SetTextColor(0, 0, 0)
+	fillRow := false
+	for _, r := range rows {
+		if fillRow {
+			pdf.SetFillColor(235, 241, 255)
+		} else {
+			pdf.SetFillColor(255, 255, 255)
+		}
+		vals := []string{
+			fmt.Sprintf("%d", r.ID),
+			r.TableName,
+			r.Operation,
+			r.ChangedBy,
+			r.ChangedAt,
+			truncateStr(r.OldData, 55),
+			truncateStr(r.NewData, 55),
+		}
+		for i, v := range vals {
+			pdf.CellFormat(widths[i], 6, v, "1", 0, "L", true, 0, "")
+		}
+		pdf.Ln(-1)
+		fillRow = !fillRow
+	}
+
+	var buf bytes.Buffer
+	if err := pdf.Output(&buf); err != nil {
+		return nil, fmt.Errorf("ExportAuditPDF output: %w", err)
+	}
+	return buf.Bytes(), nil
+}
+
+func truncateStr(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "…"
 }
 
 // ---------------------------------------------------------------------------

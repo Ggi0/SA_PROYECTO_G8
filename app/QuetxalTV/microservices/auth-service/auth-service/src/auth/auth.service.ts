@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthRepository } from './auth.repository';
 import { JwtService } from '../JWT/jwt.service';
+import { NotificationClient } from '../notification/notification.client';
 import type {
   RegisterRequest,
   RegisterResponse,
@@ -27,9 +28,10 @@ import type {
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  constructor(
+constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
+    private readonly notificationClient: NotificationClient,
   ) {}
 
   // ─────────────────────────────────────────────
@@ -51,37 +53,27 @@ console.log('display_name=', (req as any).display_name);
       password:    req.password,
       displayName: req.displayName,
     });
+    await this.authRepository.activateUser(userId);
 
     this.logger.log(`Usuario registrado: ${userId}`);
 
     // ── INTEGRACIÓN FUTURA — Notification Service ────────────────
     // Cuando el Notification Service esté disponible, reemplazar este
-    // bloque comentado por la llamada gRPC real:
-    //
-    // try {
-    //   await this.notificationClient.sendWelcomeEmail({
-    //     userId,
-    //     email:       req.email,
-    //     displayName: req.displayName,
-    //   });
-    // } catch (err) {
-    //   // No bloquear el registro si el email falla
-    //   this.logger.warn(`Email de bienvenida no enviado: ${err.message}`);
-    // }
+   // ── Notification Service — Welcome Email ─────────────────────
+  try {
+      await this.notificationClient.sendWelcomeEmail({
+        user_id:    userId,
+        user_email: req.email,
+        user_name:  req.displayName,
+      });
+    } catch (err: unknown) {
+      this.logger.warn(`Email de bienvenida no enviado: ${(err as Error).message}`);
+    }
     // ────────────────────────────────────────────────────────────
-
-    // ── INTEGRACIÓN FUTURA — Subscription Service ────────────────
-    // try {
-    //   await this.subscriptionClient.createTrialSubscription({ userId, email: req.email });
-    // } catch (err) {
-    //   this.logger.warn(`Suscripción trial no creada: ${err.message}`);
-    // }
-    // ────────────────────────────────────────────────────────────
-
     return {
       userId,
       profileId,
-      message: 'Usuario registrado correctamente. Verifica tu correo para activar tu cuenta.',
+      message: 'Usuario registrado correctamente.',
     };
   }
 

@@ -6,7 +6,7 @@
 
 
 DROP SCHEMA IF EXISTS catalog CASCADE;
-CREATE SCHEMA catalogo_DB;
+CREATE SCHEMA catalog;
 SET search_path TO catalog;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -148,7 +148,7 @@ CREATE INDEX idx_content_published   ON content(is_published, published_at DESC)
 CREATE INDEX idx_content_year        ON content(release_year);
 -- Índice para búsqueda de texto completo (título + sinopsis)
 CREATE INDEX idx_content_search      ON content USING GIN (
-    to_tsvector('spanish', unaccent(title) || ' ' || COALESCE(unaccent(synopsis), ''))
+    to_tsvector('spanish', title || ' ' || COALESCE(synopsis, ''))
 );
 CREATE INDEX idx_ratings_content     ON ratings(content_id);
 CREATE INDEX idx_ratings_profile     ON ratings(profile_id);
