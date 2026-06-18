@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { getCatalog, getGenres } from '@/api/catalog'
+import { getCatalog, getGenres, getContentDetail } from '@/api/catalog'
 import {
   adminCreateContent,
   adminUpdateContent,
@@ -68,7 +68,7 @@ export default function CatalogAdminPage() {
   const dataWithPublishState = data
     ? {
         ...data,
-        movies: data.movies.map(m => ({ ...m, isPublished: publishedIds.has(m.id) } as Movie)),
+        movies: data.movies.map(m => ({ ...m, isPublished: publishedIds.has(m.id) })),
       }
     : data
 
@@ -98,8 +98,23 @@ export default function CatalogAdminPage() {
   })
 
   function closeForm() { setFormOpen(false); setEditing(null) }
+  const [loadingEdit, setLoadingEdit] = useState(false)
+
   function openCreate() { setEditing(null); setFormOpen(true) }
-  function openEdit(m: Movie) { setEditing(m); setFormOpen(true) }
+
+  async function openEdit(m: Movie) {
+    setFormOpen(true)
+    setLoadingEdit(true)
+    setEditing(m) // muestra algo de inmediato mientras carga el detalle completo
+    try {
+      const full = await getContentDetail(m.id)
+      setEditing(full)
+    } catch {
+      // si falla, se queda con los datos parciales del listado
+    } finally {
+      setLoadingEdit(false)
+    }
+  }
   function openSchedule(m: Movie) {
   if (m.isPublished) return
   setScheduling(m)
@@ -311,13 +326,19 @@ export default function CatalogAdminPage() {
               {editing ? 'Editar título' : 'Nuevo título'}
             </DialogTitle>
           </DialogHeader>
-          <ContentForm
-            genres={genres}
-            initial={editing}
-            isLoading={createMut.isPending || updateMut.isPending}
-            onSubmit={handleFormSubmit}
-            onCancel={closeForm}
-          />
+          {loadingEdit ? (
+            <div className="py-12 text-center text-silver/40 text-sm font-mono">
+              Cargando datos del título...
+            </div>
+          ) : (
+            <ContentForm
+              genres={genres}
+              initial={editing}
+              isLoading={createMut.isPending || updateMut.isPending}
+              onSubmit={handleFormSubmit}
+              onCancel={closeForm}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
