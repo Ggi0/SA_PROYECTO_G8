@@ -596,3 +596,49 @@ func TestHandler_DeleteEpisode_Success(t *testing.T) {
 		t.Fatal("esperaba success=true")
 	}
 }
+
+// ---------------------------------------------------------------------------
+// GetUploadURL / GetDownloadURL (solo paths de validación; storage requiere GCS real)
+// ---------------------------------------------------------------------------
+
+func TestHandler_GetUploadURL_EmptyFilename(t *testing.T) {
+	_, err := newHandler(&mockRepo{}).GetUploadURL(context.Background(), &pb.GetUploadURLRequest{Filename: ""})
+	assertCode(t, err, codes.InvalidArgument)
+}
+
+func TestHandler_GetDownloadURL_EmptyObjectName(t *testing.T) {
+	_, err := newHandler(&mockRepo{}).GetDownloadURL(context.Background(), &pb.GetDownloadURLRequest{ObjectName: ""})
+	assertCode(t, err, codes.InvalidArgument)
+}
+
+// ---------------------------------------------------------------------------
+// ListAllContent
+// ---------------------------------------------------------------------------
+
+func TestHandler_ListAllContent_Success(t *testing.T) {
+	repo := &mockRepo{
+		listAllContentFn: func(string, int, int, int) ([]CatalogCardRow, int, error) {
+			return []CatalogCardRow{
+				{ContentID: "1", Title: "Borrador"},
+				{ContentID: "2", Title: "Publicado"},
+			}, 2, nil
+		},
+	}
+	resp, err := newHandler(repo).ListAllContent(context.Background(), &pb.GetCatalogRequest{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(resp.Items) != 2 {
+		t.Fatalf("esperaba 2 items, got %d", len(resp.Items))
+	}
+}
+
+func TestHandler_ListAllContent_Error(t *testing.T) {
+	repo := &mockRepo{
+		listAllContentFn: func(string, int, int, int) ([]CatalogCardRow, int, error) {
+			return nil, 0, ErrMock
+		},
+	}
+	_, err := newHandler(repo).ListAllContent(context.Background(), &pb.GetCatalogRequest{})
+	assertCode(t, err, codes.Internal)
+}

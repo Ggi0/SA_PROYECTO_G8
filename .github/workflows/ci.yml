@@ -29,7 +29,11 @@ jobs:
         working-directory: app/QuetxalTV/microservices/catalogo-service
         run: |
           go build ./...
-          go test ./internal/catalog -cover -v
+          go test ./internal/catalog -coverprofile=coverage.out -covermode=atomic -v
+          grep -v "internal/catalog/repository.go" coverage.out > coverage_unit.out
+          COVERAGE=$(go tool cover -func=coverage_unit.out | grep 'total:' | awk '{print $3}' | tr -d '%')
+          echo "Cobertura catalogo-service (handler+service): ${COVERAGE}%"
+          if [ $(echo "$COVERAGE < 75" | bc -l) -eq 1 ]; then echo "❌ Cobertura ${COVERAGE}% menor al 75%"; exit 1; fi
   test-ts:
     name: "TypeScript services (≥75%)"
     runs-on: ubuntu-latest
