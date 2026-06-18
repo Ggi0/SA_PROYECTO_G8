@@ -7,7 +7,7 @@ interface SubscriptionGrpcService {
   getPlans(data: Record<string, never>): Observable<unknown>;
   getPlanById(data: { planId: string }): Observable<unknown>;
   getPlansWithRates(data: { currency: string; userId: string }): Observable<unknown>;
-  subscribe(data: { userId: string; planId: string; currency: string; paymentMethod: string }): Observable<unknown>;
+  subscribe(data: { userId: string; planId: string; currency: string; paymentMethod: string; userEmail: string }): Observable<unknown>;
   cancelSubscription(data: { userId: string; reason: string }): Observable<unknown>;
   getUserSubscription(data: { userId: string }): Observable<unknown>;
   getPaymentHistory(data: { userId: string; limit: number; offset: number }): Observable<unknown>;
@@ -61,14 +61,15 @@ export class SubscriptionService implements OnModuleInit {
     return this.grpcClient.getPlansWithRates({ currency: currency || 'USD', userId });
   }
 
-  subscribe(userId: string, dto: SubscribeDto) {
+  subscribe(userId: string, dto: SubscribeDto, userEmail = '') {
     return this.grpcClient.subscribe({
       userId,
       planId: dto.planId,
       currency: dto.currency || 'USD',
       paymentMethod: dto.paymentMethod || 'unknown',
+      userEmail,
     });
-  }
+ }
 
   cancelSubscription(userId: string, dto: CancelSubscriptionDto) {
     return this.grpcClient.cancelSubscription({

@@ -122,7 +122,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("error listening on port %s: %v", port, err)
 	}
-
+	
+	go startAuditServer(db)
+	
 	grpcServer := grpc.NewServer()
 	healthpb.RegisterHealthServer(grpcServer, &grpcHealthServer{db: db})
 

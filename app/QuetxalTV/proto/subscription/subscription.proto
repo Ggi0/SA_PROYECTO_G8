@@ -61,6 +61,7 @@ message SubscribeRequest {
   string plan_id = 2;
   string currency = 3;
   string payment_method = 4;
+  string user_email = 5; 
 }
 
 message SubscribeResponse {

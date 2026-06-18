@@ -28,7 +28,6 @@ export interface Movie {
   recommendationPct: number
   type: 'movie' | 'series'
   cast: Actor[]
-  // Campos adicionales del catalog service
   originalTitle?: string
   videoRef?: string
   videoSource?: string
@@ -36,6 +35,7 @@ export interface Movie {
   durationMin?: number
   ratingClass?: string
   totalVotes?: number
+  isPublished?: boolean  // ← agregar esto
 }
 
 export interface Actor {
