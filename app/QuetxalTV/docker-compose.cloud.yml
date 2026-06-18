@@ -26,6 +26,9 @@ services:
       FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
       FX_SERVICE_URL: ${FX_SERVICE_URL:-fx-service:50054}
       HISTORIAL_SERVICE_URL: ${HISTORIAL_SERVICE_URL:-historial-service:50054}
+      SUBSCRIPTION_HTTP_URL: ${SUBSCRIPTION_HTTP_URL:-http://subscription-service:8083}
+      NOTIFICATION_HTTP_URL: ${NOTIFICATION_HTTP_URL:-http://notification-service:8084}
+      FX_HTTP_URL: ${FX_HTTP_URL:-http://fx-service:8085}
     depends_on:
       - auth-service
       - subscription-service

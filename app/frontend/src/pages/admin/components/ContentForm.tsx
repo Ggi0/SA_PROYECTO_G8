@@ -1,9 +1,11 @@
 // src/pages/admin/components/ContentForm.tsx
 import { useEffect, useState } from 'react'
+import { Upload, Link as LinkIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { Movie } from '@/types'
 import type { CreateContentPayload } from '@/api/catalogAdmin'
+import MediaUploader from './MediaUploader'
 
 interface Props {
   genres: Array<{ id: number; name: string }>
@@ -14,7 +16,6 @@ interface Props {
 }
 
 const RATING_CLASSES = ['G', 'PG', 'PG-13', 'R', 'NC-17', 'TV-MA', 'NR']
-const VIDEO_SOURCES  = ['youtube', 'gcs', 'vimeo']
 
 const empty: CreateContentPayload = {
   contentType: 'MOVIE',
@@ -22,13 +23,17 @@ const empty: CreateContentPayload = {
   releaseYear: new Date().getFullYear(),
   durationMin: 0, ratingClass: 'PG',
   posterUrl: '', trailerUrl: '', videoRef: '',
-  videoSource: 'youtube', genreIds: [],
+  videoSource: 'gcs', genreIds: [],
 }
 
 export default function ContentForm({ genres, initial, isLoading, onSubmit, onCancel }: Props) {
   const isEditing = !!initial
   const [form, setForm] = useState<CreateContentPayload>(empty)
   const [errors, setErrors] = useState<Partial<Record<keyof CreateContentPayload, string>>>({})
+
+  // Modo de carga del video: subir archivo (gcs) o pegar link (youtube/vimeo)
+  const [videoMode, setVideoMode] = useState<'upload' | 'link'>('upload')
+  const [posterMode, setPosterMode] = useState<'upload' | 'link'>('link')
 
   useEffect(() => {
     if (initial) {
@@ -40,12 +45,17 @@ export default function ContentForm({ genres, initial, isLoading, onSubmit, onCa
         posterUrl:     initial.coverImage || '',
         trailerUrl:    initial.trailerUrl || '',
         videoRef:      initial.videoRef || '',
+        videoSource:   initial.videoSource || 'gcs',
         releaseYear:   initial.year || new Date().getFullYear(),
         durationMin:   initial.durationMin || 0,
         ratingClass:   initial.ratingClass || 'PG',
       })
+      setVideoMode(initial.videoSource === 'gcs' ? 'upload' : 'link')
+      setPosterMode(initial.coverImage?.startsWith('http') ? 'link' : 'upload')
     } else {
       setForm(empty)
+      setVideoMode('upload')
+      setPosterMode('link')
     }
     setErrors({})
   }, [initial])
@@ -73,6 +83,18 @@ export default function ContentForm({ genres, initial, isLoading, onSubmit, onCa
   }
 
   function handleSubmit() { if (validate()) onSubmit(form) }
+
+  function handleVideoUploaded(objectName: string) {
+    set('videoRef', objectName)
+    set('videoSource', 'gcs')
+  }
+
+  function handlePosterUploaded(objectName: string) {
+    // El backend de upload sirve también para posters; se guarda el object_name
+    // como referencia. Si tu visor de pósters espera una URL servida por el
+    // backend, ajusta aquí para construir esa URL en vez del object_name crudo.
+    set('posterUrl', objectName)
+  }
 
   const inp = 'bg-[#2C2416] border-[#3a2e1a] text-silver placeholder:text-silver/25 focus-visible:ring-spotlight/40 h-9 text-sm'
   const lbl = 'block text-xs text-silver/40 uppercase tracking-wider mb-1.5 font-semibold'
@@ -158,46 +180,76 @@ export default function ContentForm({ genres, initial, isLoading, onSubmit, onCa
         </div>
       </div>
 
-      {/* Imágenes */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={lbl}>URL del póster</label>
+      {/* Póster */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className={lbl + ' mb-0'}>Póster</label>
+          <ModeToggle mode={posterMode} onChange={setPosterMode} />
+        </div>
+
+        {posterMode === 'link' ? (
           <Input value={form.posterUrl} onChange={e => set('posterUrl', e.target.value)} className={inp} placeholder="https://..." />
-        </div>
-        <div>
-          <label className={lbl}>URL del trailer</label>
-          <Input value={form.trailerUrl} onChange={e => set('trailerUrl', e.target.value)} className={inp} placeholder="https://youtube.com/..." />
-        </div>
+        ) : (
+          <MediaUploader
+            kind="poster"
+            value={form.posterUrl}
+            onUploaded={handlePosterUploaded}
+            onClear={() => set('posterUrl', '')}
+          />
+        )}
+
+        {posterMode === 'link' && form.posterUrl && (
+          <div className="flex justify-center mt-2">
+            <img
+              src={form.posterUrl}
+              alt="Preview"
+              className="h-28 rounded-lg object-cover border border-[#3a2e1a] opacity-80"
+              onError={e => (e.currentTarget.style.display = 'none')}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Preview póster */}
-      {form.posterUrl && (
-        <div className="flex justify-center">
-          <img
-            src={form.posterUrl}
-            alt="Preview"
-            className="h-28 rounded-lg object-cover border border-[#3a2e1a] opacity-80"
-            onError={e => (e.currentTarget.style.display = 'none')}
-          />
-        </div>
-      )}
+      {/* Trailer */}
+      <div>
+        <label className={lbl}>URL del trailer</label>
+        <Input value={form.trailerUrl} onChange={e => set('trailerUrl', e.target.value)} className={inp} placeholder="https://youtube.com/..." />
+      </div>
 
-      {/* Video */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-2">
-          <label className={lbl}>Referencia de video</label>
-          <Input value={form.videoRef} onChange={e => set('videoRef', e.target.value)} className={inp} placeholder="ID o ruta del archivo" />
+      {/* Video principal */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className={lbl + ' mb-0'}>Video {!isEditing && '*'}</label>
+          <ModeToggle mode={videoMode} onChange={setVideoMode} />
         </div>
-        <div>
-          <label className={lbl}>Fuente</label>
-          <select
-            value={form.videoSource}
-            onChange={e => set('videoSource', e.target.value)}
-            className="w-full h-9 rounded-md px-3 text-sm bg-[#2C2416] border border-[#3a2e1a] text-silver focus:outline-none focus:ring-1 focus:ring-spotlight/40"
-          >
-            {VIDEO_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
+
+        {videoMode === 'upload' ? (
+          <MediaUploader
+            kind="video"
+            value={form.videoRef}
+            onUploaded={handleVideoUploaded}
+            onClear={() => set('videoRef', '')}
+          />
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <Input
+                value={form.videoRef}
+                onChange={e => { set('videoRef', e.target.value); set('videoSource', 'youtube') }}
+                className={inp}
+                placeholder="ID o URL del video"
+              />
+            </div>
+            <select
+              value={form.videoSource}
+              onChange={e => set('videoSource', e.target.value)}
+              className="w-full h-9 rounded-md px-3 text-sm bg-[#2C2416] border border-[#3a2e1a] text-silver focus:outline-none focus:ring-1 focus:ring-spotlight/40"
+            >
+              <option value="youtube">youtube</option>
+              <option value="vimeo">vimeo</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Géneros */}
@@ -240,6 +292,35 @@ export default function ContentForm({ genres, initial, isLoading, onSubmit, onCa
             : isEditing ? 'Guardar cambios' : 'Crear título'}
         </Button>
       </div>
+    </div>
+  )
+}
+
+// ─── Toggle subir archivo / pegar link ────────────────────────────────────────
+
+function ModeToggle({ mode, onChange }: { mode: 'upload' | 'link'; onChange: (m: 'upload' | 'link') => void }) {
+  return (
+    <div className="flex items-center gap-1 bg-[#1e1810] rounded-md p-0.5 border border-[#3a2e1a]">
+      <button
+        type="button"
+        onClick={() => onChange('upload')}
+        title="Subir archivo"
+        className={`p-1 rounded text-xs transition-colors ${
+          mode === 'upload' ? 'bg-spotlight text-film' : 'text-silver/40 hover:text-silver'
+        }`}
+      >
+        <Upload size={12} />
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('link')}
+        title="Pegar enlace"
+        className={`p-1 rounded text-xs transition-colors ${
+          mode === 'link' ? 'bg-spotlight text-film' : 'text-silver/40 hover:text-silver'
+        }`}
+      >
+        <LinkIcon size={12} />
+      </button>
     </div>
   )
 }
