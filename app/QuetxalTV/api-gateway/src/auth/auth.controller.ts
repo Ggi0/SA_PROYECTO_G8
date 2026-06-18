@@ -255,4 +255,61 @@ import {
         newPassword:     body.new_password,
       });
     }
+
+
+    // ─────────────────────────────────────────────
+//  ADMIN - AUDITORÍA
+// ─────────────────────────────────────────────
+
+// GET /auth/admin/audit
+@Get('admin/audit')
+@UseGuards(AuthJwtGuard)
+getAuditLogs(@Req() req: AuthRequest) {
+  console.log('USER:', req.authUser);
+  return this.authService.getAuditLogs({
+    adminUserId: req.authUser.userId, // ✅ automático desde JWT
+    page: 1,
+    pageSize: 20,
+  });
+}
+
+// GET /auth/admin/audit/export
+@Get('admin/audit/export')
+@UseGuards(AuthJwtGuard)
+async exportAuditLogs(
+  @Req() req: AuthRequest,
+  @Res() res: Response,
+) {
+  const result = await this.authService.exportAuditLogs({
+    adminUserId: req.authUser.userId,
+    format: 'csv',
+  }) as any;
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=audit.csv');
+
+  return res.send(result.file);
+}
+
+
+
+// ─────────────────────────────────────────────
+//  HEALTH
+// ─────────────────────────────────────────────
+
+// GET /auth/health/live
+@Get('health/live')
+healthLive() {
+  return this.authService.healthLive();
+}
+
+// GET /auth/health/ready
+@Get('health/ready')
+healthReady() {
+  return this.authService.healthReady();
+}
+
+
+
+
   }

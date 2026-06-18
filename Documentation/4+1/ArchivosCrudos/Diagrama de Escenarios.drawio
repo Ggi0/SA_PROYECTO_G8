@@ -7,7 +7,7 @@
         <mxCell id="Onu891SawI3-nKJyKs4R-1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#1A2C4A;" value="Vista de Escenarios — Quetxal TV" vertex="1">
           <mxGeometry height="44" width="1654" as="geometry" />
         </mxCell>
-        <mxCell id="Onu891SawI3-nKJyKs4R-2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#555555;fontStyle=2;" value="Autenticación JWT · OAuth · FX + Redis · Historial por perfil" vertex="1">
+        <mxCell id="Onu891SawI3-nKJyKs4R-2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#555555;fontStyle=2;" value="Autenticación JWT · OAuth · FX + Redis · Historial por perfil · Catálogo Admin (GCS · ListAllContent)" vertex="1">
           <mxGeometry height="20" width="1654" y="40" as="geometry" />
         </mxCell>
         <mxCell id="Onu891SawI3-nKJyKs4R-3" parent="1" style="text;html=1;strokeColor=none;fillColor=#2C3E50;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#FFFFFF;" value="Quetxal TV — Escenarios Críticos (CDU-001 · CDU-003 · CDU-006 · CDU-007)" vertex="1">
@@ -316,13 +316,13 @@
         <mxCell id="Onu891SawI3-nKJyKs4R-104" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• 7 contenedores Docker desplegados en GCP." vertex="1">
           <mxGeometry height="16" width="404" x="1222" y="900" as="geometry" />
         </mxCell>
-        <mxCell id="Onu891SawI3-nKJyKs4R-105" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Cloud SQL con 6 BDs aisladas (Database per Microservice)." vertex="1">
+        <mxCell id="Onu891SawI3-nKJyKs4R-105" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Cloud SQL con 6 BDs aisladas (Database per Microservice) · GCS bucket quetxal-tv-videos (Object Storage)." vertex="1">
           <mxGeometry height="16" width="404" x="1222" y="916" as="geometry" />
         </mxCell>
         <mxCell id="Onu891SawI3-nKJyKs4R-106" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Memorystore Redis :6379 — no contenedor efímero." vertex="1">
           <mxGeometry height="16" width="404" x="1222" y="932" as="geometry" />
         </mxCell>
-        <mxCell id="Onu891SawI3-nKJyKs4R-107" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• API Gateway único expuesto · VPC privada interna · GCP." vertex="1">
+        <mxCell id="Onu891SawI3-nKJyKs4R-107" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• API Gateway único expuesto · VPC privada interna · GCP · catalog-service Workload Identity (catalogo-service-ksa)." vertex="1">
           <mxGeometry height="16" width="404" x="1222" y="948" as="geometry" />
         </mxCell>
         <mxCell id="Onu891SawI3-nKJyKs4R-108" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#555555;" value="Diagrama de Despliegue UML" vertex="1">

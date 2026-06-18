@@ -669,6 +669,73 @@ func txSetChangedBy(tx interface {
 	return err
 }
 
+// ListAllContent devuelve todo el contenido independientemente de is_published.
+// Consulta la tabla content directamente (no usa v_catalog_card que filtra publicados).
+func (r *Repository) ListAllContent(contentType string, genreID, page, pageSize int) ([]CatalogCardRow, int, error) {
+	where := "WHERE 1=1"
+	args := []any{}
+	i := 1
+
+	if contentType != "" {
+		where += fmt.Sprintf(" AND c.content_type = $%d", i)
+		args = append(args, contentType)
+		i++
+	}
+
+	if genreID > 0 {
+		where += fmt.Sprintf(" AND EXISTS (SELECT 1 FROM content_genres cg WHERE cg.content_id = c.content_id AND cg.genre_id = $%d)", i)
+		args = append(args, genreID)
+		i++
+	}
+
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM content c %s`, where)
+	var total int
+	if err := r.db.QueryRow(countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	args = append(args, pageSize, offset)
+
+	query := fmt.Sprintf(`
+		SELECT c.content_id, c.content_type, c.title,
+		       COALESCE(c.release_year, 0), COALESCE(c.duration_min, 0),
+		       COALESCE(c.rating_class, ''), COALESCE(c.poster_url, ''),
+		       COALESCE(
+		           ARRAY(SELECT g.name FROM content_genres cg2
+		                 JOIN genres g ON cg2.genre_id = g.genre_id
+		                 WHERE cg2.content_id = c.content_id ORDER BY g.name),
+		           '{}'
+		       )::TEXT,
+		       COALESCE(fn_recommendation_percentage(c.content_id), 0),
+		       COALESCE(fn_average_stars(c.content_id), 0),
+		       (SELECT COUNT(*) FROM ratings r WHERE r.content_id = c.content_id)
+		FROM content c
+		%s
+		ORDER BY c.created_at DESC
+		LIMIT $%d OFFSET $%d`, where, i, i+1)
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var items []CatalogCardRow
+	for rows.Next() {
+		var row CatalogCardRow
+		if err := rows.Scan(
+			&row.ContentID, &row.ContentType, &row.Title, &row.ReleaseYear,
+			&row.DurationMin, &row.RatingClass, &row.PosterURL,
+			&row.Genres, &row.RecommendationPct, &row.AvgStars, &row.TotalVotes,
+		); err != nil {
+			return nil, 0, err
+		}
+		items = append(items, row)
+	}
+	return items, total, rows.Err()
+}
+
 func nullableStr(s string) any {
 	if s == "" {
 		return nil

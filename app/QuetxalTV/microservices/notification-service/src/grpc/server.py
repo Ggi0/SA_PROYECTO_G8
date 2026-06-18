@@ -8,14 +8,33 @@ import concurrent.futures
 import threading
 import time
 import logging
+from grpc_health.v1 import health_pb2, health_pb2_grpc
 import notification_pb2_grpc
 from src.grpc.notification_servicer import NotificationServicer
 from src.email.sender import EmailSender
+from src.db.connection import get_connection
 from src.db.repository import NotificationRepository
 import src.config as config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+class HealthServicer(health_pb2_grpc.HealthServicer):
+    def Check(self, request, context):
+        if request.service == "notification-service-readiness":
+            try:
+                with get_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT 1")
+            except Exception:
+                return health_pb2.HealthCheckResponse(
+                    status=health_pb2.HealthCheckResponse.NOT_SERVING
+                )
+
+        return health_pb2.HealthCheckResponse(
+            status=health_pb2.HealthCheckResponse.SERVING
+        )
 
 def worker_loop():
     """Worker que procesa la cola de notificaciones pendientes."""
@@ -45,6 +64,8 @@ def worker_loop():
 
 def serve():
     server = grpc.server(concurrent.futures.ThreadPoolExecutor(max_workers=10))
+    health_pb2_grpc.add_HealthServicer_to_server(HealthServicer(), server)
+
     notification_pb2_grpc.add_NotificationServiceServicer_to_server(
         NotificationServicer(), server
     )

@@ -42,6 +42,28 @@ services:
     networks:
       - quetxal-db-network
 
+  # Migración idempotente de auditoría (Fase 2). Se ejecuta una sola vez por
+  # despliegue cuando subscription-db está saludable; aplica el esquema nuevo
+  # sobre volúmenes ya existentes sin perder datos. No es manual: lo dispara el
+  # pipeline de CD al hacer `docker compose up`.
+  subscription-db-migrate:
+    image: postgres:16-alpine
+    depends_on:
+      subscription-db:
+        condition: service_healthy
+    environment:
+      PGHOST: subscription-db
+      PGPORT: 5432
+      PGUSER: ${SUBSCRIPTION_DB_USER}
+      PGPASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
+      PGDATABASE: ${SUBSCRIPTION_DB_NAME}
+    volumes:
+      - ./microservices/subscription-service/internal/database/migrations/002_audit_upgrade.sql:/sql/002_audit_upgrade.sql:ro
+    command: ["psql", "-v", "ON_ERROR_STOP=1", "-f", "/sql/002_audit_upgrade.sql"]
+    restart: "no"
+    networks:
+      - quetxal-db-network
+
   catalogo-db:
     image: postgres:16-alpine
     container_name: catalogo-db

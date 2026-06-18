@@ -11,6 +11,32 @@ interface SubscriptionGrpcService {
   cancelSubscription(data: { userId: string; reason: string }): Observable<unknown>;
   getUserSubscription(data: { userId: string }): Observable<unknown>;
   getPaymentHistory(data: { userId: string; limit: number; offset: number }): Observable<unknown>;
+  getAuditLogs(data: AuditLogsQuery): Observable<unknown>;
+  exportAuditLog(data: ExportAuditQuery): Observable<AuditExportResult>;
+}
+
+// Filtros de consulta del log de auditoría transaccional (Fase 2).
+export interface AuditLogsQuery {
+  tableName: string;
+  operation: string;
+  from: string;
+  to: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface ExportAuditQuery {
+  format: string; // "csv" | "pdf"
+  tableName: string;
+  operation: string;
+  from: string;
+  to: string;
+}
+
+export interface AuditExportResult {
+  content: Buffer;
+  contentType: string;
+  filename: string;
 }
 
 @Injectable()
@@ -57,5 +83,28 @@ export class SubscriptionService implements OnModuleInit {
 
   getPaymentHistory(userId: string, limit = 10, offset = 0) {
     return this.grpcClient.getPaymentHistory({ userId, limit, offset });
+  }
+
+  // ===== Auditoría transaccional (Fase 2) — solo administradores =====
+
+  getAuditLogs(query: Partial<AuditLogsQuery>) {
+    return this.grpcClient.getAuditLogs({
+      tableName: query.tableName || '',
+      operation: query.operation || '',
+      from: query.from || '',
+      to: query.to || '',
+      page: query.page || 1,
+      pageSize: query.pageSize || 20,
+    });
+  }
+
+  exportAuditLog(query: Partial<ExportAuditQuery>) {
+    return this.grpcClient.exportAuditLog({
+      format: query.format || 'csv',
+      tableName: query.tableName || '',
+      operation: query.operation || '',
+      from: query.from || '',
+      to: query.to || '',
+    });
   }
 }

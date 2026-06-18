@@ -377,6 +377,40 @@ func (s *Service) DeleteEpisode(episodeID, changedBy string) (*pb.DeleteEpisodeR
 	return &pb.DeleteEpisodeResponse{Success: true}, nil
 }
 
+func (s *Service) ListAllContent(contentType string, genreID, page, pageSize int) (*pb.GetCatalogResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	rows, total, err := s.repo.ListAllContent(contentType, genreID, page, pageSize)
+	if err != nil {
+		return nil, fmt.Errorf("ListAllContent: %w", err)
+	}
+
+	items := make([]*pb.ContentCard, 0, len(rows))
+	for _, r := range rows {
+		genres, _ := parseGenreNames(r.Genres)
+		items = append(items, &pb.ContentCard{
+			ContentId:         r.ContentID,
+			ContentType:       r.ContentType,
+			Title:             r.Title,
+			ReleaseYear:       int32(r.ReleaseYear),
+			DurationMin:       int32(r.DurationMin),
+			RatingClass:       r.RatingClass,
+			PosterUrl:         r.PosterURL,
+			Genres:            genres,
+			RecommendationPct: r.RecommendationPct,
+			AvgStars:          r.AvgStars,
+			TotalVotes:        r.TotalVotes,
+		})
+	}
+
+	return &pb.GetCatalogResponse{Items: items, Total: int32(total)}, nil
+}
+
 func rowToEpisode(r *EpisodeRow) *pb.Episode {
 	return &pb.Episode{
 		EpisodeId:   r.EpisodeID,

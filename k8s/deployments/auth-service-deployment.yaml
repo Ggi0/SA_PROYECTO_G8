@@ -71,5 +71,5 @@ spec:
               value: notification-service
             - name: NOTIFICATION_SERVICE_PORT
               value: "50056"
-          readinessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
-          livenessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { grpc: { port: 50051, service: auth-service-readiness }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { grpc: { port: 50051, service: auth-service-liveness }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
