@@ -2,7 +2,7 @@
 
 > Documento de arquitectura del sistema QuetxalTV basado en el modelo de vistas 4+1 de Philippe Kruchten.
 
-![Vista General 4+1](Imagenes/Vista%204%2B1%20(2).png)
+![Vista General 4+1](Imagenes/Vista%204%2B1%20(3).png)
 
 ---
 
@@ -14,30 +14,83 @@
 
 **Actores:**
 - **Usuario / Cliente** — interactúa con el sistema a través del navegador web
-- **Administrador de Pago** — gestiona el procesamiento de suscripciones
-- **Servicio Externo** — ExchangeRate API y SMTP Gmail
+- **Administrador** — gestiona catálogo, auditoría y reportes del sistema
+- **Sistema de Pago** — procesa transacciones de suscripciones (`sp_process_transaction`)
+- **Servicio de Correo** — SMTP Gmail, envío de recibos y alertas
+- **API de Divisas Externas** — ExchangeRate API, conversión USD → moneda local
+- **Kubernetes / Orquestador** — monitorea salud de servicios mediante readiness probes
 
 **Casos de uso:**
 
 | ID | Nombre | Descripción |
 |---|---|---|
-| CU-001 | Autenticación y Gestión de Usuarios | Login con credenciales (email + password), OAuth Google, registro de nuevos usuarios, validación de JWT y renovación de token |
-| CU-002 | Gestión de Perfiles | Crear, editar y eliminar perfiles dentro de una cuenta (máximo 5 por cuenta) |
-| CU-003 | Gestión de Planes y Suscripciones | Consultar planes disponibles con precio en moneda local, seleccionar y adquirir un plan mediante transacción atómica |
-| CU-004 | Catálogo, Búsqueda y Detalle | Navegar y filtrar contenido (películas, series), buscar por nombre o género, ver detalle de actores y estructura de temporadas/episodios |
-| CU-005 | Historial y Progreso de Reproducción | Reanudar contenido desde el punto exacto por perfil (`season · episode · minute`), guardar progreso cada 30 segundos |
-| CU-006 | Notificaciones y Tipo de Cambio | Envío de recibo de compra y alertas por email; conversión de precios USD → moneda local con cache de 1 hora |
+| CDU-001 | Autenticación y Gestión de Usuarios | Login con credenciales (email + password), OAuth Google, registro de nuevos usuarios, validación de JWT y renovación de token |
+| CDU-002 | Gestión de Perfiles | Crear, editar y eliminar perfiles dentro de una cuenta (máximo 5 por cuenta) |
+| CDU-003 | Gestión de Planes y Suscripciones | Consultar planes con precio en moneda local, adquirir plan mediante transacción atómica con integración FX y notificación de recibo |
+| CDU-004 | Catálogo, Búsqueda y Detalle | Navegar y filtrar contenido (películas, series), buscar por nombre o género, ver detalle de actores y temporadas/episodios |
+| CDU-005 | Gestión de Planes (administración) | Vista administrativa de planes disponibles y configuración de precios |
+| CDU-006 | FX / Tipo de Cambio | Conversión de precios USD → moneda local con cache Redis TTL 3600 s; cache hit ~1 ms, cache miss consulta ExchangeRate API |
+| CDU-007 | Historial y Progreso de Reproducción | Reanudar contenido desde el punto exacto por perfil (`season · episode · minute`); guardar progreso cada 30 s via `watch_progress_episode` |
+| CDU-008 | Notificaciones por Correo | Envío de recibo de compra y alertas por email (SMTP Gmail); retry automático en caso de fallo |
+| CDU-009 | Panel Administrador / Catálogo Dinámico | Crear y publicar contenido con recursos multimedia (portada, tráiler, video); subida hacia Google Cloud Storage; referencias URI en `catalog_db`; control de acceso por rol (403 si no es admin) |
+| CDU-010 | Auditoría y Reportes Administrativos | Trigger de auditoría registra usuario, timestamp, tabla, estado anterior y nuevo; filtrado de logs; exportación de reportes CSV y PDF |
+| CDU-011 | Monitor de Salud de Servicios | Readiness probes vía `GET /health/ready`; Kubernetes suspende tráfico al pod si la BD no responde (`NOT_READY`); reanuda cuando el servicio vuelve a estar saludable |
+
+**Escenarios críticos:**
+
+**CDU-003 — Compra de suscripción exitosa y recibo**
+- Usuario autenticado selecciona plan → API Gateway
+- `Subscription Service` consulta precio local → `FX Service` → Redis / ExchangeRate API
+- Sistema de pago procesa transacción (`sp_process_transaction` con retries)
+- `Notification Service` envía recibo por correo (SMTP Gmail)
+- Resultado: suscripción activa y recibo enviado al usuario
+
+**CDU-007 — Reanudar contenido y guardar progreso**
+- Frontend solicita progreso → `Historial Service` consulta `watch_progress_episode`
+- Retorna minuto exacto si existe registro; si no, inicia desde E01 S01
+- Para series actualiza episodio, temporada, minuto y porcentaje cada 30 s
+- Resultado: el usuario puede continuar desde el último punto guardado
+
+**CDU-009 — Crear contenido con recursos multimedia**
+- Administrador adjunta portada, tráiler y video desde el panel
+- `Catalog Service` sube archivos hacia Google Cloud Storage
+- Almacena referencias URI en `catalog_db`
+- Resultado: contenido creado y disponible como borrador o programado
+
+**CDU-009 — Acceso denegado al panel administrativo**
+- Usuario autenticado sin rol de administrador intenta acceder al panel
+- API Gateway valida JWT y permisos asociados → rechaza con `403 Forbidden`
+- El intento queda registrado en logs de auditoría con detalles del usuario
+- Resultado: se protege la gestión de catálogo y reportes administrativos
+
+**CDU-010 — Auditoría transaccional y reporte administrativo**
+- Cada `INSERT/UPDATE` confirma trigger de auditoría en la BD relacional
+- Registra: usuario, timestamp, tabla afectada, estado anterior y nuevo
+- Tabla de auditoría centralizada permite joins entre servicios
+- Sistema permite filtrar logs y descargar reportes CSV o PDF
+- Resultado (trazabilidad): control total de operaciones administrativas
+
+**CDU-011 — Readiness probe con dependencia no disponible**
+- Kubernetes consulta `GET /health/ready` periódicamente
+- API Gateway valida conexión hacia todos los servicios gRPC
+- Si la BD no responde, el servicio retorna `NOT_READY`
+- Kubernetes deja de enviar tráfico al pod hasta que vuelva a estar saludable
+- Resultado: el sistema aísla pods degradados sin intervención manual
 
 **Mapeo de escenarios a vistas:**
 
 | Escenario | Vista Lógica | Vista de Procesos | Vista de Componentes | Vista de Despliegue |
 |---|:---:|:---:|:---:|:---:|
-| CU-001 Autenticación | ✓ | ✓ | ✓ | ✓ |
-| CU-002 Perfiles | | ✓ | ✓ | ✓ |
-| CU-003 Suscripciones | | ✓ | ✓ | ✓ |
-| CU-004 Catálogo | | | ✓ | ✓ |
-| CU-005 Historial | | ✓ | ✓ | ✓ |
-| CU-006 Notificaciones/FX | | ✓ | ✓ | ✓ |
+| CDU-001 Autenticación | ✓ | ✓ | ✓ | ✓ |
+| CDU-002 Perfiles | | ✓ | ✓ | ✓ |
+| CDU-003 Suscripciones | | ✓ | ✓ | ✓ |
+| CDU-004 Catálogo | | | ✓ | ✓ |
+| CDU-006 FX / Divisas | | ✓ | ✓ | ✓ |
+| CDU-007 Historial | | ✓ | ✓ | ✓ |
+| CDU-008 Notificaciones | | ✓ | ✓ | ✓ |
+| CDU-009 Panel Admin | ✓ | ✓ | ✓ | ✓ |
+| CDU-010 Auditoría | | ✓ | ✓ | ✓ |
+| CDU-011 Health / K8s | | | ✓ | ✓ |
 
 ![Vista de Escenarios](Imagenes/Diagrama%20de%20Escenarios.drawio.png)
 
@@ -180,4 +233,4 @@ Cada microservicio expone una interfaz provista (○—) y el API Gateway consum
 - **FX Service → ExchangeRate API:** HTTPS en caso de cache miss
 - **Notification Service → SMTP Gmail:** Puerto :587
 
-![Vista de Despliegue](Imagenes/Vista%20de%20Despliegue(Física).png)
+![Vista de Despliegue](Imagenes/Vista%20de%20Despliegue(Física).jpeg)
