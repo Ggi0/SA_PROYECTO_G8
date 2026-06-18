@@ -9,6 +9,11 @@ import MovieDetailPage from '@/pages/MovieDetailPage'
 import PlansPage from '@/pages/PlansPage'
 import AccountPage from '@/pages/AccountPage'
 import CheckoutPage from '@/pages/CheckoutPage'
+import AuditPage from '@/pages/admin/AuditPage'
+import LayoutAdmin from '@/pages/admin/layoutAdmin'
+import MainPage from '@/pages/admin/mainPage'
+import CatalogAdminPage from '@/pages/admin/CatalogAdminPage'
+
 
 export default function AppRoutes() {
   return (
@@ -38,6 +43,20 @@ export default function AppRoutes() {
       } />
 
       <Route path="/" element={<Navigate to="/login" />} />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <LayoutAdmin />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="audit" element={<AuditPage />} />
+        <Route index element={<MainPage />} />
+        <Route path="catalog" element={<CatalogAdminPage />} />
+      </Route>
+
     </Routes>
   )
 }

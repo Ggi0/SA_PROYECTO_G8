@@ -22,7 +22,7 @@ class EmailSender:
             html = template.render(**template_data)
 
             msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
+            msg["Subject"] = self.env.from_string(subject).render(**template_data)
             msg["From"]    = config.SMTP_FROM
             msg["To"]      = to_email
             msg["Message-ID"] = message_id

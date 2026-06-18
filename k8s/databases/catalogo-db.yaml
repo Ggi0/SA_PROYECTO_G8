@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: catalogo-db-pvc, namespace: quetxal-tv-prod }
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 3Gi } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: catalogo-db, namespace: quetxal-tv-prod }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: catalogo-db } }
+  strategy:
+    type: Recreate
+  template:
+    metadata: { labels: { app: catalogo-db } }
+    spec:
+      containers:
+        - name: catalogo-db
+          image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/catalogo-db:${IMAGE_TAG}
+          ports: [{ containerPort: 5432 }]
+          resources:
+            requests: { cpu: "75m", memory: "256Mi" }
+            limits: { cpu: "300m", memory: "512Mi" }
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: CATALOGO_DB_USER } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: CATALOGO_DB_PASSWORD } }
+            - name: POSTGRES_DB
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: CATALOGO_DB_NAME } }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+          readinessProbe: { exec: { command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""] }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { exec: { command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""] }, initialDelaySeconds: 90, periodSeconds: 30, failureThreshold: 3 }
+      volumes: [{ name: data, persistentVolumeClaim: { claimName: catalogo-db-pvc } }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: catalogo-db, namespace: quetxal-tv-prod }
+spec:
+  type: ClusterIP
+  selector: { app: catalogo-db }
+  ports: [{ port: 5432, targetPort: 5432 }]

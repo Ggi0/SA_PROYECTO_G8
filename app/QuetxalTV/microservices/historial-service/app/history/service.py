@@ -80,3 +80,69 @@ class HistorialAppService:
         self.validar_uuid(content_id, "content_id")
 
         return self.repository.obtener_progreso_contenido(profile_id, content_id)
+    
+    def get_history_audit_logs(self, table_name="", action="", limit=100, offset=0):
+            table_filter = table_name.strip() if table_name else None
+            action_filter = action.strip().upper() if action else None
+
+            tablas_permitidas = {
+            "watch_progress",
+            "watch_progress_episode"
+        }
+
+            acciones_permitidas = {
+            "INSERT",
+            "UPDATE"
+        }
+
+            if table_filter and table_filter not in tablas_permitidas:
+                raise ValueError(
+                "table_name debe ser watch_progress o watch_progress_episode"
+            )
+
+            if action_filter and action_filter not in acciones_permitidas:
+                raise ValueError(
+                "action debe ser INSERT o UPDATE"
+            )
+
+            if limit <= 0:
+                limit = 100
+
+            if limit > 500:
+                limit = 500
+
+            if offset < 0:
+                offset = 0
+
+            return self.repository.obtener_logs_auditoria(
+            table_filter,
+            action_filter,
+            limit,
+            offset
+        )
+    
+    def health_live(self):
+        return {
+            "success": True,
+            "status": "LIVE",
+            "service": "historial-service",
+            "message": "Historial service está vivo"
+        }
+
+    def health_ready(self):
+        database_ready = self.repository.verificar_conexion_base_datos()
+
+        if not database_ready:
+            return {
+                "success": False,
+                "status": "NOT_READY",
+                "service": "historial-service",
+                "message": "Historial service no pudo validar conexión con la base de datos"
+            }
+
+        return {
+            "success": True,
+            "status": "READY",
+            "service": "historial-service",
+            "message": "Historial service está listo y conectado a la base de datos"
+        }

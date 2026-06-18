@@ -53,6 +53,7 @@ console.log('display_name=', (req as any).display_name);
       password:    req.password,
       displayName: req.displayName,
     });
+    await this.authRepository.activateUser(userId);
 
     this.logger.log(`Usuario registrado: ${userId}`);
 
@@ -72,7 +73,7 @@ console.log('display_name=', (req as any).display_name);
     return {
       userId,
       profileId,
-      message: 'Usuario registrado correctamente. Verifica tu correo para activar tu cuenta.',
+      message: 'Usuario registrado correctamente.',
     };
   }
 

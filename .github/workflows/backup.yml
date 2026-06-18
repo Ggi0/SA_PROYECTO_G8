@@ -1,0 +1,95 @@
+name: DB Backup - Quetxal TV
+on:
+  schedule:
+    - cron: '10 20 * * *'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Target a respaldar: all, gce o gke"
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - gce
+          - gke
+  workflow_call:
+    inputs:
+      target:
+        required: false
+        default: all
+        type: string
+jobs:
+  backup:
+    name: Backup PostgreSQL → GCS
+    if: ${{ inputs.target == '' || inputs.target == 'all' || inputs.target == 'gce' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - name: Backup via SSH
+        env:
+          GCE_DB_PUBLIC_IP: ${{ secrets.GCE_DB_PUBLIC_IP }}
+          GCE_DB_SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
+          GCE_DB_SSH_PRIVATE_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
+          BUCKET: gs://${{ secrets.GCS_BACKUP_BUCKET }}
+        run: |
+          set -euo pipefail
+          TS=$(date +%Y%m%d_%H%M%S)
+          KEY_FILE="$RUNNER_TEMP/gce-db-ssh-key"
+          printf '%s\n' "$GCE_DB_SSH_PRIVATE_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          trap 'rm -f "$KEY_FILE"' EXIT
+          backup() {
+            C=$1
+            FILE="${C}_${TS}.sql.gz"
+            echo "🔄 $C..."
+            ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no "$GCE_DB_SSH_USER@$GCE_DB_PUBLIC_IP" \
+              "docker exec $C sh -c 'pg_dumpall -U \"\$POSTGRES_USER\"'" | gzip > "$FILE"
+            gcloud storage cp "$FILE" "$BUCKET/$C/$FILE"
+            rm -f "$FILE"
+            echo "✅ $C"
+          }
+          backup auth-db
+          backup subscription-db
+          backup catalogo-db
+          backup fx-db
+          backup notification-db
+          backup historial-db
+          echo " Backups completados: $TS"
+  backup-gke:
+      name: Backup PostgreSQL GKE -> GCS
+      if: ${{ inputs.target == '' || inputs.target == 'all' || inputs.target == 'gke' }}
+      runs-on: ubuntu-latest
+      permissions:
+        id-token: write
+        contents: read
+      env:
+        NAMESPACE: quetxal-tv-prod
+      steps:
+        - uses: actions/checkout@v4
+        - uses: google-github-actions/auth@v2
+          with:
+            workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+            service_account: ${{ secrets.GCP_SA_EMAIL }}
+        - uses: google-github-actions/get-gke-credentials@v2
+          with:
+            project_id: ${{ secrets.GCP_PROJECT_ID }}
+            cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+            location: ${{ secrets.GKE_CLUSTER_ZONE }}
+        - name: Backup DBs in GKE
+          run: |
+            set -e
+            TS=$(date +%Y%m%d_%H%M%S)
+            BUCKET="gs://${{ secrets.GCS_BACKUP_BUCKET }}"
+            for DB in auth-db subscription-db catalogo-db fx-db notification-db historial-db; do
+              POD=$(kubectl get pod -n "$NAMESPACE" -l app=$DB -o jsonpath='{.items[0].metadata.name}')
+              kubectl exec -n "$NAMESPACE" "$POD" -- sh -c 'pg_dumpall -U "$POSTGRES_USER"' > ${DB}_${TS}.sql
+              gzip ${DB}_${TS}.sql
+              gcloud storage cp ${DB}_${TS}.sql.gz $BUCKET/gke/$DB/${DB}_${TS}.sql.gz
+            done

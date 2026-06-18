@@ -390,4 +390,408 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram name="Admin - Secuencias" id="AdminSecuenciasPage">
+    <mxGraphModel dx="2943" dy="1606" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="adm1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;fontStyle=1;fontColor=#1A2C4A;" value="Vista Lógica" vertex="1">
+          <mxGeometry height="50" width="1654" as="geometry" />
+        </mxCell>
+        <mxCell id="adm2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#555555;" value="Admin: Gestión de Catálogo · Upload GCS · Auditoría" vertex="1">
+          <mxGeometry height="22" width="1654" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_act" parent="1" style="shape=mxgraph.flowchart.start_2;fillColor=#8B2500;strokeColor=#8B2500;html=1;whiteSpace=wrap;aspect=fixed;" value="Admin" vertex="1">
+          <mxGeometry height="36" width="36" x="37" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_act_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=11;fontStyle=1;fontColor=#8B2500;" value="Admin" vertex="1">
+          <mxGeometry height="20" width="60" x="25" y="118" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_gw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5B8DEF;strokeColor=#3A6FD8;fontColor=#FFFFFF;fontSize=10;arcSize=10;" value="&lt;b&gt;API Gateway&lt;/b&gt;&#xa;NestJS · :8080" vertex="1">
+          <mxGeometry height="40" width="150" x="135" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_grpc" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5B8DEF;strokeColor=#3A6FD8;fontColor=#FFFFFF;fontSize=10;arcSize=10;" value="&lt;b&gt;Catalog gRPC&lt;/b&gt;&#xa;:50052" vertex="1">
+          <mxGeometry height="40" width="140" x="365" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_http" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5B8DEF;strokeColor=#3A6FD8;fontColor=#FFFFFF;fontSize=10;arcSize=10;" value="&lt;b&gt;Catalog HTTP&lt;/b&gt;&#xa;:8082" vertex="1">
+          <mxGeometry height="40" width="140" x="590" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_db" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5B8DEF;strokeColor=#3A6FD8;fontColor=#FFFFFF;fontSize=10;arcSize=10;" value="&lt;b&gt;catalog_db&lt;/b&gt;&#xa;PostgreSQL" vertex="1">
+          <mxGeometry height="40" width="130" x="815" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_gcs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#888888;strokeColor=#555555;fontColor=#FFFFFF;fontSize=10;arcSize=10;" value="&lt;b&gt;Google Cloud Storage&lt;/b&gt;&#xa;«external»" vertex="1">
+          <mxGeometry height="40" width="160" x="1020" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_adm" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=6 4;strokeColor=#8B2500;strokeWidth=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="55" y="138" as="sourcePoint" />
+            <mxPoint x="55" y="1560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ll_gw" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=6 4;strokeColor=#1A2C4A;strokeWidth=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="210" y="114" as="sourcePoint" />
+            <mxPoint x="210" y="1560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ll_grpc" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=6 4;strokeColor=#1A2C4A;strokeWidth=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="435" y="114" as="sourcePoint" />
+            <mxPoint x="435" y="1560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ll_http" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=6 4;strokeColor=#1A2C4A;strokeWidth=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="114" as="sourcePoint" />
+            <mxPoint x="660" y="1560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ll_db" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=6 4;strokeColor=#1A2C4A;strokeWidth=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="114" as="sourcePoint" />
+            <mxPoint x="880" y="1560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ll_gcs" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=6 4;strokeColor=#555555;strokeWidth=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1100" y="114" as="sourcePoint" />
+            <mxPoint x="1100" y="1560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="alt1" parent="1" style="shape=table;startSize=20;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=left;strokeColor=#555555;fillColor=#555555;fontColor=#FFFFFF;fontSize=10;dashed=1;dashPattern=7 3;" value="alt" vertex="1">
+          <mxGeometry height="20" width="1200" x="20" y="148" as="geometry" />
+        </mxCell>
+        <mxCell id="alt1_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=#1A3A6A;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=1;fontColor=#FFFFFF;" value="[Crear contenido] Admin registra nueva película o serie" vertex="1">
+          <mxGeometry height="22" width="1200" x="20" y="148" as="geometry" />
+        </mxCell>
+        <mxCell id="act1_adm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4896A;strokeColor=#8B2500;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="360" width="12" x="49" y="174" as="geometry" />
+        </mxCell>
+        <mxCell id="act1_gw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="320" width="12" x="204" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="act1_grpc" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="260" width="12" x="429" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="act1_db" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="100" width="12" x="874" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="m1_1" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="POST /api/catalog/admin/content&#xa;body: {content_type, title, synopsis, release_year, genre_ids}">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="61" y="188" as="sourcePoint" />
+            <mxPoint x="204" y="188" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="gRPC CreateContent(title, synopsis, content_type, genre_ids)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="216" y="212" as="sourcePoint" />
+            <mxPoint x="429" y="212" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_3" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="INSERT INTO content(title, synopsis, type, ...) RETURNING id">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="441" y="238" as="sourcePoint" />
+            <mxPoint x="874" y="238" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_4" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="{ content_id: uuid }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="874" y="262" as="sourcePoint" />
+            <mxPoint x="441" y="262" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_5" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="{ content_id: uuid }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="429" y="284" as="sourcePoint" />
+            <mxPoint x="216" y="284" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_6" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="201 Created { content_id: uuid }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="204" y="306" as="sourcePoint" />
+            <mxPoint x="61" y="306" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sep1" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;dashPattern=3 3;strokeColor=#888888;strokeWidth=1;fontSize=9;fontStyle=2;fontColor=#555555;" value="[Publicar contenido]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="20" y="328" as="sourcePoint" />
+            <mxPoint x="1220" y="328" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_7" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="POST /api/catalog/admin/content/:id/publish">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="61" y="346" as="sourcePoint" />
+            <mxPoint x="204" y="346" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_8" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="gRPC PublishContent(content_id)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="216" y="366" as="sourcePoint" />
+            <mxPoint x="429" y="366" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_9" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="UPDATE content SET is_published=TRUE, published_at=NOW()">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="441" y="390" as="sourcePoint" />
+            <mxPoint x="874" y="390" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="act1_db2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="40" width="12" x="874" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="m1_10" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="OK">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="874" y="416" as="sourcePoint" />
+            <mxPoint x="441" y="416" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_11" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="{ success: true, published_at: ISO8601 }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="429" y="440" as="sourcePoint" />
+            <mxPoint x="216" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1_12" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="200 { success: true, published_at }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="204" y="460" as="sourcePoint" />
+            <mxPoint x="61" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="alt2" parent="1" style="shape=table;startSize=20;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=left;strokeColor=#555555;fillColor=#555555;fontColor=#FFFFFF;fontSize=10;dashed=1;dashPattern=7 3;" value="alt" vertex="1">
+          <mxGeometry height="20" width="1200" x="20" y="506" as="geometry" />
+        </mxCell>
+        <mxCell id="alt2_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=#1A3A6A;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=1;fontColor=#FFFFFF;" value="[Upload video] Admin sube archivo de video directo a GCS via Signed URL V4" vertex="1">
+          <mxGeometry height="22" width="1200" x="20" y="506" as="geometry" />
+        </mxCell>
+        <mxCell id="act2_adm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4896A;strokeColor=#8B2500;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="300" width="12" x="49" y="532" as="geometry" />
+        </mxCell>
+        <mxCell id="act2_gw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="200" width="12" x="204" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="act2_http" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="140" width="12" x="654" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="act2_gcs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBBBBB;strokeColor=#555555;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="80" width="12" x="1094" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="m2_1" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="POST /api/catalog/admin/upload-url&#xa;body: { filename: video.mp4, content_type: video/mp4 }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="61" y="552" as="sourcePoint" />
+            <mxPoint x="204" y="552" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2_2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="HTTP POST /upload-url { filename, content_type }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="216" y="574" as="sourcePoint" />
+            <mxPoint x="654" y="574" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2_3" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="IAM signBlob(SA, bytes) · generateV4SignedURL(bucket, object, PUT, expire=15min)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="666" y="598" as="sourcePoint" />
+            <mxPoint x="1094" y="598" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2_4" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="{ upload_url: https://storage.googleapis.com/...?X-Goog-Signature=... }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1094" y="626" as="sourcePoint" />
+            <mxPoint x="666" y="626" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2_5" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="{ upload_url, object_name: videos/timestamp-video.mp4 }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="654" y="650" as="sourcePoint" />
+            <mxPoint x="216" y="650" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2_6" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="200 { upload_url, object_name }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="204" y="672" as="sourcePoint" />
+            <mxPoint x="61" y="672" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2_7" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#8B2500;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="PUT upload_url + binario del video (directo a GCS · max 5 TB · válida 15 min)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="61" y="700" as="sourcePoint" />
+            <mxPoint x="1094" y="700" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2_8" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="200 OK (upload completo)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1094" y="724" as="sourcePoint" />
+            <mxPoint x="61" y="724" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="alt3" parent="1" style="shape=table;startSize=20;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=left;strokeColor=#555555;fillColor=#555555;fontColor=#FFFFFF;fontSize=10;dashed=1;dashPattern=7 3;" value="alt" vertex="1">
+          <mxGeometry height="20" width="1200" x="20" y="764" as="geometry" />
+        </mxCell>
+        <mxCell id="alt3_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=#1A3A6A;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=1;fontColor=#FFFFFF;" value="[Auditoría] Admin consulta logs de cambios en el catálogo" vertex="1">
+          <mxGeometry height="22" width="1200" x="20" y="764" as="geometry" />
+        </mxCell>
+        <mxCell id="act3_adm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4896A;strokeColor=#8B2500;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="200" width="12" x="49" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="act3_gw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="160" width="12" x="204" y="808" as="geometry" />
+        </mxCell>
+        <mxCell id="act3_http" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="120" width="12" x="654" y="828" as="geometry" />
+        </mxCell>
+        <mxCell id="act3_db" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#90AFEF;strokeColor=#3A6FD8;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="60" width="12" x="874" y="848" as="geometry" />
+        </mxCell>
+        <mxCell id="m3_1" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="GET /api/catalog/admin/audit/logs&#xa;?entity=content&amp;action=CREATE&amp;from=ISO&amp;to=ISO&amp;page=1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="61" y="810" as="sourcePoint" />
+            <mxPoint x="204" y="810" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3_2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="HTTP GET /audit/logs?entity=content&amp;action=CREATE&amp;from=...&amp;to=...">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="216" y="832" as="sourcePoint" />
+            <mxPoint x="654" y="832" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3_3" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" value="SELECT * FROM audit_logs WHERE entity=? AND action=? AND changed_at BETWEEN ? AND ? ORDER BY changed_at DESC">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="666" y="854" as="sourcePoint" />
+            <mxPoint x="874" y="854" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3_4" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="rows[]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="874" y="878" as="sourcePoint" />
+            <mxPoint x="666" y="878" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3_5" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="{ logs: [{id, entity, action, changed_by, changed_at, old_values, new_values}], total }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="654" y="902" as="sourcePoint" />
+            <mxPoint x="216" y="902" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3_6" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#555555;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;fontStyle=2;" value="200 { logs: [...], total: N }">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="204" y="926" as="sourcePoint" />
+            <mxPoint x="61" y="926" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="footer" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#555555;" value="Diagrama de secuencias — Admin" vertex="1">
+          <mxGeometry x="20" y="980" width="300" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ct1" parent="1" value="Vista Logica - Catalogo: Endpoints Usuario y Admin" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1">
+          <mxGeometry x="0" y="10" width="1600" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ct2" parent="1" value="API Gateway :8080  |  Catalog gRPC :50052 (negocio)  |  Catalog HTTP :8082 (auditoria, GCS, health)  |  catalog_db PostgreSQL  |  GCS quetxal-tv-videos" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=9;" vertex="1">
+          <mxGeometry x="0" y="44" width="1600" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="ctu" parent="1" value="Usuario" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=0;outlineConnect=0;fillColor=#1A2C4A;strokeColor=#1A2C4A;fontColor=#1A2C4A;fontSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="70" y="74" width="26" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="cta" parent="1" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=0;outlineConnect=0;fillColor=#8B2500;strokeColor=#8B2500;fontColor=#8B2500;fontSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="1090" y="74" width="26" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="ctgw" parent="1" value="API Gateway&#xa;NestJS :8080" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#5B8DEF;strokeColor=#3A6FD8;fontColor=#FFFFFF;fontSize=11;arcSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="510" y="80" width="160" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="ctgrpc" parent="1" value="Catalog Service&#xa;gRPC :50052" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1A2C4A;strokeColor=#0A1A3A;fontColor=#FFFFFF;fontSize=10;arcSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="260" y="188" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="cthttp" parent="1" value="Catalog Service&#xa;HTTP :8082" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1A2C4A;strokeColor=#0A1A3A;fontColor=#FFFFFF;fontSize=10;arcSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="760" y="188" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="cte1" parent="1" value="/api/catalog/..." style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="96" y="100" as="sourcePoint" />
+            <mxPoint x="510" y="102" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cte2" parent="1" value="/api/catalog/admin/..." style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#8B2500;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="102" as="sourcePoint" />
+            <mxPoint x="670" y="102" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cte3" parent="1" value="gRPC protobuf" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3A6FD8;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="510" y="116" as="sourcePoint" />
+            <mxPoint x="335" y="188" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cte4" parent="1" value="HTTP proxy" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3A6FD8;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="670" y="116" as="sourcePoint" />
+            <mxPoint x="835" y="188" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hdr_user" parent="1" value="ENDPOINTS USUARIO - Publicos (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#1A2C4A;strokeColor=#0A1A3A;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="20" y="258" width="390" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="ctubox" parent="1" value="GET  /api/catalog?type=MOVIE|SERIES, genre_id, page&#xa;     resp: { items: ContentCard[], total, page }&#xa;&#xa;GET  /api/catalog/search?q, type&#xa;     resp: { results: [{ content_id, title, poster_url }] }&#xa;&#xa;GET  /api/catalog/genres&#xa;     resp: { genres: [{ genre_id, name, slug }] }&#xa;&#xa;GET  /api/catalog/content/:id&#xa;     resp: ContentDetail { title, synopsis, cast[], genres[], is_published }&#xa;&#xa;GET  /api/catalog/series/:id/structure&#xa;     resp: { seasons: [{ episodes: [{ episode_id, title }] }] }&#xa;&#xa;GET  /api/catalog/person/:id&#xa;     resp: PersonDetail { full_name, bio, filmography[] }&#xa;&#xa;GET  /api/catalog/content/:id/rating?profile_id&#xa;     resp: { thumb: UP|DOWN, stars: 1-5 }&#xa;&#xa;POST /api/catalog/content/:id/rate&#xa;     body: { profile_id, thumb: UP|DOWN, stars: 1-5 }&#xa;     resp: { success, like_pct, avg_stars }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#EBF3FF;strokeColor=#1A2C4A;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="20" y="286" width="390" height="472" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_adm_c" parent="1" value="ADMIN - Contenido (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E07000;strokeColor=#A05000;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="430" y="258" width="400" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="ctac" parent="1" value="POST   /api/catalog/admin/content&#xa;       body: { content_type: MOVIE|SERIES, title, synopsis,&#xa;               release_year, duration_min, genre_ids: int[] }&#xa;       resp: { content_id: uuid }&#xa;&#xa;PUT    /api/catalog/admin/content/:id&#xa;       body: { title?, synopsis?, release_year?, duration_min?, genre_ids? }&#xa;       resp: ContentDetail actualizado&#xa;&#xa;POST   /api/catalog/admin/content/:id/publish&#xa;       body: {} - sets is_published=TRUE en BD&#xa;       resp: { success: true, published_at: ISO8601 }&#xa;&#xa;DELETE /api/catalog/admin/content/:id&#xa;       body: { changed_by? } - elimina de BD permanentemente&#xa;       resp: { success: true }&#xa;&#xa;POST   /api/catalog/admin/content/:id/schedule&#xa;       body: { premiere_date: ISO8601, changed_by? }&#xa;       resp: { success: true, premiere_date: ISO8601 }&#xa;&#xa;GET    /api/catalog/admin/content/all?type, genre_id, page&#xa;       [ListAllContent] retorna is_published TRUE y FALSE&#xa;       resp: { items: ContentCard[], total, page }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#FFF3E0;strokeColor=#E07000;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="430" y="286" width="400" height="472" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_adm_g" parent="1" value="ADMIN - Generos (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E07000;strokeColor=#A05000;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="850" y="258" width="380" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="ctag" parent="1" value="POST   /api/catalog/admin/genres&#xa;       body: { name: string, slug: string }&#xa;       resp: { genre_id: int, name, slug }&#xa;&#xa;PUT    /api/catalog/admin/genres/:id&#xa;       body: { name: string, slug: string }&#xa;       resp: { genre_id, name, slug } actualizado&#xa;&#xa;DELETE /api/catalog/admin/genres/:id&#xa;       body: { changed_by? }&#xa;       resp: { success: true }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#FFF3E0;strokeColor=#E07000;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="850" y="286" width="380" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_adm_p" parent="1" value="ADMIN - Personas y Cast (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E07000;strokeColor=#A05000;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="850" y="486" width="380" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="ctap" parent="1" value="POST   /api/catalog/admin/people&#xa;       body: { full_name, bio?, birth_date?: ISO8601, nationality? }&#xa;       resp: { person_id: uuid, full_name }&#xa;&#xa;PUT    /api/catalog/admin/people/:id&#xa;       body: { full_name?, bio?, birth_date?, nationality? }&#xa;       resp: PersonDetail actualizado&#xa;&#xa;DELETE /api/catalog/admin/people/:id&#xa;       body: { changed_by? }  resp: { success: true }&#xa;&#xa;POST   /api/catalog/admin/content/:id/cast&#xa;       body: { person_id: uuid, role_type: ACTOR|DIRECTOR|PRODUCER|WRITER,&#xa;               character_name?, order?: int }&#xa;       resp: { success: true }&#xa;&#xa;DELETE /api/catalog/admin/content/:cId/cast/:pId?role_type=ACTOR&#xa;       resp: { success: true }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#FFF3E0;strokeColor=#E07000;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="850" y="514" width="380" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_adm_se" parent="1" value="ADMIN - Temporadas y Episodios (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E07000;strokeColor=#A05000;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="430" y="778" width="400" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="ctase" parent="1" value="POST   /api/catalog/admin/content/:id/seasons&#xa;       body: { season_num: int, title?: string }&#xa;       resp: { season_id: uuid, season_num, title }&#xa;&#xa;DELETE /api/catalog/admin/seasons/:id&#xa;       body: { changed_by? }  resp: { success: true }&#xa;&#xa;POST   /api/catalog/admin/seasons/:id/episodes&#xa;       body: { episode_num: int, title, synopsis?, duration_min? }&#xa;       resp: { episode_id: uuid, episode_num, title }&#xa;&#xa;PUT    /api/catalog/admin/episodes/:id&#xa;       body: { title?, synopsis?, duration_min?, episode_num? }&#xa;       resp: EpisodeDetail actualizado&#xa;&#xa;DELETE /api/catalog/admin/episodes/:id&#xa;       body: { changed_by? }  resp: { success: true }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#FFF3E0;strokeColor=#E07000;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="430" y="806" width="400" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_adm_au" parent="1" value="ADMIN - Auditoria (HTTP proxy :8082)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#7B1FA2;strokeColor=#5A0070;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="850" y="814" width="380" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="ctaau" parent="1" value="GET /api/catalog/admin/audit/logs&#xa;    ?entity=content|genre|person&#xa;    &amp;action=CREATE|UPDATE|DELETE|PUBLISH&#xa;    &amp;from=ISO8601 &amp;to=ISO8601 &amp;page=int&#xa;    resp: { logs: [{ id, entity, entity_id, action,&#xa;                     changed_by, changed_at,&#xa;                     old_values: JSON, new_values: JSON }],&#xa;            total: int }&#xa;&#xa;GET /api/catalog/admin/audit/export&#xa;    ?format=csv|pdf &amp;entity &amp;action &amp;from &amp;to&#xa;    resp: archivo descargable&#xa;    Content-Disposition: attachment; filename=audit_export.csv" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#F3E5F5;strokeColor=#7B1FA2;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="850" y="842" width="380" height="244" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_adm_st" parent="1" value="ADMIN - Storage GCS (HTTP proxy :8082)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#2A7A2A;strokeColor=#1A5A1A;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="430" y="1106" width="400" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="ctast" parent="1" value="POST /api/catalog/admin/upload-url&#xa;     body: { filename: video.mp4, content_type: video/mp4 }&#xa;     resp: { upload_url: https://storage.googleapis.com/...?X-Goog-Signature=...,&#xa;             object_name: videos/1748291234-video.mp4 }&#xa;     El cliente hace PUT directo a upload_url con el binario (valida 15 min)&#xa;&#xa;GET  /api/catalog/admin/download-url?object=videos/...mp4&#xa;     resp: { download_url: https://...?X-Goog-Signature=..., object_name }&#xa;     Usar como src del player de video (valida 1 hora)&#xa;&#xa;POST /api/catalog/admin/upload&#xa;     Content-Type: multipart/form-data, campo: file, max: 500 MB&#xa;     resp: { url: https://storage.googleapis.com/..., object_name }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E8F5E9;strokeColor=#2A7A2A;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="430" y="1134" width="400" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_hp" parent="1" value="Health / Status (HTTP :8082)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#666666;strokeColor=#444444;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="20" y="778" width="390" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="cthp" parent="1" value="GET /healthz  - Liveness probe&#xa;    resp: 200 { status: ok }&#xa;&#xa;GET /readyz   - Readiness probe (hace db.Ping a catalog_db)&#xa;    resp: 200 { status: ready }&#xa;         503 { status: unavailable, error: mensaje }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#F5F5F5;strokeColor=#999999;strokeWidth=1.5;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="20" y="806" width="390" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="ctdb" parent="1" value="catalog_db&#xa;PostgreSQL" style="shape=cylinder3;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#3A6FD8;fontSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="120" y="1150" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ctgcs" parent="1" value="GCS quetxal-tv-videos&#xa;Workload Identity KSA" style="shape=cylinder3;whiteSpace=wrap;html=0;fillColor=#D5E8D4;strokeColor=#2A7A2A;fontSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="870" y="1150" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ctdbe" parent="1" value="SQL queries" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3A6FD8;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="335" y="228" as="sourcePoint" />
+            <mxPoint x="190" y="1150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ctgcse" parent="1" value="Signed URLs V4 / IAM API" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#2A7A2A;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="835" y="228" as="sourcePoint" />
+            <mxPoint x="965" y="1150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>

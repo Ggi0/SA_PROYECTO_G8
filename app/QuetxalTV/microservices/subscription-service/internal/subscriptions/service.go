@@ -10,11 +10,10 @@ import (
 )
 
 type Service interface {
-	Subscribe(ctx context.Context, userID, planID, currency, paymentMethod string) (*ProcessResult, error)
-	Cancel(ctx context.Context, userID, reason string) error
-	GetUserSubscription(ctx context.Context, userID string) (*Subscription, bool, error)
+    Subscribe(ctx context.Context, userID, planID, currency, paymentMethod, userEmail string) (*ProcessResult, error)
+    Cancel(ctx context.Context, userID, reason string) error
+    GetUserSubscription(ctx context.Context, userID string) (*Subscription, bool, error)
 }
-
 type subscriptionService struct {
 	repo        Repository
 	plansRepo   plans.Repository
@@ -32,7 +31,7 @@ func NewService(repo Repository, plansRepo plans.Repository, fxClient clients.FX
 	return &subscriptionService{repo: repo, plansRepo: plansRepo, fxClient: fxClient, notifClient: notifClient}
 }
 
-func (s *subscriptionService) Subscribe(ctx context.Context, userID, planID, currency, paymentMethod string) (*ProcessResult, error) {
+func (s *subscriptionService) Subscribe(ctx context.Context, userID, planID, currency, paymentMethod, userEmail string) (*ProcessResult, error) {
 	if currency == "" {
 		currency = "USD"
 	}
@@ -65,6 +64,7 @@ func (s *subscriptionService) Subscribe(ctx context.Context, userID, planID, cur
 	go func() {
 		_ = s.notifClient.SendPurchaseReceipt(context.Background(), clients.ReceiptData{
 			UserID:        userID,
+			UserEmail:     userEmail,
 			PlanName:      plan.Name,
 			Amount:        plan.PriceUSD * exchangeRate,
 			Currency:      currency,

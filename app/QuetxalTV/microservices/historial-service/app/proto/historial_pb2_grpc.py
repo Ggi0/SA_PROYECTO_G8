@@ -59,6 +59,21 @@ class HistorialServiceStub(object):
                 request_serializer=historial__pb2.GetContentProgressRequest.SerializeToString,
                 response_deserializer=historial__pb2.ProgressResponse.FromString,
                 _registered_method=True)
+        self.GetHistoryAuditLogs = channel.unary_unary(
+                '/historial.HistorialService/GetHistoryAuditLogs',
+                request_serializer=historial__pb2.GetHistoryAuditLogsRequest.SerializeToString,
+                response_deserializer=historial__pb2.HistoryAuditLogsResponse.FromString,
+                _registered_method=True)
+        self.HealthLive = channel.unary_unary(
+                '/historial.HistorialService/HealthLive',
+                request_serializer=historial__pb2.HealthCheckRequest.SerializeToString,
+                response_deserializer=historial__pb2.HealthCheckResponse.FromString,
+                _registered_method=True)
+        self.HealthReady = channel.unary_unary(
+                '/historial.HistorialService/HealthReady',
+                request_serializer=historial__pb2.HealthCheckRequest.SerializeToString,
+                response_deserializer=historial__pb2.HealthCheckResponse.FromString,
+                _registered_method=True)
 
 
 class HistorialServiceServicer(object):
@@ -88,6 +103,24 @@ class HistorialServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetHistoryAuditLogs(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HealthLive(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def HealthReady(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_HistorialServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -110,6 +143,21 @@ def add_HistorialServiceServicer_to_server(servicer, server):
                     servicer.GetContentProgress,
                     request_deserializer=historial__pb2.GetContentProgressRequest.FromString,
                     response_serializer=historial__pb2.ProgressResponse.SerializeToString,
+            ),
+            'GetHistoryAuditLogs': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetHistoryAuditLogs,
+                    request_deserializer=historial__pb2.GetHistoryAuditLogsRequest.FromString,
+                    response_serializer=historial__pb2.HistoryAuditLogsResponse.SerializeToString,
+            ),
+            'HealthLive': grpc.unary_unary_rpc_method_handler(
+                    servicer.HealthLive,
+                    request_deserializer=historial__pb2.HealthCheckRequest.FromString,
+                    response_serializer=historial__pb2.HealthCheckResponse.SerializeToString,
+            ),
+            'HealthReady': grpc.unary_unary_rpc_method_handler(
+                    servicer.HealthReady,
+                    request_deserializer=historial__pb2.HealthCheckRequest.FromString,
+                    response_serializer=historial__pb2.HealthCheckResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -220,6 +268,87 @@ class HistorialService(object):
             '/historial.HistorialService/GetContentProgress',
             historial__pb2.GetContentProgressRequest.SerializeToString,
             historial__pb2.ProgressResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetHistoryAuditLogs(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/historial.HistorialService/GetHistoryAuditLogs',
+            historial__pb2.GetHistoryAuditLogsRequest.SerializeToString,
+            historial__pb2.HistoryAuditLogsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def HealthLive(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/historial.HistorialService/HealthLive',
+            historial__pb2.HealthCheckRequest.SerializeToString,
+            historial__pb2.HealthCheckResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def HealthReady(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/historial.HistorialService/HealthReady',
+            historial__pb2.HealthCheckRequest.SerializeToString,
+            historial__pb2.HealthCheckResponse.FromString,
             options,
             channel_credentials,
             insecure,

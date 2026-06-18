@@ -14,6 +14,7 @@ env/
 .env
 node_modules/
 dist/
+coverage/
 *.exe
 docker-compose.gcp-db.yml
 app/QuetxalTV/docker-compose.gcp-db.yml
@@ -47,3 +48,7 @@ __pycache__/
 # Frontend build
 app/frontend/dist/
 app/frontend/tsconfig.tsbuildinfo
+
+# Documentacion local con datos sensibles de configuracion
+Enunciado-F2/
+secrets.env

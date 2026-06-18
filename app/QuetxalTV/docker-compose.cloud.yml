@@ -1,4 +1,14 @@
 services:
+  frontend:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/frontend:${IMAGE_TAG:-latest}
+    ports:
+      - "${FRONTEND_PUBLIC_PORT:-8080}:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
   api-gateway:
     image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/api-gateway:${IMAGE_TAG:-latest}
     ports:
@@ -8,16 +18,47 @@ services:
       PORT: ${PORT:-3000}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      AUTH_SERVICE_HOST: ${AUTH_SERVICE_HOST:-auth-service:50051}
       SUBSCRIPTION_SERVICE_URL: ${SUBSCRIPTION_SERVICE_URL:-subscription-service:50053}
       AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-auth-service:50051}
       CATALOG_SERVICE_URL: ${CATALOG_SERVICE_URL:-catalogo-service:50052}
+      CATALOG_HTTP_URL: ${CATALOG_HTTP_URL:-http://catalogo-service:8082}
       FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
       FX_SERVICE_URL: ${FX_SERVICE_URL:-fx-service:50054}
       HISTORIAL_SERVICE_URL: ${HISTORIAL_SERVICE_URL:-historial-service:50054}
+      SUBSCRIPTION_HTTP_URL: ${SUBSCRIPTION_HTTP_URL:-http://subscription-service:8083}
+      NOTIFICATION_HTTP_URL: ${NOTIFICATION_HTTP_URL:-http://notification-service:8084}
+      FX_HTTP_URL: ${FX_HTTP_URL:-http://fx-service:8085}
     depends_on:
+      - auth-service
       - subscription-service
       - fx-service
       - catalogo-service
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  auth-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/auth-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50051
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      DB_HOST: ${AUTH_DB_HOST}
+      DB_PORT: ${AUTH_DB_PORT:-5432}
+      DB_USER: ${AUTH_DB_USER}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD}
+      DB_NAME: ${AUTH_DB_NAME}
+      DB_SCHEMA: ${AUTH_DB_SCHEMA:-auth}
+      DB_SSLMODE: ${AUTH_DB_SSLMODE:-disable}
+      NOTIFICATION_SERVICE_HOST: notification-service
+      NOTIFICATION_SERVICE_PORT: 50056
+    depends_on:
+      notification-service:
+        condition: service_started
+    expose:
+      - "50051"
     restart: unless-stopped
     networks:
       - quetxal-network
@@ -26,7 +67,7 @@ services:
     image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/subscription-service:${IMAGE_TAG:-latest}
     environment:
       DB_HOST: ${SUBSCRIPTION_DB_HOST}
-      DB_PORT: ${SUBSCRIPTION_DB_PORT:-5432}
+      DB_PORT: ${SUBSCRIPTION_DB_PORT:-5433}
       DB_USER: ${SUBSCRIPTION_DB_USER}
       DB_PASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
       DB_NAME: ${SUBSCRIPTION_DB_NAME}
@@ -36,8 +77,10 @@ services:
       FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
       NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST:-notification-service:50056}
     depends_on:
-      - fx-service
-      - notification-service
+      fx-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
     expose:
       - "50053"
     restart: unless-stopped
@@ -48,15 +91,19 @@ services:
     image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/catalogo-service:${IMAGE_TAG:-latest}
     environment:
       DB_HOST: ${CATALOGO_DB_HOST}
-      DB_PORT: ${CATALOGO_DB_PORT:-5432}
+      DB_PORT: ${CATALOGO_DB_PORT:-5434}
       DB_USER: ${CATALOGO_DB_USER}
       DB_PASSWORD: ${CATALOGO_DB_PASSWORD}
       DB_NAME: ${CATALOGO_DB_NAME}
       DB_SCHEMA: ${CATALOGO_DB_SCHEMA:-catalog}
       DB_SSLMODE: ${CATALOGO_DB_SSLMODE:-disable}
       GRPC_PORT: 50052
+      AUDIT_HTTP_PORT: 8082
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME:-quetxal-tv-videos}
+      GCS_SERVICE_ACCOUNT_EMAIL: ${GCS_SERVICE_ACCOUNT_EMAIL:-}
     expose:
       - "50052"
+      - "8082"
     restart: unless-stopped
     networks:
       - quetxal-network
@@ -66,7 +113,7 @@ services:
     environment:
       GRPC_PORT: 50054
       DB_HOST: ${FX_DB_HOST}
-      DB_PORT: ${FX_DB_PORT:-5432}
+      DB_PORT: ${FX_DB_PORT:-5435}
       DB_NAME: ${FX_DB_NAME}
       DB_USER: ${FX_DB_USER}
       DB_PASSWORD: ${FX_DB_PASSWORD}
@@ -78,7 +125,8 @@ services:
       EXCHANGE_API_KEY: ${EXCHANGE_API_KEY}
       EXCHANGE_API_URL: ${EXCHANGE_API_URL}
     depends_on:
-      - redis
+      redis:
+        condition: service_started
     expose:
       - "50054"
     restart: unless-stopped
@@ -90,7 +138,7 @@ services:
     environment:
       GRPC_PORT: 50056
       DB_HOST: ${NOTIFICATION_DB_HOST}
-      DB_PORT: ${NOTIFICATION_DB_PORT:-5432}
+      DB_PORT: ${NOTIFICATION_DB_PORT:-5436}
       DB_USER: ${NOTIFICATION_DB_USER}
       DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
       DB_NAME: ${NOTIFICATION_DB_NAME}
@@ -112,7 +160,7 @@ services:
     environment:
       HISTORIAL_SERVICE_PORT: 50054
       DB_HOST: ${HISTORIAL_DB_HOST}
-      DB_PORT: ${HISTORIAL_DB_PORT:-5432}
+      DB_PORT: ${HISTORIAL_DB_PORT:-5437}
       DB_USER: ${HISTORIAL_DB_USER}
       DB_PASSWORD: ${HISTORIAL_DB_PASSWORD}
       DB_NAME: ${HISTORIAL_DB_NAME}

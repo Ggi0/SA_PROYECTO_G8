@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subscription-service
+  namespace: quetxal-tv-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subscription-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 0, maxUnavailable: 1 }
+  template:
+    metadata:
+      labels: { app: subscription-service }
+    spec:
+      containers:
+        - name: subscription-service
+          image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/subscription-service:${IMAGE_TAG}
+          ports: [{ containerPort: 50053 }]
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "250m", memory: "256Mi" }
+          env:
+            - { name: GRPC_PORT, value: "50053" }
+            - { name: FX_SERVICE_HOST, value: "fx-service:50054" }
+            - { name: NOTIFICATION_SERVICE_HOST, value: "notification-service:50056" }
+            - name: DB_HOST
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_HOST } }
+            - name: DB_PORT
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_PORT } }
+            - name: DB_USER
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_USER } }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_PASSWORD } }
+            - name: DB_NAME
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_NAME } }
+            - name: DB_SCHEMA
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_SCHEMA } }
+            - { name: DB_SSLMODE, value: "disable" }
+          readinessProbe: { grpc: { port: 50053, service: subscription-service-readiness }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { grpc: { port: 50053, service: subscription-service-liveness }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

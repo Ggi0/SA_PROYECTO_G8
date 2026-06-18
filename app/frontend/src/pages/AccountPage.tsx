@@ -8,12 +8,12 @@ import { subscriptionAPI } from '@/services/api/subscriptionService'
 import { LogOut, Play, Loader2 } from 'lucide-react'
 import { getAllProgress } from '@/lib/progress'
 import type { SavedProgress } from '@/lib/progress'
+import { gateway } from '@/api/client'
 
 export default function AccountPage() {
-  const { user, currentProfile, logout } = useAuth()
+  const { user, currentProfile, logout,setCurrentProfile } = useAuth()
   const navigate = useNavigate()
   const [history, setHistory] = useState<SavedProgress[]>([])
-
   useEffect(() => {
     setHistory(getAllProgress())
   }, [])
@@ -23,7 +23,25 @@ export default function AccountPage() {
   const [paymentHistory, setPaymentHistory] = useState<any[]>([])
   const [loadingSub, setLoadingSub] = useState(true)
   const [cancelling, setCancelling] = useState(false)
+const [profileName, setProfileName] = useState(
+  currentProfile?.name || user?.name || user?.email?.split('@')[0] || 'Usuario'
+)
+const [savingProfile, setSavingProfile] = useState(false)
 
+const handleSaveProfile = async () => {
+  if (!currentProfile?.id) return
+  setSavingProfile(true)
+  try {
+    await gateway.patch(`/auth/profiles/${currentProfile.id}`, {
+      display_name: profileName
+    })
+    setCurrentProfile({ ...currentProfile, name: profileName })
+  } catch (error) {
+    console.error('Error al guardar perfil:', error)
+  } finally {
+    setSavingProfile(false)
+  }
+}
   useEffect(() => {
     const fetchSubscriptionData = async () => {
       try {
@@ -100,7 +118,8 @@ export default function AccountPage() {
                 Nombre
               </label>
               <Input
-                defaultValue={user?.name ?? currentProfile?.name ?? 'Usuario'}
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
                 className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11"
               />
             </div>
@@ -113,19 +132,15 @@ export default function AccountPage() {
                 className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-silver/60 text-xs font-mono tracking-widest uppercase">
-                Contraseña
-              </label>
-              <Input
-                type="password"
-                defaultValue="••••••••"
-                className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11"
-              />
-            </div>
+           
           </div>
 
-          <Button className="bg-spotlight hover:bg-spotlight/80 text-film font-mono tracking-widest uppercase text-xs h-10 px-6">
+          <Button 
+            onClick={handleSaveProfile}
+            disabled={savingProfile}
+            className="bg-spotlight hover:bg-spotlight/80 text-film font-mono tracking-widest uppercase text-xs h-10 px-6"
+          >
+            {savingProfile ? <Loader2 size={14} className="animate-spin mr-2" /> : null}
             Guardar cambios
           </Button>
         </div>
@@ -147,11 +162,11 @@ export default function AccountPage() {
               <div className="flex items-center justify-between p-4 border border-[#3a2e1a] bg-[#0f0b04]">
                 <div>
                   <p className="text-parchment font-mono font-medium">
-                    Plan {subscription.plan_name}
-                  </p>
+                  Plan {subscription.planName ?? subscription.plan_name}
+                </p>
                   <p className="text-silver/50 font-mono text-xs mt-1">
-                    {subscription.days_remaining} días restantes · vence {new Date(subscription.current_period_end).toLocaleDateString('es-GT')}
-                  </p>
+                  {subscription.daysRemaining ?? subscription.days_remaining} días restantes · vence {new Date(subscription.renewalDate ?? subscription.current_period_end).toLocaleDateString('es-GT')}
+                </p>
                 </div>
                 <span className={`text-xs font-mono border px-3 py-1 tracking-widest uppercase ${
                   subscription.status === 'ACTIVE'

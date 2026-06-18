@@ -22,7 +22,7 @@ Sus expandidos son:
 - CDU001.8: Autenticación OAuth
 
 
-![Diagrama Alto Nivel](./imgs/CDU-001_v2.png)
+![Diagrama Alto Nivel](imgs/CDU-001_v2.png)
 
 ##### Registro de Usuario
 
@@ -105,8 +105,6 @@ Sus expandidos son:
 | **Reglas de Calidad** | - La creación debe completarse en ≤ 1 segundo. |
 
 
-
-Puedes documentarlos con el mismo formato que usaste para **Crear Perfil**.
 
 ---
 
@@ -327,7 +325,7 @@ Sus expandidos son:
 - CDU006.2: Cachear tipo de cambio en Redis
 - CDU006.3: Mostrar precio en moneda local
 
-![Diagrama Alto Nivel](imgs/CDU-006..png)
+![Diagrama Alto Nivel](imgs/CDU-006.png)
 
 ### CDU006.2: Cachear Tipo de Cambio en Redis
 
@@ -335,7 +333,7 @@ Sus expandidos son:
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Nombre**             | Cachear tipo de cambio en Redis                                                                                                                                                                                                                                                                   |
 | **Código**             | CDU006.2                                                                                                                                                                                                                                                                                          |
-| **Actores**            | FX-Service                                                                                                                                                                                                                                                                                        |
+| **Actores**            | API de Divisas Externa                                                                                                                                                                                                                                                                                        |
 | **Descripción**        | Permite almacenar temporalmente las tasas de cambio obtenidas desde la API externa para reutilizarlas en futuras consultas y reducir el tiempo de respuesta.                                                                                                                                      |
 | **Precondiciones**     | Redis debe estar operativo y existir una tasa de cambio válida obtenida por el FX-Service.                                                                                                                                                                                                        |
 | **Post Condiciones**   | - La tasa de cambio queda almacenada en Redis. <br> - Se configura un TTL de 30 minutos para la tasa almacenada.                                                                                                                                                                                  |
@@ -429,23 +427,305 @@ Sus expandidos son:
 
 Sus expandidos son:
 - CDU008.1: Enviar correo de confirmación de registro
-- CDU008.2: Enviar recibo de compra
+- CDU008.2: Enviar recibo de compra de suscripción
 - CDU008.3: Enviar alerta de nuevo contenido
 
-![Diagrama Alto Nivel](imgs/CDU-008.png)
+![Diagrama CDU-008](imgs/CDU-008.png)
 
-##### Enviar Correo de Confirmación de Registro
+##### CDU008.1: Enviar Correo de Confirmación de Registro
 
 | Campo | Detalle |
 |-------|---------|
 | **Nombre** | Enviar correo de confirmación de registro |
 | **Código** | CDU008.1 |
 | **Actores** | Servicio de Correo |
-| **Descripción** | El sistema de notificaciones envía automáticamente un correo electrónico de bienvenida y confirmación al usuario tras completar su registro exitosamente en la plataforma. |
-| **Precondiciones** | El usuario debe haber completado el registro exitosamente (CDU001.1). |
-| **Post Condiciones** | - Correo de bienvenida enviado al correo del usuario. <br> - Registro del envío almacenado en la base de datos. |
-| **Flujo Principal** | 1. El microservicio de autenticación notifica al servicio de correo el registro exitoso de un nuevo usuario (vía gRPC). <br> 2. El servicio de correo genera el contenido del correo de bienvenida con los datos del usuario. <br> 3. El servicio de correo envía el mensaje al correo electrónico registrado. <br> |
-| **Flujos Alternos** | N/A |
-| **Reglas de Negocio** | - El correo debe enviarse en los primeros 60 segundos tras el registro. <br> - El correo debe incluir el nombre del usuario y un enlace de verificación. |
-| **Flujo de Excepción** | **FE1: Fallo en el envío del correo** <br> FE1.1 El proveedor de correo no está disponible. <br> FE1.2 El sistema registra el fallo y programa un reintento automático. <br> FE1.3 El sistema permite al usuario reenviar el correo desde su perfil. |
-| **Reglas de Calidad** | - El tiempo de envío del correo no debe superar los 60 segundos desde el registro. <br> - Los correos deben utilizar plantillas HTML responsivas. |
+| **Descripción** | El sistema de notificaciones envía automáticamente un correo electrónico de bienvenida o confirmación al usuario después de completar el registro en la plataforma. |
+| **Precondiciones** | - El usuario completó correctamente el registro. <br> - Existe una dirección de correo válida asociada al usuario. <br> - El servicio de notificaciones tiene configuración SMTP o proveedor de correo disponible. |
+| **Post Condiciones** | - El correo de confirmación queda enviado o en cola de reintento. <br> - El envío queda registrado en la base de datos de notificaciones. |
+| **Flujo Principal** | 1. El usuario finaliza el registro. <br> 2. El sistema solicita al servicio de notificaciones enviar el correo de confirmación. <br> 3. El sistema genera el contenido del mensaje usando la plantilla correspondiente. <br> 4. El Servicio de Correo procesa el envío al destinatario. <br> 5. El sistema registra el estado del envío. |
+| **Flujos Alternos** | **FA1: Envío en cola** <br> FA1.1 Si el proveedor de correo tarda en responder, el sistema deja la notificación en estado pendiente. <br> FA1.2 El sistema programa un reintento automático. |
+| **Reglas de Negocio** | - El correo debe enviarse únicamente a direcciones asociadas a usuarios registrados. <br> - La plantilla debe corresponder al tipo de notificación. |
+| **Flujo de Excepción** | **FE1: Falla del proveedor de correo** <br> FE1.1 El Servicio de Correo no responde o rechaza el envío. <br> FE1.2 El sistema registra el error. <br> FE1.3 El envío queda disponible para reintento. |
+| **Reglas de Calidad** | - El envío no debe bloquear el flujo principal de registro. <br> - El estado de la notificación debe ser trazable. |
+
+---
+
+##### CDU008.2: Enviar Recibo de Compra de Suscripción
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Enviar recibo de compra de suscripción |
+| **Código** | CDU008.2 |
+| **Actores** | Servicio de Correo |
+| **Descripción** | El sistema envía un recibo digital al usuario después de una compra exitosa de suscripción, dejando constancia del plan adquirido, monto, moneda, fecha y estado de la transacción. |
+| **Precondiciones** | - El usuario completó exitosamente la compra o renovación de una suscripción. <br> - Existe una transacción aprobada asociada a la cuenta. <br> - El usuario tiene correo registrado. |
+| **Post Condiciones** | - El recibo de compra queda enviado al correo del usuario o registrado para reintento. <br> - El envío queda registrado en la tabla de notificaciones. |
+| **Flujo Principal** | 1. El usuario compra una suscripción en el caso de uso CDU003.2. <br> 2. El sistema registra la suscripción y la transacción aprobada. <br> 3. El sistema solicita al módulo de notificaciones generar el recibo. <br> 4. El sistema construye el mensaje con plan, monto, moneda, período y referencia de pago. <br> 5. El Servicio de Correo envía el recibo al usuario. <br> 6. El sistema registra el resultado del envío. |
+| **Flujos Alternos** | **FA1: Envío diferido** <br> FA1.1 Si el proveedor de correo no responde inmediatamente, el sistema deja el recibo en estado pendiente. <br> FA1.2 El sistema reintenta el envío según la política configurada. |
+| **Reglas de Negocio** | - El recibo solo se envía cuando la compra de suscripción fue aprobada. <br> - El recibo debe contener información suficiente para identificar la transacción. <br> - No se deben incluir datos sensibles completos del método de pago. |
+| **Flujo de Excepción** | **FE1: Error al generar el recibo** <br> FE1.1 El sistema no puede construir el contenido del recibo. <br> FE1.2 Registra el error y conserva la transacción aprobada. <br><br> **FE2: Error al enviar correo** <br> FE2.1 El proveedor de correo falla. <br> FE2.2 El sistema registra el error y programa reintento. |
+| **Reglas de Calidad** | - El recibo debe generarse de forma automática después de la compra. <br> - La falla del correo no debe revertir una suscripción ya aprobada. |
+
+---
+
+##### CDU008.3: Enviar Alerta de Nuevo Contenido
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Enviar alerta de nuevo contenido |
+| **Código** | CDU008.3 |
+| **Actores** | Servicio de Correo |
+| **Descripción** | El sistema envía una notificación por correo a los usuarios cuando se publica nuevo contenido relevante dentro del catálogo. |
+| **Precondiciones** | - Existe contenido publicado o programado que debe notificarse. <br> - Los usuarios destinatarios tienen correo válido. |
+| **Post Condiciones** | - Se envía o registra para reintento la alerta de nuevo contenido. <br> - Se conserva evidencia del estado de envío. |
+| **Flujo Principal** | 1. El administrador publica o programa nuevo contenido. <br> 2. El sistema identifica a los usuarios destinatarios. <br> 3. El sistema genera la notificación con la información del contenido. <br> 4. El Servicio de Correo envía el mensaje. <br> 5. El sistema registra el estado de cada envío. |
+| **Flujos Alternos** | **FA1: Sin destinatarios** <br> FA1.1 El sistema no encuentra usuarios que deban recibir la alerta. <br> FA1.2 El proceso finaliza sin generar envíos. |
+| **Reglas de Negocio** | - Las alertas deben enviarse únicamente para contenido publicado o programado según reglas del negocio. <br> - Debe respetarse la configuración de notificaciones del usuario cuando aplique. |
+| **Flujo de Excepción** | **FE1: Fallo de proveedor de correo** <br> FE1.1 El Servicio de Correo rechaza el envío. <br> FE1.2 El sistema registra el error y programa reintento. |
+| **Reglas de Calidad** | - El envío debe ser asíncrono para no bloquear la publicación del contenido. |
+
+---
+
+#### CDU-009: Panel de Administración y Catálogo Dinámico
+
+Sus expandidos son:
+- CDU009.1: Crear contenido multimedia
+- CDU009.2: Editar metadatos de contenido
+- CDU009.3: Eliminar contenido
+- CDU009.4: Programar estreno
+- CDU009.5: Cargar archivos multimedia a Google Cloud Storage
+
+![Diagrama CDU-009](imgs/CDU-009.png)
+
+### CDU009.1: Crear Contenido Multimedia
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Crear contenido multimedia |
+| **Código** | CDU009.1 |
+| **Actores** | Administrador |
+| **Descripción** | Permite al administrador agregar una nueva película o serie al catálogo de Quetxal TV, registrando metadatos, clasificación, duración, recursos visuales y archivos multimedia asociados. |
+| **Precondiciones** | - El administrador debe tener sesión activa. <br> - El usuario autenticado debe poseer rol de administrador. <br> - Deben existir categorías o géneros configurados para clasificar el contenido. |
+| **Post Condiciones** | - El contenido queda registrado en el catálogo. <br> - El contenido puede quedar en estado borrador, programado o publicado según la fecha de estreno. <br> - Los recursos multimedia quedan asociados al contenido. |
+| **Flujo Principal** | 1. El administrador ingresa al panel de administración. <br> 2. Selecciona la opción "Agregar contenido". <br> 3. El sistema muestra el formulario de registro. <br> 4. El administrador ingresa título, tipo, sinopsis, año, clasificación, duración y metadatos. <br> 5. El administrador selecciona géneros, reparto y datos técnicos. <br> 6. El sistema valida los datos obligatorios. <br> 7. El administrador adjunta póster, trailer o archivo de video. <br> 8. El sistema carga los archivos pesados en Google Cloud Storage. <br> 9. El sistema guarda las URLs o referencias de los recursos. <br> 10. El sistema registra el nuevo contenido en la base de datos del catálogo. <br> 11. El sistema confirma la creación del contenido. |
+| **Flujos Alternos** | **FA1: Guardar como borrador** <br> FA1.1 El administrador decide no publicar inmediatamente. <br> FA1.2 El sistema guarda el contenido como borrador. <br><br> **FA2: Programar estreno** <br> FA2.1 El administrador define una fecha futura. <br> FA2.2 El sistema guarda el contenido como programado. |
+| **Reglas de Negocio** | - Solo usuarios administradores pueden crear contenido. <br> - Todo contenido debe tener título, tipo, sinopsis y clasificación. <br> - Los archivos de video y portadas deben almacenarse en Google Cloud Storage. |
+| **Flujo de Excepción** | **FE1: Error al cargar archivo en GCS** <br> FE1.1 El almacenamiento de objetos no responde o rechaza el archivo. <br> FE1.2 El sistema cancela la publicación y conserva los datos ingresados. <br> FE1.3 El sistema muestra un mensaje para reintentar. |
+| **Reglas de Calidad** | - El formulario debe validar campos obligatorios antes de enviar. <br> - La carga de archivos debe mostrar progreso. <br> - La creación no debe dejar registros incompletos si falla la carga de recursos. |
+
+---
+
+### CDU009.2: Editar Metadatos de Contenido
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Editar metadatos de contenido |
+| **Código** | CDU009.2 |
+| **Actores** | Administrador |
+| **Descripción** | Permite actualizar información de una película o serie existente, incluyendo datos descriptivos, estado de publicación, recursos visuales y clasificación. |
+| **Precondiciones** | - El administrador debe tener sesión activa. <br> - El contenido debe existir en el catálogo. |
+| **Post Condiciones** | - Los cambios quedan guardados. <br> - Se genera registro de auditoría por actualización. <br> - El catálogo refleja los metadatos actualizados. |
+| **Flujo Principal** | 1. El administrador accede al panel de catálogo. <br> 2. Busca o selecciona el contenido a editar. <br> 3. El sistema muestra la información actual. <br> 4. El administrador modifica los campos necesarios. <br> 5. Si adjunta nuevos recursos, el sistema los carga a Google Cloud Storage. <br> 6. El sistema valida los datos. <br> 7. El sistema actualiza el contenido. <br> 8. El trigger de auditoría registra el estado anterior y el estado nuevo. <br> 9. El sistema muestra confirmación. |
+| **Flujos Alternos** | **FA1: Cambio de estado de publicación** <br> FA1.1 El administrador cambia el contenido de borrador a publicado o viceversa. <br> FA1.2 El sistema actualiza la visibilidad del contenido. |
+| **Reglas de Negocio** | - No se permite dejar vacío el título ni el tipo de contenido. <br> - Toda actualización debe ser auditada. |
+| **Flujo de Excepción** | **FE1: Contenido no encontrado** <br> FE1.1 El contenido fue eliminado o no se encuentra disponible. <br> FE1.2 El sistema muestra un mensaje de error. |
+| **Reglas de Calidad** | - La actualización de metadatos debe completarse en ≤ 2 segundos, excluyendo carga de archivos pesados. |
+
+---
+
+### CDU009.3: Eliminar Contenido
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Eliminar contenido |
+| **Código** | CDU009.3 |
+| **Actores** | Administrador |
+| **Descripción** | Permite retirar contenido del catálogo visible para usuarios, conservando trazabilidad de la operación mediante auditoría. |
+| **Precondiciones** | - El administrador debe tener sesión activa. <br> - El contenido debe existir en el catálogo. |
+| **Post Condiciones** | - El contenido deja de mostrarse en la cartelera. <br> - El cambio queda registrado en auditoría. |
+| **Flujo Principal** | 1. El administrador selecciona un contenido desde el panel. <br> 2. Selecciona la opción "Eliminar". <br> 3. El sistema solicita confirmación. <br> 4. El administrador confirma la operación. <br> 5. El sistema actualiza el estado o elimina el registro según la política configurada. <br> 6. El trigger de auditoría registra la modificación. <br> 7. El sistema confirma la operación. |
+| **Flujos Alternos** | **FA1: Cancelación** <br> FA1.1 El administrador cancela la operación. <br> FA1.2 El contenido permanece sin cambios. |
+| **Reglas de Negocio** | - Solo administradores pueden eliminar contenido. <br> - La operación debe conservar trazabilidad. <br> - El contenido eliminado no debe aparecer al usuario final. |
+| **Flujo de Excepción** | **FE1: Error al eliminar contenido** <br> FE1.1 La base de datos no responde. <br> FE1.2 El sistema notifica el fallo y no modifica el contenido. |
+| **Reglas de Calidad** | - La operación debe ser trazable mediante auditoría. |
+
+---
+
+### CDU009.4: Programar Estreno
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Programar estreno |
+| **Código** | CDU009.4 |
+| **Actores** | Administrador |
+| **Descripción** | Permite calendarizar la fecha y hora exacta en que una película o serie será visible para los usuarios en la cartelera. |
+| **Precondiciones** | - El contenido debe existir. <br> - El administrador debe tener permisos de gestión de catálogo. |
+| **Post Condiciones** | - El contenido queda programado. <br> - La publicación se activa cuando se alcanza la fecha configurada. |
+| **Flujo Principal** | 1. El administrador abre el detalle administrativo del contenido. <br> 2. Selecciona "Programar estreno". <br> 3. El sistema muestra selector de fecha y hora. <br> 4. El administrador define el momento de publicación. <br> 5. El sistema valida que la fecha sea válida. <br> 6. El sistema guarda la programación. <br> 7. El contenido queda oculto hasta la fecha de estreno. |
+| **Flujos Alternos** | **FA1: Publicación inmediata** <br> FA1.1 El administrador selecciona publicar ahora. <br> FA1.2 El sistema cambia el estado a publicado. |
+| **Reglas de Negocio** | - No se debe mostrar contenido programado antes de la fecha de estreno. <br> - La fecha programada debe registrarse con zona horaria consistente. |
+| **Flujo de Excepción** | **FE1: Fecha inválida** <br> FE1.1 La fecha ingresada es anterior a la actual. <br> FE1.2 El sistema solicita una fecha válida. |
+| **Reglas de Calidad** | - El cambio de visibilidad debe ser consistente con la hora configurada. |
+
+---
+
+### CDU009.5: Cargar Archivos Multimedia a Google Cloud Storage
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Cargar archivos multimedia a Google Cloud Storage |
+| **Código** | CDU009.5 |
+| **Actores** | Administrador |
+| **Descripción** | Permite al administrador cargar archivos pesados como videos, capítulos, trailers e imágenes de portada. El sistema almacena estos recursos en Google Cloud Storage, pero GCS se documenta como infraestructura técnica y no como actor del caso de uso. |
+| **Precondiciones** | - El administrador debe estar autenticado. <br> - Debe existir configuración válida de acceso a GCS mediante variables seguras. |
+| **Post Condiciones** | - El archivo queda almacenado en GCS. <br> - El sistema guarda la referencia o URL del recurso. |
+| **Flujo Principal** | 1. El administrador selecciona un archivo multimedia. <br> 2. El sistema valida tipo y tamaño del archivo. <br> 3. El sistema envía el archivo al bucket configurado. <br> 4. El sistema obtiene la URL o referencia del objeto almacenado. <br> 5. El sistema asocia la referencia al contenido. |
+| **Flujos Alternos** | **FA1: Reemplazo de archivo** <br> FA1.1 El administrador sustituye un recurso existente. <br> FA1.2 El sistema actualiza la referencia del objeto. |
+| **Reglas de Negocio** | - Los archivos pesados no deben almacenarse en el sistema de archivos local. <br> - Las credenciales de GCS no deben estar quemadas en código. |
+| **Flujo de Excepción** | **FE1: Archivo inválido** <br> FE1.1 El archivo supera el tamaño permitido o tiene formato no soportado. <br> FE1.2 El sistema rechaza la carga y muestra la causa. |
+| **Reglas de Calidad** | - La carga debe manejarse de forma asíncrona o con indicador visual. <br> - El sistema debe evitar duplicados innecesarios. |
+
+---
+
+#### CDU-010: Auditoría y Reportes Administrativos
+
+Sus expandidos son:
+- CDU010.1: Registrar auditoría transaccional
+- CDU010.2: Consultar log transaccional
+- CDU010.3: Descargar reporte CSV
+- CDU010.4: Descargar reporte PDF
+
+![Diagrama CDU-010](imgs/CDU-010.png)
+
+### CDU010.1: Registrar Auditoría Transaccional
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Registrar auditoría transaccional |
+| **Código** | CDU010.1 |
+| **Actores** | Administrador o usuario autenticado que ejecuta una operación auditable |
+| **Descripción** | Registra automáticamente operaciones INSERT y UPDATE realizadas sobre tablas relacionales críticas mediante triggers de base de datos. La base de datos y los triggers se consideran mecanismos internos, no actores del caso de uso. |
+| **Precondiciones** | - Deben existir triggers configurados en las tablas auditables. <br> - La operación transaccional debe ser INSERT o UPDATE. <br> - La operación debe provenir de una acción permitida del sistema. |
+| **Post Condiciones** | - Se crea un registro en la tabla de auditoría. <br> - Se almacena tabla afectada, timestamp, responsable, estado anterior y estado nuevo. |
+| **Flujo Principal** | 1. Un usuario o administrador ejecuta una operación sobre una tabla auditable. <br> 2. El sistema procesa la operación. <br> 3. El mecanismo de auditoría se ejecuta automáticamente. <br> 4. El sistema obtiene el estado anterior y el estado nuevo cuando aplica. <br> 5. El sistema registra la operación en la tabla de auditoría. |
+| **Flujos Alternos** | **FA1: Inserción nueva** <br> FA1.1 No existe estado anterior. <br> FA1.2 El sistema registra únicamente el estado nuevo. |
+| **Reglas de Negocio** | - La auditoría debe generarse automáticamente sin depender de que el usuario la solicite manualmente. <br> - INSERT y UPDATE deben quedar registrados. |
+| **Flujo de Excepción** | **FE1: Error en auditoría** <br> FE1.1 La operación principal se cancela si la transacción no puede completarse de forma consistente. |
+| **Reglas de Calidad** | - La auditoría no debe agregar latencia significativa a la operación principal. |
+
+---
+
+### CDU010.2: Consultar Log Transaccional
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Consultar log transaccional |
+| **Código** | CDU010.2 |
+| **Actores** | Administrador |
+| **Descripción** | Permite visualizar desde el panel administrativo los registros generados en las tablas de auditoría. |
+| **Precondiciones** | - El administrador debe estar autenticado. <br> - El administrador debe poseer permisos para consultar auditoría. |
+| **Post Condiciones** | - El administrador visualiza el log transaccional filtrado u ordenado. |
+| **Flujo Principal** | 1. El administrador ingresa al módulo de auditoría. <br> 2. El sistema consulta los registros de auditoría. <br> 3. El sistema muestra tabla afectada, acción, responsable, fecha, estado anterior y estado nuevo. <br> 4. El administrador puede aplicar filtros por tabla, acción o fecha. |
+| **Flujos Alternos** | **FA1: Sin registros** <br> FA1.1 No existen registros para los filtros seleccionados. <br> FA1.2 El sistema muestra un mensaje informativo. |
+| **Reglas de Negocio** | - Solo administradores pueden consultar auditoría. <br> - El log debe poder filtrarse y ordenarse. |
+| **Flujo de Excepción** | **FE1: Servicio de auditoría no disponible** <br> FE1.1 El sistema no puede obtener los logs. <br> FE1.2 Se muestra mensaje de error técnico. |
+| **Reglas de Calidad** | - La consulta inicial debe cargar en ≤ 3 segundos. |
+
+---
+
+### CDU010.3: Descargar Reporte CSV
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Descargar reporte CSV |
+| **Código** | CDU010.3 |
+| **Actores** | Administrador |
+| **Descripción** | Permite exportar los registros de auditoría en formato CSV para análisis tabular. |
+| **Precondiciones** | El administrador debe haber consultado el log transaccional. |
+| **Post Condiciones** | Se descarga un archivo CSV con los registros filtrados. |
+| **Flujo Principal** | 1. El administrador aplica filtros al log. <br> 2. Selecciona "Descargar CSV". <br> 3. El sistema genera el archivo con encabezados y filas ordenadas. <br> 4. El navegador descarga el archivo. |
+| **Flujos Alternos** | **FA1: Exportar sin filtros** <br> FA1.1 El sistema exporta los registros recientes por defecto. |
+| **Reglas de Negocio** | - El reporte debe respetar los filtros aplicados. <br> - El CSV debe incluir encabezados descriptivos. |
+| **Flujo de Excepción** | **FE1: Error de generación** <br> FE1.1 El sistema no puede construir el archivo. <br> FE1.2 Se notifica al administrador. |
+| **Reglas de Calidad** | - El archivo debe generarse en ≤ 5 segundos para volúmenes moderados. |
+
+---
+
+### CDU010.4: Descargar Reporte PDF
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Descargar reporte PDF |
+| **Código** | CDU010.4 |
+| **Actores** | Administrador |
+| **Descripción** | Permite exportar el log de auditoría en un reporte PDF ordenado y formateado para revisión administrativa. |
+| **Precondiciones** | El administrador debe haber consultado el log transaccional. |
+| **Post Condiciones** | Se descarga un PDF con los registros filtrados y metadatos del reporte. |
+| **Flujo Principal** | 1. El administrador aplica filtros al log. <br> 2. Selecciona "Descargar PDF". <br> 3. El sistema genera un documento formateado. <br> 4. El sistema incluye fecha, servicio, filtros aplicados y registros. <br> 5. El navegador descarga el archivo. |
+| **Flujos Alternos** | **FA1: Reporte sin filtros** <br> FA1.1 El sistema genera un reporte general reciente. |
+| **Reglas de Negocio** | - El PDF debe estar ordenado y ser legible. <br> - Debe incluir fecha de generación y filtros aplicados. |
+| **Flujo de Excepción** | **FE1: Error al generar PDF** <br> FE1.1 El sistema no logra renderizar el documento. <br> FE1.2 Notifica al administrador. |
+| **Reglas de Calidad** | - El reporte debe conservar formato visual consistente. |
+
+---
+
+#### CDU-011: Monitoreo de Salud y Disponibilidad
+
+Sus expandidos son:
+- CDU011.1: Consultar liveness probe
+- CDU011.2: Consultar readiness probe
+- CDU011.3: Retirar tráfico o reiniciar pod ante fallo
+
+![Diagrama CDU-011](imgs/CDU-011.png)
+
+### CDU011.1: Consultar Liveness Probe
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Consultar liveness probe |
+| **Código** | CDU011.1 |
+| **Actores** | Kubernetes / Orquestador |
+| **Descripción** | Permite al orquestador verificar que el proceso del contenedor continúa vivo y no se encuentra congelado. |
+| **Precondiciones** | - El Pod debe estar desplegado. <br> - El endpoint de liveness debe estar configurado en el manifiesto del Deployment. |
+| **Post Condiciones** | Kubernetes obtiene una respuesta de vitalidad del servicio. |
+| **Flujo Principal** | 1. Kubernetes ejecuta la sonda liveness. <br> 2. El sistema recibe la consulta en `/health/live`. <br> 3. El sistema responde que el proceso está vivo. <br> 4. Kubernetes interpreta el resultado y mantiene el contenedor activo. |
+| **Flujos Alternos** | **FA1: Respuesta tardía** <br> FA1.1 La sonda excede el timeout. <br> FA1.2 Kubernetes registra fallo de liveness. |
+| **Reglas de Negocio** | - Liveness no debe validar dependencias externas complejas. <br> - Debe validar únicamente que el proceso está vivo. |
+| **Flujo de Excepción** | **FE1: Fallo persistente** <br> FE1.1 Kubernetes detecta fallos repetidos. <br> FE1.2 Reinicia el contenedor. |
+| **Reglas de Calidad** | - La respuesta debe ser liviana y rápida. |
+
+---
+
+### CDU011.2: Consultar Readiness Probe
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Consultar readiness probe |
+| **Código** | CDU011.2 |
+| **Actores** | Kubernetes / Orquestador |
+| **Descripción** | Permite al orquestador verificar que el servicio terminó de cargar sus conexiones internas y está listo para recibir tráfico real. |
+| **Precondiciones** | - El servicio debe estar desplegado. <br> - El endpoint de readiness debe estar configurado. <br> - Las dependencias necesarias deben estar disponibles. |
+| **Post Condiciones** | Kubernetes determina si el Pod puede recibir tráfico. |
+| **Flujo Principal** | 1. Kubernetes consulta `/health/ready`. <br> 2. El sistema valida el estado del microservicio correspondiente. <br> 3. El microservicio verifica sus dependencias internas, como gRPC, Redis o base de datos. <br> 4. El sistema responde `READY` si todo está disponible. <br> 5. Kubernetes permite enviar tráfico al Pod. |
+| **Flujos Alternos** | **FA1: Dependencia no disponible** <br> FA1.1 La base de datos, Redis o conexión gRPC falla. <br> FA1.2 El endpoint responde `NOT_READY`. <br> FA1.3 Kubernetes no envía tráfico al Pod. |
+| **Reglas de Negocio** | - Readiness debe validar dependencias necesarias para operar. <br> - Un servicio no listo no debe recibir tráfico. |
+| **Flujo de Excepción** | **FE1: Error interno en validación** <br> FE1.1 El health check produce error inesperado. <br> FE1.2 El sistema responde estado no disponible. |
+| **Reglas de Calidad** | - La validación debe ejecutarse con timeout controlado. |
+
+---
+
+### CDU011.3: Retirar Tráfico o Reiniciar Pod ante Fallo
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Retirar tráfico o reiniciar pod ante fallo |
+| **Código** | CDU011.3 |
+| **Actores** | Kubernetes / Orquestador |
+| **Descripción** | Permite que Kubernetes actúe automáticamente cuando un Pod no está listo o cuando su proceso deja de estar vivo. |
+| **Precondiciones** | Deben estar configuradas las sondas liveness y readiness en el manifiesto del Deployment. |
+| **Post Condiciones** | - El Pod no listo deja de recibir tráfico. <br> - El Pod con liveness fallido puede ser reiniciado. |
+| **Flujo Principal** | 1. Kubernetes ejecuta las sondas periódicamente. <br> 2. Si readiness falla, retira el Pod de los endpoints disponibles. <br> 3. Si liveness falla de forma persistente, reinicia el contenedor. <br> 4. El servicio vuelve a estar disponible cuando las sondas responden correctamente. |
+| **Flujos Alternos** | **FA1: Recuperación automática** <br> FA1.1 La dependencia vuelve a estar disponible. <br> FA1.2 Readiness responde `READY`. <br> FA1.3 Kubernetes vuelve a enviar tráfico al Pod. |
+| **Reglas de Negocio** | - Readiness controla recepción de tráfico. <br> - Liveness controla reinicio del contenedor. |
+| **Flujo de Excepción** | **FE1: Fallo de despliegue persistente** <br> FE1.1 El Pod entra en ciclo de error. <br> FE1.2 El pipeline debe activar rollback automático según la estrategia de despliegue. |
+| **Reglas de Calidad** | - La recuperación no debe requerir intervención manual en condiciones esperadas. |

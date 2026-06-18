@@ -1,20 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ReactPlayer from 'react-player'
-import { X } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 import { saveProgress, getProgress } from '@/lib/progress'
+import { getDownloadUrl } from '@/api/catalogAdmin'
 
 const FALLBACK_VIDEO =
   'https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4'
-
-function buildVideoUrl(videoRef: string, videoSource: string): string {
-  if (!videoRef) return FALLBACK_VIDEO
-  if (videoRef.startsWith('http')) return videoRef
-  const src = videoSource?.toLowerCase()
-  if (src === 'youtube' || src === 'yt' || videoRef.length === 11) {
-    return `https://www.youtube.com/watch?v=${videoRef}`
-  }
-  return FALLBACK_VIDEO
-}
 
 export interface VideoPlayerProps {
   contentId: string
@@ -37,9 +28,62 @@ export default function VideoPlayer(props: VideoPlayerProps) {
   const realDurationRef = useRef<number>(props.totalDuration)
   const hasSeenkedRef = useRef(false)
 
+  // URL real a reproducir — se resuelve de forma async cuando la fuente es GCS
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [resolveError, setResolveError] = useState(false)
+
   // Keep props in a ref so the unmount cleanup always reads the latest values
   const propsRef = useRef(props)
   propsRef.current = props
+
+  // ─── Resolver la URL real del video según la fuente ─────────────────────────
+  useEffect(() => {
+    let cancelled = false
+    setVideoUrl(null)
+    setResolveError(false)
+
+    async function resolve() {
+      const ref = props.videoRef
+      const source = (props.videoSource || '').toLowerCase()
+
+      if (!ref) {
+        if (!cancelled) setVideoUrl(FALLBACK_VIDEO)
+        return
+      }
+
+      // Link directo ya armado (http...) → úsalo tal cual
+      if (ref.startsWith('http')) {
+        if (!cancelled) setVideoUrl(ref)
+        return
+      }
+
+      // Video subido a GCS → object_name guardado, hay que pedir signed URL
+      if (source === 'gcs') {
+        try {
+          const { download_url } = await getDownloadUrl(ref)
+          if (!cancelled) setVideoUrl(download_url)
+        } catch {
+          if (!cancelled) {
+            setResolveError(true)
+            setVideoUrl(FALLBACK_VIDEO)
+          }
+        }
+        return
+      }
+
+      // YouTube por ID o por convención de longitud
+      if (source === 'youtube' || source === 'yt' || ref.length === 11) {
+        if (!cancelled) setVideoUrl(`https://www.youtube.com/watch?v=${ref}`)
+        return
+      }
+
+      // Vimeo u otra fuente con id — intenta como link directo de respaldo
+      if (!cancelled) setVideoUrl(FALLBACK_VIDEO)
+    }
+
+    resolve()
+    return () => { cancelled = true }
+  }, [props.videoRef, props.videoSource])
 
   // Persist uses only refs — no state deps, won't trigger effect re-runs
   const persist = () => {
@@ -91,8 +135,6 @@ export default function VideoPlayer(props: VideoPlayerProps) {
     ? `Temp. ${props.seasonNum} · Ep. ${props.episodeNum} — ${props.episodeTitle}`
     : props.title
 
-  const videoUrl = buildVideoUrl(props.videoRef, props.videoSource)
-
   return (
     <div className="fixed inset-0 z-50 bg-black/96 flex flex-col items-center justify-center">
       <button
@@ -106,20 +148,33 @@ export default function VideoPlayer(props: VideoPlayerProps) {
       <div className="w-full max-w-5xl px-4">
         <p className="text-spotlight font-mono text-sm truncate max-w-[80%] mb-3">{label}</p>
 
-        <div className="aspect-video bg-black rounded overflow-hidden shadow-[0_0_40px_rgba(212,168,67,0.15)]">
-          <ReactPlayer
-            ref={playerRef}
-            url={videoUrl}
-            width="100%"
-            height="100%"
-            controls
-            playing
-            onStart={trySeek}
-            onPlay={trySeek}
-            onDuration={handleDuration}
-            onProgress={handleProgress}
-            progressInterval={10000}
-          />
+        {resolveError && (
+          <p className="text-red-400 font-mono text-xs mb-2">
+            No se pudo cargar el video original, mostrando contenido de respaldo.
+          </p>
+        )}
+
+        <div className="aspect-video bg-black rounded overflow-hidden shadow-[0_0_40px_rgba(212,168,67,0.15)] flex items-center justify-center">
+          {!videoUrl ? (
+            <div className="flex flex-col items-center gap-3 text-silver/50">
+              <Loader2 size={28} className="animate-spin text-spotlight" />
+              <span className="font-mono text-xs">Cargando video...</span>
+            </div>
+          ) : (
+            <ReactPlayer
+              ref={playerRef}
+              url={videoUrl}
+              width="100%"
+              height="100%"
+              controls
+              playing
+              onStart={trySeek}
+              onPlay={trySeek}
+              onDuration={handleDuration}
+              onProgress={handleProgress}
+              progressInterval={10000}
+            />
+          )}
         </div>
       </div>
     </div>
