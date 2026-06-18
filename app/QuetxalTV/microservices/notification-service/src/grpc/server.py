@@ -1,6 +1,7 @@
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
+from src.grpc.audit_http import start_audit_server
 
 import grpc
 import concurrent.futures
@@ -55,7 +56,9 @@ def serve():
     worker_thread = threading.Thread(target=worker_loop, daemon=True)
     worker_thread.start()
     logger.info("Worker de notificaciones iniciado")
-
+    audit_thread = threading.Thread(target=start_audit_server, daemon=True)
+    audit_thread.start()
+    logger.info("Audit HTTP server iniciado")
     server.wait_for_termination()
 
 if __name__ == "__main__":

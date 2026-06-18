@@ -24,44 +24,13 @@ export default function HomePage() {
 
   const typeFilter = searchParams.get('type')
 
-  const getActiveProfileId = () => {
-    const possibleKeys = [
-      'selectedProfileId',
-      'activeProfileId',
-      'currentProfileId',
-      'profileId',
-    ]
-
-    for (const key of possibleKeys) {
-      const value = localStorage.getItem(key)
-
-      if (value) {
-        return value
-      }
-    }
-
-    const selectedProfile = localStorage.getItem('selectedProfile')
-
-    if (selectedProfile) {
-      try {
-        const parsedProfile = JSON.parse(selectedProfile)
-
-        if (parsedProfile?.id) {
-          return parsedProfile.id
-        }
-      } catch {
-        // Si no es JSON válido, se ignora y se usa el fallback.
-      }
-    }
-
-    /*
-      Fallback usado para pruebas.
-      Si no existe perfil activo en localStorage o el API Gateway aún no está listo,
-      el catch cargará el progreso local con getAllProgress().
-    */
-    return '11111111-1111-1111-1111-111111111111'
-  }
-
+ const getActiveProfileId = (): string | null => {
+  try {
+    const profile = JSON.parse(localStorage.getItem('quetxal_active_profile') || 'null')
+    if (profile?.id) return profile.id
+  } catch { /* continúa */ }
+  return null
+}
  const mapApiProgressToSavedProgress = (
   item: ProgressItemResponse
 ): SavedProgress =>
@@ -86,38 +55,33 @@ export default function HomePage() {
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => {
-    const loadContinueWatching = async () => {
-      try {
-        setLoadingHistory(true)
+ useEffect(() => {
+  const loadContinueWatching = async () => {
+    try {
+      setLoadingHistory(true)
+      const profileId = getActiveProfileId()
 
-        const profileId = getActiveProfileId()
-        const apiProgress = await historialAPI.getContinueWatching(profileId)
-
-        const mappedProgress = apiProgress
-          .filter((item) => (item.lastEpMinute || item.minuteReached) > 0)
-          .map(mapApiProgressToSavedProgress)
-
-        if (mappedProgress.length > 0) {
-          setContinueWatching(mappedProgress)
-          return
-        }
-
+      if (!profileId) {
         setContinueWatching(loadLocalProgress())
-      } catch (error) {
-        console.warn(
-          'No se pudo cargar continuar viendo desde API Gateway. Se usará progreso local.',
-          error
-        )
-
-        setContinueWatching(loadLocalProgress())
-      } finally {
-        setLoadingHistory(false)
+        return
       }
-    }
 
-    loadContinueWatching()
-  }, [])
+      const apiProgress = await historialAPI.getContinueWatching(profileId)
+      const mappedProgress = apiProgress
+        .filter((item) => (item.lastEpMinute || item.minuteReached) > 0)
+        .map(mapApiProgressToSavedProgress)
+
+      setContinueWatching(mappedProgress.length > 0 ? mappedProgress : loadLocalProgress())
+    } catch (error) {
+      console.warn('No se pudo cargar continuar viendo desde API Gateway.', error)
+      setContinueWatching(loadLocalProgress())
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
+
+  loadContinueWatching()
+}, [])
 
   const localFilter = useCallback(
     (q: string) =>

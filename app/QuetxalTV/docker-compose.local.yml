@@ -16,6 +16,10 @@ services:
       NOTIFICATION_SERVICE_HOST: notification-service:50056
       CATALOG_SERVICE_URL: catalog-service:50052
       CATALOG_HTTP_URL: http://catalog-service:8082
+      HISTORIAL_SERVICE_URL: historial-service:50054
+      SUBSCRIPTION_HTTP_URL: http://subscription-service:8083
+      NOTIFICATION_HTTP_URL: http://notification-service:8084
+      FX_HTTP_URL: http://fx-service:8085
     depends_on:
       - auth-service
       - subscription-service
@@ -107,8 +111,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "50056:50056"
+      - "8084:8084"
     environment:
       GRPC_PORT: 50056
+      AUDIT_HTTP_PORT: 8084
       DB_HOST: notification-db
       DB_PORT: 5432
       DB_USER: notificacion_user
@@ -208,9 +214,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "50053:50053"
+      - "8083:8083"
     environment:
       GRPC_PORT: 50053
       FX_SERVICE_HOST: fx-service:50055
+      AUDIT_HTTP_PORT: 8083
       NOTIFICATION_SERVICE_HOST: notification-service:50056
       DB_HOST: subscription-db
       DB_PORT: 5432
@@ -254,7 +262,9 @@ services:
       dockerfile: ./microservices/fx-service/Dockerfile
     ports:
       - "50055:50055"
+      - "8085:8085"
     environment:
+      AUDIT_HTTP_PORT: 8085
       GRPC_PORT: 50055
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -302,9 +312,6 @@ services:
       context: ./microservices/historial-service
       dockerfile: Dockerfile
     container_name: quetxaltv-historial-service
-    env_file:
-      - path: ./microservices/historial-service/.env
-        required: false
     ports:
       - "50054:50054"
     environment:
@@ -313,6 +320,8 @@ services:
       DB_USER: historial_user
       DB_PASSWORD: admin
       DB_NAME: historial_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: playback
     depends_on:
       historial-db:
         condition: service_healthy

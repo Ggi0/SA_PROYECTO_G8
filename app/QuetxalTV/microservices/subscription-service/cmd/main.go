@@ -93,7 +93,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("error listening on port %s: %v", port, err)
 	}
-
+	
+	go startAuditServer(db)
+	
 	grpcServer := grpc.NewServer()
 	pb.RegisterSubscriptionServiceServer(grpcServer, &subscriptionServer{
 		plansHandler:    plans.NewHandler(planSvc, fxClient),
