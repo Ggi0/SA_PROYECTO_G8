@@ -58,10 +58,7 @@ jobs:
           JWT_ACCESS_SECRET: test-access-ci
         run: |
           npm ci --silent
-          npx jest --coverage \
-            --collectCoverageFrom=JWT/jwt.service.ts \
-            --coverageThreshold='{"global":{"lines":75}}' \
-            --forceExit
+          npm run test:cov
   test-python:
     name: "Python services (smoke + coverage report)"
     runs-on: ubuntu-latest
