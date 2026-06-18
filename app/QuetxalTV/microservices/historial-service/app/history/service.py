@@ -120,3 +120,29 @@ class HistorialAppService:
             limit,
             offset
         )
+    
+    def health_live(self):
+        return {
+            "success": True,
+            "status": "LIVE",
+            "service": "historial-service",
+            "message": "Historial service está vivo"
+        }
+
+    def health_ready(self):
+        database_ready = self.repository.verificar_conexion_base_datos()
+
+        if not database_ready:
+            return {
+                "success": False,
+                "status": "NOT_READY",
+                "service": "historial-service",
+                "message": "Historial service no pudo validar conexión con la base de datos"
+            }
+
+        return {
+            "success": True,
+            "status": "READY",
+            "service": "historial-service",
+            "message": "Historial service está listo y conectado a la base de datos"
+        }

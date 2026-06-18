@@ -14,6 +14,8 @@ interface CatalogGrpcService {
   getPerson(data: { personId: string }): Observable<unknown>;
   rateContent(data: { contentId: string; profileId: string; thumb: string; stars: number }): Observable<unknown>;
   getUserRating(data: { contentId: string; profileId: string }): Observable<unknown>;
+  getUploadUrl(data: { filename: string; contentType: string }): Observable<unknown>;
+  getDownloadUrl(data: { objectName: string }): Observable<unknown>;
   // Admin — contenido
   createContent(data: Record<string, unknown>): Observable<unknown>;
   updateContent(data: Record<string, unknown>): Observable<unknown>;
@@ -75,6 +77,12 @@ export class CatalogService implements OnModuleInit {
   }
   getUserRating(contentId: string, profileId: string) {
     return this.grpcClient.getUserRating({ contentId, profileId });
+  }
+  getUploadURL(filename: string, contentType = '') {
+    return this.grpcClient.getUploadUrl({ filename, contentType });
+  }
+  getDownloadURL(objectName: string) {
+    return this.grpcClient.getDownloadUrl({ objectName });
   }
 
   // ---------- Admin — contenido ----------

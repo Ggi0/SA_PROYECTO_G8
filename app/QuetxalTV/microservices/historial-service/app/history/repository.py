@@ -142,8 +142,8 @@ class HistorialRepository:
                 cursor.execute(query, (profile_id, content_id))
                 return cursor.fetchone()
 
-        def obtener_logs_auditoria(self, table_name=None, action=None, limit=100, offset=0):
-            query = f"""
+    def obtener_logs_auditoria(self, table_name=None, action=None, limit=100, offset=0):
+        query = f"""
             SELECT *
             FROM {self.config.DB_SCHEMA}.fn_get_history_audit_logs(
                 %s,
@@ -162,3 +162,12 @@ class HistorialRepository:
                     offset
                 ))
                 return cursor.fetchall()
+
+    def verificar_conexion_base_datos(self):
+        query = "SELECT 1 AS ok;"
+
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+                resultado = cursor.fetchone()
+                return bool(resultado)

@@ -4,20 +4,36 @@ metadata:
   name: auth-service
   namespace: quetxal-tv-prod
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: auth-service
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      maxSurge: 0
+      maxUnavailable: 1
   template:
     metadata:
       labels:
         app: auth-service
     spec:
+      initContainers:
+        - name: wait-for-auth-db
+          image: postgres:16-alpine
+          env:
+            - name: DB_HOST
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_HOST } }
+            - name: DB_PORT
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_PORT } }
+            - name: DB_USER
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_USER } }
+            - name: DB_NAME
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_NAME } }
+          command:
+            - sh
+            - -c
+            - until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME"; do sleep 3; done
       containers:
         - name: auth-service
           image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/auth-service:${IMAGE_TAG}
@@ -25,10 +41,10 @@ spec:
             - containerPort: 50051
           resources:
             requests:
-              cpu: "100m"
+              cpu: "50m"
               memory: "128Mi"
             limits:
-              cpu: "300m"
+              cpu: "250m"
               memory: "256Mi"
           env:
             - name: JWT_SECRET
@@ -49,9 +65,11 @@ spec:
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_NAME } }
             - name: DB_SCHEMA
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_SCHEMA } }
+            - name: DB_SSLMODE
+              value: disable
             - name: NOTIFICATION_SERVICE_HOST
               value: notification-service
             - name: NOTIFICATION_SERVICE_PORT
               value: "50056"
-          readinessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 10, periodSeconds: 8, failureThreshold: 3 }
-          livenessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 25, periodSeconds: 20, failureThreshold: 3 }
+          readinessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { tcpSocket: { port: 50051 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
