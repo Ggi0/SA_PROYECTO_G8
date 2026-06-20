@@ -94,8 +94,22 @@ jobs:
       - name: Namespace + ConfigMap
         run: |
           kubectl apply -f k8s/namespace.yaml
+          kubectl config set-context --current --namespace=${{ env.NAMESPACE }}
           kubectl apply -f k8s/configmap.yaml
           kubectl apply -f k8s/backendconfig.yaml
+      - name: Workload Identity para catálogo
+        run: |
+          gcloud iam service-accounts add-iam-policy-binding "${{ secrets.GCP_SA_EMAIL }}" \
+            --role="roles/iam.workloadIdentityUser" \
+            --member="serviceAccount:${{ secrets.GCP_PROJECT_ID }}.svc.id.goog[${{ env.NAMESPACE }}/catalogo-service-ksa]" \
+            --quiet
+          gcloud iam service-accounts add-iam-policy-binding "${{ secrets.GCP_SA_EMAIL }}" \
+            --role="roles/iam.serviceAccountTokenCreator" \
+            --member="serviceAccount:${{ secrets.GCP_SA_EMAIL }}" \
+            --quiet
+      - name: Configurar CORS del bucket de videos
+        run: |
+          gcloud storage buckets update gs://quetxal-tv-videos --cors-file=k8s/gcs-cors.json
       - name: K8s Secrets
         run: |
           kubectl create secret generic quetxal-tv-secrets \
@@ -162,7 +176,7 @@ jobs:
           export GCP_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
           export ARTIFACT_REGISTRY_LOCATION="${{ secrets.ARTIFACT_REGISTRY_LOCATION }}"
           export ARTIFACT_REGISTRY_REPOSITORY="${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}"
-          for f in k8s/databases/*.yaml k8s/deployments/*.yaml k8s/services/*.yaml k8s/jobs/*.yaml; do
+          for f in k8s/service-accounts/*.yaml k8s/databases/*.yaml k8s/deployments/*.yaml k8s/services/*.yaml k8s/jobs/*.yaml; do
             envsubst '${IMAGE_TAG} ${GCP_PROJECT_ID} ${GCP_SA_EMAIL} ${ARTIFACT_REGISTRY_LOCATION} ${ARTIFACT_REGISTRY_REPOSITORY}' < "$f" | kubectl apply -f -
           done
           kubectl apply -f k8s/ingress.yaml
