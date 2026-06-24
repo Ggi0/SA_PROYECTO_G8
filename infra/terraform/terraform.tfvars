@@ -1,0 +1,9 @@
+project_id       = "quetxal-tv-g8"
+region           = "us-central1"
+zone             = "us-central1-a"
+github_repo      = "TU_USUARIO_GITHUB/SA_PROYECTO_G8"
+admin_cidr       = "TU_IP_PUBLICA/32"   # https://ifconfig.me — limita Kibana/Grafana/etc.
+ssh_user         = "deployer"
+ssh_pub_key_path = "~/.ssh/quetxal_deploy.pub"
+gke_node_count   = 2
+gke_machine_type = "e2-standard-2"
