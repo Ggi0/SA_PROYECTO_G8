@@ -44,4 +44,19 @@ variable "admin_cidr" {
   type        = string
   description = "Tu IP pública /32 para acceder a Kibana/Grafana/Prometheus/Locust"
   default     = "0.0.0.0/0"
+
+  validation {
+    condition     = can(cidrhost(var.admin_cidr, 0))
+    error_message = "admin_cidr debe ser un CIDR válido."
+  }
+}
+
+variable "ssh_admin_cidr" {
+  type        = string
+  description = "IP pública /32 autorizada para SSH hacia las VMs"
+
+  validation {
+    condition     = can(cidrhost(var.ssh_admin_cidr, 0)) && var.ssh_admin_cidr != "0.0.0.0/0"
+    error_message = "ssh_admin_cidr debe ser un CIDR válido y no puede ser 0.0.0.0/0. Usa tu IP pública con /32."
+  }
 }

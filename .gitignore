@@ -53,3 +53,35 @@ app/frontend/tsconfig.tsbuildinfo
 Enunciado-F2/
 Enunciado-F3/
 secrets.env
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+*.tfplan
+*.tfplan.*
+plan.out
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.rc
+.terraformrc
+
+# Credenciales y llaves locales
+*.pem
+*.key
+*.p12
+*.p8
+*.crt
+*.csr
+*.keystore
+*.jks
+*service-account*.json
+*credentials*.json
+gcloud*.json
