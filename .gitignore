@@ -52,3 +52,8 @@ app/frontend/tsconfig.tsbuildinfo
 # Documentacion local con datos sensibles de configuracion
 Enunciado-F2/
 secrets.env
+
+# Locust / Python local files
+app/QuetxalTV/load-tests/venv/
+app/QuetxalTV/load-tests/__pycache__/
+*.pyc
