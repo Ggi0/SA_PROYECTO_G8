@@ -25,7 +25,7 @@ output "workload_identity_provider" {
 }
 output "cicd_sa_email" {
   description = "Valor para el GitHub Secret GCP_SA_EMAIL"
-  value       = google_service_account.cicd.email
+  value       = local.cicd_sa_email
 }
 
 # ---------- Outputs de conveniencia para CI/CD ----------
