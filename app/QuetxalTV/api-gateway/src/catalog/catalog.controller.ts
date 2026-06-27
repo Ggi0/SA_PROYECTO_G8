@@ -13,10 +13,14 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { CatalogService } from './catalog.service';
+import { NotificationClient } from '../notification/notification.client';
 
 @Controller('catalog')
 export class CatalogController {
-  constructor(private readonly catalogService: CatalogService) {}
+  constructor(
+    private readonly catalogService: CatalogService,
+    private readonly notificationClient: NotificationClient,
+  ) {}
 
   // ===== Público =====
 
@@ -91,8 +95,20 @@ export class CatalogController {
   }
 
   @Post('admin/content/:id/publish')
-  publishContent(@Param('id') id: string) {
-    return this.catalogService.publishContent(id);
+  async publishContent(@Param('id') id: string) {
+    const result = await this.catalogService.publishContent(id) as any;
+     try {
+    const title = result?.title || result?.content?.title || 'Nuevo contenido';
+    const type = result?.type || result?.content?.type || 'MOVIE';
+    this.notificationClient.sendNewContentAlert({
+      content_title: title,
+      content_type:  type.toUpperCase(),
+      content_id:    id,
+    }).catch((err: any) => console.warn('Alerta de contenido fallida:', err));
+  } catch (e) {
+    // No bloquear el publish si la notificación falla
+  }
+    return result;
   }
 
   @Delete('admin/content/:id')

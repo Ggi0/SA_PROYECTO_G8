@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; background:#f4f4f4; color:#333; margin:0; padding:20px;">
+  <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #ddd;">
+
+    <div style="background:#e8a020; padding:32px; text-align:center;">
+      <h1 style="margin:0; color:#0f0f0f; font-size:28px;">🎬 QuetxalTV</h1>
+    </div>
+
+    <div style="padding:32px;">
+      <h2 style="color:#e8a020;">¡Hola, {{ name }}!</h2>
+      <p style="color:#333;">Tenemos nuevo contenido disponible para vos:</p>
+
+      <div style="background:#f9f9f9; border-radius:8px; padding:20px; margin:20px 0; border:1px solid #eee; text-align:center;">
+        <span style="display:inline-block; background:#e8a020; color:#0f0f0f; padding:4px 12px; border-radius:4px; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:12px;">
+          {{ content_type }}
+        </span>
+        <h3 style="color:#333; font-size:22px; margin:8px 0;">{{ content_title }}</h3>
+      </div>
+
+      <p style="color:#333;">Ya está disponible en QuetxalTV. ¡No te lo pierdas!</p>
+
+      <div style="text-align:center; margin-top:24px;">
+        <a href="http://localhost:5173/movie/{{ content_id }}"
+           style="background:#e8a020; color:#0f0f0f; padding:14px 32px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:16px;">
+          Ver ahora 🍿
+        </a>
+      </div>
+    </div>
+
+    <div style="padding:20px; text-align:center; background:#f4f4f4; border-top:1px solid #ddd;">
+      <p style="color:#999; font-size:12px; margin:0;">© 2026 QuetxalTV. Todos los derechos reservados.</p>
+      <p style="color:#bbb; font-size:10px; margin:4px 0 0;">Recibís este correo porque tenés una suscripción activa.</p>
+    </div>
+
+  </div>
+</body>
+</html>
