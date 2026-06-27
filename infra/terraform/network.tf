@@ -21,7 +21,8 @@ resource "google_compute_subnetwork" "subnet" {
   }
 }
 
-# SSH hacia VMs etiquetadas (Ansible + CI/CD), restringido por ssh_admin_cidr.
+# SSH hacia VMs etiquetadas. GitHub Actions usa IPs dinámicas, por eso debe
+# poder entrar directo a la VM de BD pública para backups/migraciones.
 resource "google_compute_firewall" "allow_ssh" {
   name      = "quetxal-allow-ssh"
   network   = google_compute_network.vpc.name
@@ -30,7 +31,7 @@ resource "google_compute_firewall" "allow_ssh" {
     protocol = "tcp"
     ports    = ["22"]
   }
-  source_ranges = [var.ssh_admin_cidr]
+  source_ranges = ["0.0.0.0/0"]
   target_tags   = ["ssh"]
 }
 

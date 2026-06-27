@@ -24,7 +24,11 @@ jobs:
         working-directory: app/QuetxalTV/microservices/subscription-service
         run: |
           go build ./...
-          go test ./internal/payments ./internal/plans ./internal/subscriptions -cover -v
+          go test ./internal/payments ./internal/plans ./internal/subscriptions -coverprofile=coverage.out -covermode=atomic -v
+          grep -v "repository.go" coverage.out > coverage_unit.out
+          COVERAGE=$(go tool cover -func=coverage_unit.out | awk '/total:/ {gsub(/%/, "", $3); print int($3)}')
+          echo "Cobertura subscription-service (handler+service): ${COVERAGE}%"
+          [ "$COVERAGE" -ge 75 ] || { echo "❌ Cobertura ${COVERAGE}% menor al 75%"; exit 1; }
       - name: catalogo-service
         working-directory: app/QuetxalTV/microservices/catalogo-service
         run: |
@@ -75,17 +79,17 @@ jobs:
         working-directory: app/QuetxalTV/microservices/fx-service
         run: |
           pip install -r requirements.txt pytest pytest-cov pytest-asyncio -q
-          test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "fx-service sin tests"; exit 1; }
+          test -d tests && test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "fx-service sin tests"; exit 1; }
           pytest tests/ --cov=src.services.fx_service --cov-fail-under=75 --cov-report=term-missing -v
       - name: notification-service
         working-directory: app/QuetxalTV/microservices/notification-service
         run: |
           pip install -r requirements.txt pytest pytest-cov -q
-          test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "notification-service sin tests"; exit 1; }
+          test -d tests && test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "notification-service sin tests"; exit 1; }
           pytest tests/ --cov=src.email --cov=src.db.repository --cov-fail-under=75 --cov-report=term-missing -v
       - name: historial-service
         working-directory: app/QuetxalTV/microservices/historial-service
         run: |
           pip install -r requirements.txt pytest pytest-cov -q
-          test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "historial-service sin tests"; exit 1; }
+          test -d tests && test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "historial-service sin tests"; exit 1; }
           pytest tests/ --cov=app.history.service --cov-fail-under=75 --cov-report=term-missing -v

@@ -33,10 +33,9 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SA_EMAIL }}
-      - name: Backup via SSH to private Compute Engine DB
+      - name: Backup via SSH to Compute Engine DB
         env:
-          GCE_DB_PRIVATE_IP: ${{ secrets.GCE_DB_PRIVATE_IP }}
-          GCE_INSTANCE_IP: ${{ secrets.GCE_INSTANCE_IP }}
+          GCE_DB_PUBLIC_IP: ${{ secrets.GCE_DB_PUBLIC_IP }}
           GCE_DB_SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
           GCE_DB_SSH_PRIVATE_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
           BUCKET: gs://${{ secrets.GCS_BACKUP_BUCKET }}
@@ -54,8 +53,7 @@ jobs:
             ssh -i "$KEY_FILE" \
               -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
-              -o ProxyCommand="ssh -i $KEY_FILE -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p $GCE_DB_SSH_USER@$GCE_INSTANCE_IP" \
-              "$GCE_DB_SSH_USER@$GCE_DB_PRIVATE_IP" \
+              "$GCE_DB_SSH_USER@$GCE_DB_PUBLIC_IP" \
               "docker exec $C sh -c 'pg_dumpall -U \"\$POSTGRES_USER\"'" | gzip > "$FILE"
             gcloud storage cp "$FILE" "$BUCKET/$C/$FILE"
             rm -f "$FILE"

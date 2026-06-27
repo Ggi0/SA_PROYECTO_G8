@@ -25,13 +25,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Ensure required V2.0.0 tag exists
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify refs/tags/V2.0.0 >/dev/null; then
+            echo "V2.0.0 already exists"
+          elif git rev-parse -q --verify refs/tags/v2.0.0 >/dev/null; then
+            SHA=$(git rev-list -n 1 v2.0.0)
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag V2.0.0 "$SHA"
+            git push origin V2.0.0
+          else
+            echo "No existing v2.0.0 tag found; first release will create V2.0.0"
+          fi
       - name: Calculate version
         id: sv
         run: |
           set -euo pipefail
           LATEST=$(git tag --sort=-v:refname | grep -E '^[Vv]2\.' | head -1 || true)
           if [ -z "$LATEST" ]; then
-            NEW="v2.0.0"
+            NEW="V2.0.0"
           else
             MINOR=$(echo "$LATEST" | sed 's/[Vv]2\.//;s/\.0$//')
             NEW="v2.$((MINOR+1)).0"
@@ -88,18 +102,17 @@ jobs:
       - name: Validate SSH secrets
         env:
           GCE_DB_PRIVATE_IP: ${{ secrets.GCE_DB_PRIVATE_IP }}
-          GCE_INSTANCE_IP: ${{ secrets.GCE_INSTANCE_IP }}
+          GCE_DB_PUBLIC_IP: ${{ secrets.GCE_DB_PUBLIC_IP }}
           GCE_DB_SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
           GCE_DB_SSH_PRIVATE_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          for s in GCE_DB_PRIVATE_IP GCE_INSTANCE_IP GCE_DB_SSH_USER GCE_DB_SSH_PRIVATE_KEY; do
+          for s in GCE_DB_PRIVATE_IP GCE_DB_PUBLIC_IP GCE_DB_SSH_USER GCE_DB_SSH_PRIVATE_KEY; do
             [ -n "${!s:-}" ] || { echo "::error::Missing $s"; exit 1; }
           done
-      - name: Copy and apply migrations through dev jump host
+      - name: Copy and apply migrations directly to DB VM
         env:
-          DB_HOST: ${{ secrets.GCE_DB_PRIVATE_IP }}
-          JUMP_HOST: ${{ secrets.GCE_INSTANCE_IP }}
+          DB_HOST: ${{ secrets.GCE_DB_PUBLIC_IP }}
           SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
           SSH_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
         run: |
@@ -109,9 +122,8 @@ jobs:
           chmod 600 "$KEY_FILE"
           trap 'rm -f "$KEY_FILE" mig.tgz' EXIT
           tar czf mig.tgz app/QuetxalTV/database/migrations infra/ansible/files/apply-migrations.sh
-          PROXY="ssh -i $KEY_FILE -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p $SSH_USER@$JUMP_HOST"
-          scp -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o "ProxyCommand=$PROXY" mig.tgz "$SSH_USER@$DB_HOST:/tmp/mig.tgz"
-          ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o "ProxyCommand=$PROXY" "$SSH_USER@$DB_HOST" '
+          scp -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null mig.tgz "$SSH_USER@$DB_HOST:/tmp/mig.tgz"
+          ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$SSH_USER@$DB_HOST" '
             set -euo pipefail
             sudo rm -rf /tmp/quetxal-mig /opt/quetxal/migrations
             sudo mkdir -p /tmp/quetxal-mig /opt/quetxal/migrations

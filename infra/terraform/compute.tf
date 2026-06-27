@@ -3,6 +3,11 @@ locals {
 }
 
 # ---------- IPs públicas estáticas (fijas aunque se reinicie la VM) ----------
+resource "google_compute_address" "db" {
+  name       = "quetxal-db-ip"
+  region     = var.region
+  depends_on = [google_project_service.enabled]
+}
 resource "google_compute_address" "monitor" {
   name       = "quetxal-monitor-ip"
   region     = var.region
@@ -31,6 +36,9 @@ resource "google_compute_instance" "db" {
   network_interface {
     network    = google_compute_network.vpc.name
     subnetwork = google_compute_subnetwork.subnet.name
+    access_config {
+      nat_ip = google_compute_address.db.address
+    }
   }
 
   metadata   = { ssh-keys = local.ssh_keys }
