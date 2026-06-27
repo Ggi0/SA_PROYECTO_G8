@@ -2,6 +2,8 @@
 - name: Configurar VM de Desarrollo
   hosts: dev
   become: true
+  vars:
+    logstash_host: "{{ lookup('env', 'MONITOR_PRIVATE_IP') | default('10.10.0.9', true) }}"
   tasks:
     - name: Instalar dependencias base + git + gcloud deps
       apt:
@@ -36,6 +38,43 @@
         image: prom/node-exporter:v1.8.1
         network_mode: host
         restart_policy: unless-stopped
+
+    - name: Crear carpeta de Filebeat
+      file: { path: /opt/filebeat, state: directory, mode: "0755" }
+
+    - name: Configurar Filebeat para logs de Docker y sistema
+      copy:
+        dest: /opt/filebeat/filebeat.yml
+        mode: "0644"
+        content: |
+          filebeat.inputs:
+            - type: container
+              paths: ["/var/lib/docker/containers/*/*.log"]
+              processors:
+                - add_docker_metadata:
+                    host: "unix:///var/run/docker.sock"
+            - type: filestream
+              id: system-logs
+              paths: ["/var/log/*.log"]
+          fields:
+            environment: gce-dev
+            host_role: dev
+          fields_under_root: true
+          output.logstash:
+            hosts: ["{{ logstash_host }}:5044"]
+
+    - name: Filebeat para centralizar logs de la VM de desarrollo
+      community.docker.docker_container:
+        name: filebeat
+        image: docker.elastic.co/beats/filebeat:8.13.4
+        user: root
+        command: ["filebeat", "-e", "-strict.perms=false"]
+        restart_policy: unless-stopped
+        volumes:
+          - /opt/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+          - /var/lib/docker/containers:/var/lib/docker/containers:ro
+          - /var/run/docker.sock:/var/run/docker.sock:ro
+          - /var/log:/var/log:ro
 
     - name: Crear directorio base de aplicaciones
       file:
