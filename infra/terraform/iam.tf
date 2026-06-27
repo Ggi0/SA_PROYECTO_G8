@@ -11,11 +11,17 @@ resource "google_service_account" "cicd" {
 locals {
   cicd_roles = [
     "roles/artifactregistry.writer",
+    "roles/artifactregistry.admin",
+    "roles/container.admin",
     "roles/container.developer",
     "roles/storage.admin",
+    "roles/compute.admin",
     "roles/compute.viewer",
+    "roles/iam.serviceAccountAdmin",
     "roles/iam.serviceAccountUser",
     "roles/iam.serviceAccountTokenCreator",
+    "roles/iam.workloadIdentityPoolAdmin",
+    "roles/resourcemanager.projectIamAdmin",
     "roles/serviceusage.serviceUsageAdmin",
   ]
 }
