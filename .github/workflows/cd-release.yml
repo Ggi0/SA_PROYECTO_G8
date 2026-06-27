@@ -13,6 +13,15 @@ jobs:
     name: CI gate
     uses: ./.github/workflows/ci.yml
 
+  provision-infra:
+    name: Infra (Terraform + Ansible)
+    needs: ci-gate
+    uses: ./.github/workflows/infra.yml
+    permissions:
+      id-token: write
+      contents: read
+    secrets: inherit
+
   versioning:
     name: Semantic version tag
     needs: ci-gate
@@ -95,35 +104,34 @@ jobs:
 
   db-migrations:
     name: DB migrations on external VM
-    needs: build
+    needs: [provision-infra, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Validate SSH secrets
         env:
-          GCE_DB_PRIVATE_IP: ${{ secrets.GCE_DB_PRIVATE_IP }}
-          GCE_DB_PUBLIC_IP: ${{ secrets.GCE_DB_PUBLIC_IP }}
           GCE_DB_SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
           GCE_DB_SSH_PRIVATE_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          for s in GCE_DB_PRIVATE_IP GCE_DB_PUBLIC_IP GCE_DB_SSH_USER GCE_DB_SSH_PRIVATE_KEY; do
+          HOST="${{ needs.provision-infra.outputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}"
+          for s in HOST GCE_DB_SSH_USER GCE_DB_SSH_PRIVATE_KEY; do
             [ -n "${!s:-}" ] || { echo "::error::Missing $s"; exit 1; }
           done
       - name: Copy and apply migrations directly to DB VM
         env:
-          DB_HOST: ${{ secrets.GCE_DB_PUBLIC_IP }}
           SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
           SSH_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
         run: |
           set -euo pipefail
+          HOST="${{ needs.provision-infra.outputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}"
           KEY_FILE="$RUNNER_TEMP/quetxal_db_key"
           printf '%s\n' "$SSH_KEY" > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
           trap 'rm -f "$KEY_FILE" mig.tgz' EXIT
           tar czf mig.tgz app/QuetxalTV/database/migrations infra/ansible/files/apply-migrations.sh
-          scp -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null mig.tgz "$SSH_USER@$DB_HOST:/tmp/mig.tgz"
-          ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$SSH_USER@$DB_HOST" '
+          scp -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null mig.tgz "$SSH_USER@$HOST:/tmp/mig.tgz"
+          ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$SSH_USER@$HOST" '
             set -euo pipefail
             sudo rm -rf /tmp/quetxal-mig /opt/quetxal/migrations
             sudo mkdir -p /tmp/quetxal-mig /opt/quetxal/migrations
@@ -136,14 +144,13 @@ jobs:
 
   deploy:
     name: Deploy -> GKE (external DB)
-    needs: [versioning, build, db-migrations]
+    needs: [provision-infra, versioning, build, db-migrations]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
     env:
       VER: ${{ needs.versioning.outputs.version }}
-      MONITOR_PRIVATE_IP: ${{ secrets.MONITOR_PRIVATE_IP }}
     steps:
       - uses: actions/checkout@v4
       - uses: google-github-actions/auth@v2
@@ -157,14 +164,14 @@ jobs:
           location: ${{ secrets.GKE_CLUSTER_ZONE }}
       - name: Validate required secrets
         env:
-          GCE_DB_PRIVATE_IP: ${{ secrets.GCE_DB_PRIVATE_IP }}
-          MONITOR_PRIVATE_IP: ${{ secrets.MONITOR_PRIVATE_IP }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
           JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
         run: |
           set -euo pipefail
-          for s in GCE_DB_PRIVATE_IP MONITOR_PRIVATE_IP JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
+          DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
+          MON_IP="${{ needs.provision-infra.outputs.monitor_private_ip || secrets.MONITOR_PRIVATE_IP }}"
+          for s in DB_IP MON_IP JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
             [ -n "${!s:-}" ] || { echo "::error::Missing $s"; exit 1; }
           done
       - name: Namespace and base config
@@ -190,24 +197,25 @@ jobs:
       - name: K8s Secret -> external DB on Compute Engine
         run: |
           set -euo pipefail
+          DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
           kubectl create secret generic quetxal-tv-secrets \
             --namespace=$NAMESPACE \
             --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             --from-literal=JWT_ACCESS_SECRET="${{ secrets.JWT_ACCESS_SECRET }}" \
             --from-literal=JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
-            --from-literal=AUTH_DB_HOST="${{ secrets.GCE_DB_PRIVATE_IP }}" \
+            --from-literal=AUTH_DB_HOST="$DB_IP" \
             --from-literal=AUTH_DB_PORT="5432" \
             --from-literal=AUTH_DB_USER="${{ secrets.AUTH_DB_USER }}" \
             --from-literal=AUTH_DB_PASSWORD="${{ secrets.AUTH_DB_PASSWORD }}" \
             --from-literal=AUTH_DB_NAME="${{ secrets.AUTH_DB_NAME }}" \
             --from-literal=AUTH_DB_SCHEMA="auth" \
-            --from-literal=SUBSCRIPTION_DB_HOST="${{ secrets.GCE_DB_PRIVATE_IP }}" \
+            --from-literal=SUBSCRIPTION_DB_HOST="$DB_IP" \
             --from-literal=SUBSCRIPTION_DB_PORT="5433" \
             --from-literal=SUBSCRIPTION_DB_USER="${{ secrets.SUBSCRIPTION_DB_USER }}" \
             --from-literal=SUBSCRIPTION_DB_PASSWORD="${{ secrets.SUBSCRIPTION_DB_PASSWORD }}" \
             --from-literal=SUBSCRIPTION_DB_NAME="${{ secrets.SUBSCRIPTION_DB_NAME }}" \
             --from-literal=SUBSCRIPTION_DB_SCHEMA="subscription" \
-            --from-literal=CATALOGO_DB_HOST="${{ secrets.GCE_DB_PRIVATE_IP }}" \
+            --from-literal=CATALOGO_DB_HOST="$DB_IP" \
             --from-literal=CATALOGO_DB_PORT="5434" \
             --from-literal=CATALOGO_DB_USER="${{ secrets.CATALOGO_DB_USER }}" \
             --from-literal=CATALOGO_DB_PASSWORD="${{ secrets.CATALOGO_DB_PASSWORD }}" \
@@ -215,19 +223,19 @@ jobs:
             --from-literal=CATALOGO_DB_SCHEMA="catalog" \
             --from-literal=GCS_BUCKET_NAME="quetxal-tv-videos" \
             --from-literal=GCS_SERVICE_ACCOUNT_EMAIL="${{ secrets.GCP_SA_EMAIL }}" \
-            --from-literal=FX_DB_HOST="${{ secrets.GCE_DB_PRIVATE_IP }}" \
+            --from-literal=FX_DB_HOST="$DB_IP" \
             --from-literal=FX_DB_PORT="5435" \
             --from-literal=FX_DB_USER="${{ secrets.FX_DB_USER }}" \
             --from-literal=FX_DB_PASSWORD="${{ secrets.FX_DB_PASSWORD }}" \
             --from-literal=FX_DB_NAME="${{ secrets.FX_DB_NAME }}" \
             --from-literal=FX_DB_SCHEMA="fx" \
-            --from-literal=NOTIFICATION_DB_HOST="${{ secrets.GCE_DB_PRIVATE_IP }}" \
+            --from-literal=NOTIFICATION_DB_HOST="$DB_IP" \
             --from-literal=NOTIFICATION_DB_PORT="5436" \
             --from-literal=NOTIFICATION_DB_USER="${{ secrets.NOTIFICATION_DB_USER }}" \
             --from-literal=NOTIFICATION_DB_PASSWORD="${{ secrets.NOTIFICATION_DB_PASSWORD }}" \
             --from-literal=NOTIFICATION_DB_NAME="${{ secrets.NOTIFICATION_DB_NAME }}" \
             --from-literal=NOTIFICATION_DB_SCHEMA="notification" \
-            --from-literal=HISTORIAL_DB_HOST="${{ secrets.GCE_DB_PRIVATE_IP }}" \
+            --from-literal=HISTORIAL_DB_HOST="$DB_IP" \
             --from-literal=HISTORIAL_DB_PORT="5437" \
             --from-literal=HISTORIAL_DB_USER="${{ secrets.HISTORIAL_DB_USER }}" \
             --from-literal=HISTORIAL_DB_PASSWORD="${{ secrets.HISTORIAL_DB_PASSWORD }}" \
@@ -255,7 +263,7 @@ jobs:
           export GCP_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
           export ARTIFACT_REGISTRY_LOCATION="${{ secrets.ARTIFACT_REGISTRY_LOCATION }}"
           export ARTIFACT_REGISTRY_REPOSITORY="${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}"
-          export MONITOR_PRIVATE_IP="$MONITOR_PRIVATE_IP"
+          export MONITOR_PRIVATE_IP="${{ needs.provision-infra.outputs.monitor_private_ip || secrets.MONITOR_PRIVATE_IP }}"
           for f in k8s/service-accounts/*.yaml k8s/databases/redis.yaml k8s/deployments/*.yaml k8s/services/*.yaml k8s/jobs/*.yaml k8s/cronjobs/*.yaml k8s/observability/*.yaml; do
             envsubst '${IMAGE_TAG} ${GCP_PROJECT_ID} ${GCP_SA_EMAIL} ${ARTIFACT_REGISTRY_LOCATION} ${ARTIFACT_REGISTRY_REPOSITORY} ${MONITOR_PRIVATE_IP}' < "$f" | kubectl apply -f -
           done

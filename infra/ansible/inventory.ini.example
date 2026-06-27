@@ -1,13 +1,18 @@
+# Este archivo es GENERADO AUTOMÁTICAMENTE por Terraform.
+# NO editar manualmente. Ejecutar:
+#   terraform -chdir=infra/terraform output -raw ansible_inventory > infra/ansible/inventory.ini
+# O bien usar el script de orquestación:
+#   bash infra/scripts/deploy-infra.sh
+
 [db]
-quetxal-db-vm ansible_host=DB_PRIVATE_IP ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -i ~/.ssh/quetxal_deploy -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p deployer@DEV_PUBLIC_IP"'
+quetxal-db-vm ansible_host=<DB_PUBLIC_IP> private_ip=<DB_PRIVATE_IP>
 
 [monitor]
-quetxal-monitor-vm ansible_host=MONITOR_PUBLIC_IP
+quetxal-monitor-vm ansible_host=<MONITOR_PUBLIC_IP> private_ip=<MONITOR_PRIVATE_IP>
 
 [dev]
-quetxal-dev-vm ansible_host=DEV_PUBLIC_IP
+quetxal-dev-vm ansible_host=<DEV_PUBLIC_IP> private_ip=<DEV_PRIVATE_IP>
 
 [all:vars]
 ansible_user=deployer
 ansible_python_interpreter=/usr/bin/python3
-ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

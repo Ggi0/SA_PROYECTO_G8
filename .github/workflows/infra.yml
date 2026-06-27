@@ -1,0 +1,167 @@
+name: Infra - Terraform + Ansible
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action'
+        required: true
+        default: 'plan'
+        type: choice
+        options: [plan, apply]
+  workflow_call:
+    outputs:
+      dev_host:
+        description: "IP pública de la VM develop"
+        value: ${{ jobs.provision.outputs.dev_host }}
+      db_public_ip:
+        description: "IP pública de la VM de BD (para SSH)"
+        value: ${{ jobs.provision.outputs.db_public_ip }}
+      db_private_ip:
+        description: "IP privada de la VM de BD (para los servicios)"
+        value: ${{ jobs.provision.outputs.db_private_ip }}
+      monitor_host:
+        description: "IP pública de la VM de observabilidad"
+        value: ${{ jobs.provision.outputs.monitor_host }}
+      monitor_private_ip:
+        description: "IP privada del monitor (Logstash, Prometheus)"
+        value: ${{ jobs.provision.outputs.monitor_private_ip }}
+
+concurrency:
+  group: terraform-infra
+  cancel-in-progress: false
+
+jobs:
+  provision:
+    name: "Terraform + Ansible"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: infra
+    outputs:
+      dev_host: ${{ steps.tfout.outputs.dev_host }}
+      db_public_ip: ${{ steps.tfout.outputs.db_public_ip }}
+      db_private_ip: ${{ steps.tfout.outputs.db_private_ip }}
+      monitor_host: ${{ steps.tfout.outputs.monitor_host }}
+      monitor_private_ip: ${{ steps.tfout.outputs.monitor_private_ip }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Restore SSH key for Ansible
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCE_SSH_PRIVATE_KEY }}" > ~/.ssh/quetxal_deploy
+          chmod 600 ~/.ssh/quetxal_deploy
+          ssh-keygen -y -f ~/.ssh/quetxal_deploy > ~/.ssh/quetxal_deploy.pub
+
+      - name: Terraform init
+        run: terraform -chdir=terraform init -input=false
+
+      - name: Write CI tfvars
+        run: |
+          cat > terraform/ci.auto.tfvars <<EOF
+          project_id       = "${{ secrets.GCP_PROJECT_ID }}"
+          github_repo      = "${{ github.repository }}"
+          ssh_admin_cidr   = "${{ secrets.SSH_ADMIN_CIDR || '10.0.0.1/32' }}"
+          admin_cidr       = "0.0.0.0/0"
+          ssh_user         = "deployer"
+          ssh_pub_key_path = "~/.ssh/quetxal_deploy.pub"
+          EOF
+
+      - name: Terraform plan
+        id: tfplan
+        run: |
+          set +e
+          terraform -chdir=terraform plan -input=false -detailed-exitcode -out=tfplan
+          status=$?
+          set -e
+          echo "Terraform plan exit code: $status"
+          if [ "$status" -eq 0 ]; then
+            echo "changes=false" >> "$GITHUB_OUTPUT"
+            echo "Sin cambios en infraestructura."
+          elif [ "$status" -eq 2 ]; then
+            echo "changes=true" >> "$GITHUB_OUTPUT"
+            echo "Cambios detectados en infraestructura."
+          else
+            exit "$status"
+          fi
+
+      - name: Terraform apply
+        if: >-
+          steps.tfplan.outputs.changes == 'true' &&
+          (github.event_name != 'workflow_dispatch' || inputs.action == 'apply')
+        run: terraform -chdir=terraform apply -input=false tfplan
+
+      - name: Skip apply (sin cambios)
+        if: steps.tfplan.outputs.changes == 'false'
+        run: echo "Infraestructura sin cambios; Terraform apply no se ejecuta."
+
+      - name: Generate Ansible inventory from Terraform
+        run: terraform -chdir=terraform output -raw ansible_inventory > ansible/inventory.ini
+
+      - name: Show generated inventory
+        run: cat ansible/inventory.ini
+
+      - name: Wait for VMs to be ready
+        run: |
+          ZONE="${{ secrets.GKE_CLUSTER_ZONE }}"
+          ZONE="${ZONE:-us-central1-a}"
+          for vm in quetxal-db-vm quetxal-monitor-vm quetxal-dev-vm; do
+            echo "Waiting for $vm..."
+            for i in $(seq 1 30); do
+              STATUS=$(gcloud compute instances describe "$vm" --zone="$ZONE" --format='value(status)' 2>/dev/null || echo "UNKNOWN")
+              echo "  $vm status: $STATUS"
+              [ "$STATUS" = "RUNNING" ] && break
+              sleep 10
+            done
+          done
+
+      - name: Verify SSH reachability
+        run: |
+          echo "Testing SSH connectivity to all hosts..."
+          awk '/ansible_host=/{match($0, /ansible_host=([^ ]+)/, m); print m[1]}' ansible/inventory.ini | while read -r host; do
+            echo "  Checking SSH on $host:22"
+            for i in $(seq 1 12); do
+              if timeout 10 bash -c "</dev/tcp/$host/22" 2>/dev/null; then
+                echo "  ✓ $host reachable"
+                break
+              fi
+              [ "$i" -eq 12 ] && { echo "::error::SSH not reachable on $host after 2 min"; exit 1; }
+              sleep 10
+            done
+          done
+
+      - name: Ansible provision all VMs
+        env:
+          QUETXAL_DB_PASSWORD: ${{ secrets.AUTH_DB_PASSWORD }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ansible
+          ansible-galaxy collection install community.docker community.general
+          cd ansible
+          export MONITOR_PRIVATE_IP=$(awk '/\[monitor\]/{getline; match($0, /private_ip=([^ ]+)/, m); print m[1]}' inventory.ini)
+          echo "MONITOR_PRIVATE_IP=$MONITOR_PRIVATE_IP"
+          ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook \
+            -i inventory.ini \
+            --private-key ~/.ssh/quetxal_deploy \
+            db.yml monitor.yml dev.yml
+
+      - name: Export Terraform outputs
+        id: tfout
+        run: |
+          echo "dev_host=$(terraform -chdir=terraform output -raw DEV_HOST)" >> "$GITHUB_OUTPUT"
+          echo "db_public_ip=$(terraform -chdir=terraform output -raw DB_HOST)" >> "$GITHUB_OUTPUT"
+          echo "db_private_ip=$(terraform -chdir=terraform output -raw DB_PRIVATE_IP)" >> "$GITHUB_OUTPUT"
+          echo "monitor_host=$(terraform -chdir=terraform output -raw MONITOR_HOST)" >> "$GITHUB_OUTPUT"
+          echo "monitor_private_ip=$(terraform -chdir=terraform output -raw MONITOR_PRIVATE_IP)" >> "$GITHUB_OUTPUT"
