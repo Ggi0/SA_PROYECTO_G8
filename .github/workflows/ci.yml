@@ -64,7 +64,7 @@ jobs:
           npm ci --silent
           npm run test:cov
   test-python:
-    name: "Python services (smoke + coverage report)"
+    name: "Python services (>=75%)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,14 +75,17 @@ jobs:
         working-directory: app/QuetxalTV/microservices/fx-service
         run: |
           pip install -r requirements.txt pytest pytest-cov pytest-asyncio -q
-          if [ -d tests ] && [ "$(find tests -name 'test_*.py' | wc -l)" -gt 0 ]; then pytest tests/ --cov=src --cov-fail-under=75 --cov-report=term-missing -v; else echo "⚠️ fx-service sin tests"; fi
+          test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "fx-service sin tests"; exit 1; }
+          pytest tests/ --cov=src.services.fx_service --cov-fail-under=75 --cov-report=term-missing -v
       - name: notification-service
         working-directory: app/QuetxalTV/microservices/notification-service
         run: |
           pip install -r requirements.txt pytest pytest-cov -q
-          if [ -d tests ] && [ "$(find tests -name 'test_*.py' | wc -l)" -gt 0 ]; then pytest tests/ --cov=src --cov-fail-under=75 --cov-report=term-missing -v; else echo "⚠️ notification-service sin tests"; fi
+          test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "notification-service sin tests"; exit 1; }
+          pytest tests/ --cov=src.email --cov=src.db.repository --cov-fail-under=75 --cov-report=term-missing -v
       - name: historial-service
         working-directory: app/QuetxalTV/microservices/historial-service
         run: |
           pip install -r requirements.txt pytest pytest-cov -q
-          if [ -d tests ] && [ "$(find tests -name 'test_*.py' | wc -l)" -gt 0 ]; then pytest tests/ --cov=app --cov-fail-under=75 --cov-report=term-missing -v; else echo "⚠️ historial-service sin tests"; fi
+          test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "historial-service sin tests"; exit 1; }
+          pytest tests/ --cov=app.history.service --cov-fail-under=75 --cov-report=term-missing -v

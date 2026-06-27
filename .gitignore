@@ -27,8 +27,8 @@ app/QuetxalTV/docker-compose.gcp-db.yml
 build/
 
 
-# ─── Tests ───────────────────────────────────────────────
-test_*.py
+# ─── Coverage ────────────────────────────────────────────
+.coverage
 
 # Python
 venv/
