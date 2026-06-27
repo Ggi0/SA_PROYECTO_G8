@@ -1,0 +1,74 @@
+---
+- name: Configurar VM de Bases de Datos
+  hosts: db
+  become: true
+  vars:
+    db_user: "quetxal"
+    db_password: "{{ lookup('env', 'QUETXAL_DB_PASSWORD') | default('CAMBIA_ESTA_PASSWORD', true) }}"   # mejor: ansible-vault
+    repo_sql_dir: "../../app/QuetxalTV/database"   # desde infra/ansible: dos niveles arriba
+  tasks:
+    - name: Instalar dependencias base
+      apt:
+        name: [ca-certificates, curl, gnupg, python3-pip]
+        update_cache: true
+
+    - name: Agregar clave GPG de Docker
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        keyring: /usr/share/keyrings/docker.gpg
+        state: present
+
+    - name: Agregar repositorio de Docker
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable"
+        state: present
+
+    - name: Instalar Docker Engine + Compose plugin
+      apt:
+        name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+        update_cache: true
+
+    - name: Agregar deployer al grupo docker
+      user: { name: deployer, groups: docker, append: true }
+
+    - name: Asegurar Docker activo
+      service: { name: docker, state: started, enabled: true }
+
+    - name: pip docker SDK (para el módulo compose v2)
+      pip: { name: docker, extra_args: --break-system-packages }
+
+    - name: node_exporter para métricas de la VM de BD
+      community.docker.docker_container:
+        name: node-exporter
+        image: prom/node-exporter:v1.8.1
+        network_mode: host
+        restart_policy: unless-stopped
+
+    - name: Crear carpetas
+      file: { path: "{{ item }}", state: directory, mode: "0755" }
+      loop:
+        - /opt/quetxal
+        - /opt/quetxal/sql
+
+    - name: Copiar scripts SQL del repo a la VM
+      copy:
+        src: "{{ item.src }}"
+        dest: "/opt/quetxal/sql/{{ item.dest }}"
+      loop:
+        - { src: "{{ repo_sql_dir }}/auth/auth.sql",     dest: "auth.sql" }
+        - { src: "{{ repo_sql_dir }}/subscription.sql",  dest: "subscription.sql" }
+        - { src: "{{ repo_sql_dir }}/catalogo.sql",      dest: "catalogo.sql" }
+        - { src: "{{ repo_sql_dir }}/fx.sql",            dest: "fx.sql" }
+        - { src: "{{ repo_sql_dir }}/notificacion.sql",  dest: "notificacion.sql" }
+        - { src: "{{ repo_sql_dir }}/historial.sql",     dest: "historial.sql" }
+
+    - name: Copiar docker-compose de BDs
+      template:
+        src: files/docker-compose.db.yml
+        dest: /opt/quetxal/docker-compose.db.yml
+
+    - name: Levantar las 6 bases de datos
+      community.docker.docker_compose_v2:
+        project_src: /opt/quetxal
+        files: [docker-compose.db.yml]
+        state: present

@@ -73,6 +73,14 @@ override.tf.json
 terraform.rc
 .terraformrc
 
+# Ansible local/sensitive inventory and vault files
+infra/ansible/inventory.ini
+infra/ansible/*.retry
+infra/ansible/.vault_pass*
+infra/ansible/group_vars/**/vault*.yml
+infra/ansible/host_vars/**/vault*.yml
+!infra/ansible/inventory.ini.example
+
 # Credenciales y llaves locales
 *.pem
 *.key

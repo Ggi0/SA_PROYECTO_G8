@@ -1,0 +1,13 @@
+[db]
+quetxal-db-vm ansible_host=DB_PRIVATE_IP ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -i ~/.ssh/quetxal_deploy -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p deployer@DEV_PUBLIC_IP"'
+
+[monitor]
+quetxal-monitor-vm ansible_host=MONITOR_PUBLIC_IP
+
+[dev]
+quetxal-dev-vm ansible_host=DEV_PUBLIC_IP
+
+[all:vars]
+ansible_user=deployer
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
