@@ -70,7 +70,7 @@ resource "google_compute_instance" "monitor" {
   # SA con permisos de lectura de Compute -> Prometheus usa gce_sd_configs
   # para autodescubrir las VMs y los nodos de GKE sin IPs manuales.
   service_account {
-    email  = google_service_account.cicd.email
+    email  = local.cicd_sa_email
     scopes = ["cloud-platform"]
   }
 
