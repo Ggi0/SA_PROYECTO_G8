@@ -14,7 +14,9 @@ locals {
     "roles/container.developer",
     "roles/storage.admin",
     "roles/compute.viewer",
+    "roles/iam.serviceAccountUser",
     "roles/iam.serviceAccountTokenCreator",
+    "roles/serviceusage.serviceUsageAdmin",
   ]
 }
 
