@@ -76,7 +76,7 @@ jobs:
           github_repo      = "${{ github.repository }}"
           ssh_admin_cidr   = "${{ secrets.SSH_ADMIN_CIDR || '10.0.0.1/32' }}"
           admin_cidr       = "0.0.0.0/0"
-          ssh_user         = "deployer"
+          ssh_user         = "${{ secrets.GCE_SSH_USER }}"
           ssh_pub_key_path = "~/.ssh/quetxal_deploy.pub"
           EOF
 
