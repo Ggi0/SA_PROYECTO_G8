@@ -67,9 +67,8 @@ jobs:
             [ -n "${!s:-}" ] || { echo "::error::Missing $s"; exit 1; }
           done
           KEY_FILE="$RUNNER_TEMP/quetxal_db_key"
-          SSH_KEY="${SSH_KEY%$'\r'}"
           if [[ "$SSH_KEY" == '"'*'"' ]]; then SSH_KEY="${SSH_KEY:1:${#SSH_KEY}-2}"; fi
-          printf '%b' "$SSH_KEY" | sed 's/\r$//' > "$KEY_FILE"
+          printf '%b\n' "$SSH_KEY" | sed 's/\r$//' > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
           ssh-keygen -y -f "$KEY_FILE" >/dev/null || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
           trap 'rm -f "$KEY_FILE" mig.tgz' EXIT
