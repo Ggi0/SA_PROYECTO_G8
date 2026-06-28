@@ -106,6 +106,7 @@ jobs:
             git pull origin develop
             cd app/QuetxalTV
             gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
+            touch .env
             set_env() {
               grep -q "^$1=" .env && sed -i "s|^$1=.*|$1=$2|" .env || echo "$1=$2" >> .env
             }
