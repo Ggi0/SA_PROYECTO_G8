@@ -128,10 +128,11 @@ jobs:
             JWT_SECRET="${{ secrets.JWT_SECRET }}"
             JWT_ACCESS_SECRET="${{ secrets.JWT_ACCESS_SECRET }}"
             JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}"
+            EXTERNAL_DB_PASSWORD="${{ secrets.AUTH_DB_PASSWORD }}"
             EXCHANGE_API_URL="${{ secrets.EXCHANGE_API_URL }}"
             [ -n "$EXCHANGE_API_URL" ] || EXCHANGE_API_URL="https://v6.exchangerate-api.com/v6"
             [ -n "$GCS_VIDEO_BUCKET" ] || GCS_VIDEO_BUCKET="quetxal-tv-${GCP_PROJECT_ID}-videos"
-            for s in DB_IP ARTIFACT_REGISTRY_LOCATION GCP_PROJECT_ID ARTIFACT_REGISTRY_REPOSITORY GCS_VIDEO_BUCKET JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
+            for s in DB_IP ARTIFACT_REGISTRY_LOCATION GCP_PROJECT_ID ARTIFACT_REGISTRY_REPOSITORY GCS_VIDEO_BUCKET EXTERNAL_DB_PASSWORD JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
               [ -n "${!s:-}" ] || { echo "Missing $s"; exit 1; }
             done
             DOCKER_CONFIG_DIR="$(mktemp -d)"
@@ -144,27 +145,28 @@ jobs:
             set_env ARTIFACT_REGISTRY_REPOSITORY "$ARTIFACT_REGISTRY_REPOSITORY"
             set_env IMAGE_TAG develop
             set_env FRONTEND_PUBLIC_PORT 8080
+            EXTERNAL_DB_USER=quetxal
             set_env JWT_SECRET "$JWT_SECRET"
             set_env JWT_ACCESS_SECRET "$JWT_ACCESS_SECRET"
             set_env JWT_REFRESH_SECRET "$JWT_REFRESH_SECRET"
             set_env AUTH_DB_HOST "$DB_IP"
             set_env AUTH_DB_PORT 5432
-            set_env AUTH_DB_USER "${{ secrets.AUTH_DB_USER }}"
-            set_env AUTH_DB_PASSWORD "${{ secrets.AUTH_DB_PASSWORD }}"
+            set_env AUTH_DB_USER "$EXTERNAL_DB_USER"
+            set_env AUTH_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
             set_env AUTH_DB_NAME "${{ secrets.AUTH_DB_NAME }}"
             set_env AUTH_DB_SCHEMA auth
             set_env AUTH_DB_SSLMODE disable
             set_env SUBSCRIPTION_DB_HOST "$DB_IP"
             set_env SUBSCRIPTION_DB_PORT 5433
-            set_env SUBSCRIPTION_DB_USER "${{ secrets.SUBSCRIPTION_DB_USER }}"
-            set_env SUBSCRIPTION_DB_PASSWORD "${{ secrets.SUBSCRIPTION_DB_PASSWORD }}"
+            set_env SUBSCRIPTION_DB_USER "$EXTERNAL_DB_USER"
+            set_env SUBSCRIPTION_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
             set_env SUBSCRIPTION_DB_NAME "${{ secrets.SUBSCRIPTION_DB_NAME }}"
             set_env SUBSCRIPTION_DB_SCHEMA subscription
             set_env SUBSCRIPTION_DB_SSLMODE disable
             set_env CATALOGO_DB_HOST "$DB_IP"
             set_env CATALOGO_DB_PORT 5434
-            set_env CATALOGO_DB_USER "${{ secrets.CATALOGO_DB_USER }}"
-            set_env CATALOGO_DB_PASSWORD "${{ secrets.CATALOGO_DB_PASSWORD }}"
+            set_env CATALOGO_DB_USER "$EXTERNAL_DB_USER"
+            set_env CATALOGO_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
             set_env CATALOGO_DB_NAME "${{ secrets.CATALOGO_DB_NAME }}"
             set_env CATALOGO_DB_SCHEMA catalog
             set_env CATALOGO_DB_SSLMODE disable
@@ -175,30 +177,30 @@ jobs:
             set_env_if_not_empty GCS_SERVICE_ACCOUNT_EMAIL "${{ secrets.GCP_SA_EMAIL }}"
             set_env FX_DB_HOST "$DB_IP"
             set_env FX_DB_PORT 5435
-            set_env FX_DB_USER "${{ secrets.FX_DB_USER }}"
-            set_env FX_DB_PASSWORD "${{ secrets.FX_DB_PASSWORD }}"
+            set_env FX_DB_USER "$EXTERNAL_DB_USER"
+            set_env FX_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
             set_env FX_DB_NAME "${{ secrets.FX_DB_NAME }}"
             set_env FX_DB_SCHEMA fx
             set_env FX_DB_SSLMODE disable
             set_env EXCHANGE_API_URL "$EXCHANGE_API_URL"
             set_env NOTIFICATION_DB_HOST "$DB_IP"
             set_env NOTIFICATION_DB_PORT 5436
-            set_env NOTIFICATION_DB_USER "${{ secrets.NOTIFICATION_DB_USER }}"
-            set_env NOTIFICATION_DB_PASSWORD "${{ secrets.NOTIFICATION_DB_PASSWORD }}"
+            set_env NOTIFICATION_DB_USER "$EXTERNAL_DB_USER"
+            set_env NOTIFICATION_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
             set_env NOTIFICATION_DB_NAME "${{ secrets.NOTIFICATION_DB_NAME }}"
             set_env NOTIFICATION_DB_SCHEMA notification
             set_env NOTIFICATION_DB_SSLMODE disable
             set_env HISTORIAL_DB_HOST "$DB_IP"
             set_env HISTORIAL_DB_PORT 5437
-            set_env HISTORIAL_DB_USER "${{ secrets.HISTORIAL_DB_USER }}"
-            set_env HISTORIAL_DB_PASSWORD "${{ secrets.HISTORIAL_DB_PASSWORD }}"
+            set_env HISTORIAL_DB_USER "$EXTERNAL_DB_USER"
+            set_env HISTORIAL_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
             set_env HISTORIAL_DB_NAME "${{ secrets.HISTORIAL_DB_NAME }}"
             set_env HISTORIAL_DB_SCHEMA playback
             set_env HISTORIAL_DB_SSLMODE disable
             set_env DOWNLOAD_DB_HOST "$DB_IP"
             set_env DOWNLOAD_DB_PORT 5438
-            set_env DOWNLOAD_DB_USER "${{ secrets.DOWNLOAD_DB_USER || secrets.AUTH_DB_USER }}"
-            set_env DOWNLOAD_DB_PASSWORD "${{ secrets.DOWNLOAD_DB_PASSWORD || secrets.AUTH_DB_PASSWORD }}"
+            set_env DOWNLOAD_DB_USER "$EXTERNAL_DB_USER"
+            set_env DOWNLOAD_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
             set_env DOWNLOAD_DB_NAME "${{ secrets.DOWNLOAD_DB_NAME || 'download_db' }}"
             set_env DOWNLOAD_DB_SSLMODE disable
             set_env DOWNLOAD_EXPIRY_DAYS 30
