@@ -26,6 +26,12 @@ on:
       monitor_private_ip:
         description: "IP privada del monitor (Logstash, Prometheus)"
         value: ${{ jobs.provision.outputs.monitor_private_ip }}
+      gcs_video_bucket:
+        description: "Bucket GCS para videos"
+        value: ${{ jobs.provision.outputs.gcs_video_bucket }}
+      gcs_backup_bucket:
+        description: "Bucket GCS para respaldos"
+        value: ${{ jobs.provision.outputs.gcs_backup_bucket }}
 
 concurrency:
   group: terraform-infra
@@ -47,6 +53,8 @@ jobs:
       db_private_ip: ${{ steps.tfout.outputs.db_private_ip }}
       monitor_host: ${{ steps.tfout.outputs.monitor_host }}
       monitor_private_ip: ${{ steps.tfout.outputs.monitor_private_ip }}
+      gcs_video_bucket: ${{ steps.tfout.outputs.gcs_video_bucket }}
+      gcs_backup_bucket: ${{ steps.tfout.outputs.gcs_backup_bucket }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,7 +70,9 @@ jobs:
       - name: Restore SSH key for Ansible
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.GCE_SSH_PRIVATE_KEY }}" > ~/.ssh/quetxal_deploy
+          SSH_KEY='${{ secrets.GCE_SSH_PRIVATE_KEY }}'
+          if [[ "$SSH_KEY" == '"'*'"' ]]; then SSH_KEY="${SSH_KEY:1:${#SSH_KEY}-2}"; fi
+          printf '%b\n' "$SSH_KEY" | sed 's/\r$//' > ~/.ssh/quetxal_deploy
           chmod 600 ~/.ssh/quetxal_deploy
           ssh-keygen -y -f ~/.ssh/quetxal_deploy > ~/.ssh/quetxal_deploy.pub
 
@@ -165,3 +175,5 @@ jobs:
           echo "db_private_ip=$(terraform -chdir=terraform output -raw DB_PRIVATE_IP)" >> "$GITHUB_OUTPUT"
           echo "monitor_host=$(terraform -chdir=terraform output -raw MONITOR_HOST)" >> "$GITHUB_OUTPUT"
           echo "monitor_private_ip=$(terraform -chdir=terraform output -raw MONITOR_PRIVATE_IP)" >> "$GITHUB_OUTPUT"
+          echo "gcs_video_bucket=$(terraform -chdir=terraform output -raw GCS_VIDEO_BUCKET)" >> "$GITHUB_OUTPUT"
+          echo "gcs_backup_bucket=$(terraform -chdir=terraform output -raw GCS_BACKUP_BUCKET)" >> "$GITHUB_OUTPUT"

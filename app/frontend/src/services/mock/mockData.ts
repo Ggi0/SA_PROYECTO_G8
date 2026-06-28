@@ -2,8 +2,8 @@ import { Movie, Plan, Profile, WatchHistory } from '@/types'
 
 // ─── Perfiles mock ──────────────────────────────────────
 export const mockProfiles: Profile[] = [
-  { id: '1', name: 'Naomi', avatar: '🎬', userId: '1' },
-  { id: '2', name: 'Invitado', avatar: '🎭', userId: '1' },
+  { id: '1', name: 'Naomi', avatar: '🎬', userId: '1', isKidsMode: false },
+  { id: '2', name: 'Invitado', avatar: '🎭', userId: '1', isKidsMode: false },
 ]
 
 // ─── Películas mock ─────────────────────────────────────

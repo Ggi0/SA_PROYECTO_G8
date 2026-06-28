@@ -3,7 +3,8 @@ set -euo pipefail
 BASE=/opt/quetxal/migrations
 # contenedor -> carpeta de migraciones del servicio
 declare -A SVC=( [auth-db]=auth [subscription-db]=subscription [catalogo-db]=catalogo \
-                 [fx-db]=fx [notification-db]=notification [historial-db]=historial )
+                 [fx-db]=fx [notification-db]=notification [historial-db]=historial \
+                 [download-db]=download )
 
 for c in "${!SVC[@]}"; do
   dir="$BASE/${SVC[$c]}"

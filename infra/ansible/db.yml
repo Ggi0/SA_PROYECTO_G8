@@ -3,6 +3,7 @@
   hosts: db
   become: true
   vars:
+    app_user: "{{ ansible_user }}"
     db_user: "quetxal"
     db_password: "{{ lookup('env', 'QUETXAL_DB_PASSWORD') | default('CAMBIA_ESTA_PASSWORD', true) }}"   # mejor: ansible-vault
     logstash_host: "{{ lookup('env', 'MONITOR_PRIVATE_IP') | default('10.10.0.9', true) }}"
@@ -29,8 +30,8 @@
         name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
         update_cache: true
 
-    - name: Agregar deployer al grupo docker
-      user: { name: deployer, groups: docker, append: true }
+    - name: Agregar usuario SSH al grupo docker
+      user: { name: "{{ app_user }}", groups: docker, append: true }
 
     - name: Asegurar Docker activo
       service: { name: docker, state: started, enabled: true }
@@ -99,13 +100,14 @@
         - { src: "{{ repo_sql_dir }}/fx.sql",            dest: "fx.sql" }
         - { src: "{{ repo_sql_dir }}/notificacion.sql",  dest: "notificacion.sql" }
         - { src: "{{ repo_sql_dir }}/historial.sql",     dest: "historial.sql" }
+        - { src: "{{ repo_sql_dir }}/download.sql",      dest: "download.sql" }
 
     - name: Copiar docker-compose de BDs
       template:
         src: files/docker-compose.db.yml
         dest: /opt/quetxal/docker-compose.db.yml
 
-    - name: Levantar las 6 bases de datos
+    - name: Levantar las bases de datos
       community.docker.docker_compose_v2:
         project_src: /opt/quetxal
         files: [docker-compose.db.yml]

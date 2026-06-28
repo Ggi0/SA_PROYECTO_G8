@@ -6,7 +6,8 @@ option go_package = "subscription-service/proto/notification;notification";
 
 service NotificationService {
   rpc SendPurchaseReceipt(SendPurchaseReceiptRequest) returns (SendPurchaseReceiptResponse);
-  rpc SendWelcomeEmail(SendWelcomeEmailRequest) returns (SendWelcomeEmailResponse);
+  rpc SendWelcomeEmail(SendWelcomeEmailRequest)       returns (SendWelcomeEmailResponse);
+  rpc SendNewContentAlert(NewContentAlertRequest)     returns (NewContentAlertResponse);
 }
 
 message SendPurchaseReceiptRequest {
@@ -32,4 +33,16 @@ message SendWelcomeEmailRequest {
 message SendWelcomeEmailResponse {
   bool   success = 1;
   string message = 2;
+}
+
+message NewContentAlertRequest {
+  string content_title = 1;
+  string content_type  = 2;  // "MOVIE" | "SERIES"
+  string content_id    = 3;
+}
+
+message NewContentAlertResponse {
+  bool   success        = 1;
+  string message        = 2;
+  int32  emails_sent    = 3;
 }

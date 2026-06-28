@@ -1,0 +1,11 @@
+[run]
+omit =
+    src/grpc/notification_pb2.py
+    src/grpc/notification_pb2_grpc.py
+    src/grpc/notification_pb2.pyi
+
+[report]
+omit =
+    src/grpc/notification_pb2.py
+    src/grpc/notification_pb2_grpc.py
+    src/grpc/notification_pb2.pyi

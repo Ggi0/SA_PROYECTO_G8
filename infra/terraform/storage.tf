@@ -1,5 +1,9 @@
+locals {
+  bucket_prefix = "quetxal-tv-${var.project_id}"
+}
+
 resource "google_storage_bucket" "backups" {
-  name                        = "quetxal-tv-backups"
+  name                        = "${local.bucket_prefix}-backups"
   location                    = var.region
   uniform_bucket_level_access = true
   force_destroy               = false # protege los respaldos ante terraform destroy
@@ -7,7 +11,7 @@ resource "google_storage_bucket" "backups" {
 }
 
 resource "google_storage_bucket" "videos" {
-  name                        = "quetxal-tv-videos"
+  name                        = "${local.bucket_prefix}-videos"
   location                    = var.region
   uniform_bucket_level_access = true
   force_destroy               = false

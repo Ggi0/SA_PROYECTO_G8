@@ -53,7 +53,7 @@ resource "google_compute_firewall" "allow_postgres" {
   direction = "INGRESS"
   allow {
     protocol = "tcp"
-    ports    = ["5432-5437"]
+    ports    = ["5432-5438"]
   }
   source_ranges = ["10.10.0.0/24", "10.20.0.0/16"]
   target_tags   = ["db"]
