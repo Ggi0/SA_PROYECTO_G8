@@ -1,6 +1,6 @@
 // ─── Auth ───────────────────────────────────────────────
 export interface User {
-  id: string
+  id: string                // este es el id del correo
   email: string
   name: string
   subscriptionPlan: 'basic' | 'standard' | 'premium' | null
@@ -10,10 +10,11 @@ export interface User {
 
 // ─── Profiles ───────────────────────────────────────────
 export interface Profile {
-  id: string
+  id: string          // este es el id del perfil
   name: string
   avatar: string
   userId: string
+  isKidsMode: boolean
 }
 
 // ─── Catalog ────────────────────────────────────────────
