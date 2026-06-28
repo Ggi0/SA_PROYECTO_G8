@@ -77,5 +77,28 @@ import {
   
     @OneToMany(() => VerificationToken, (vt) => vt.user)
     verificationTokens: VerificationToken[];
+
+
+    @Column({
+  name: 'last_login_at',
+  type: 'timestamptz',
+  nullable: true,
+})
+lastLoginAt?: Date;
+
+@Column({
+  name: 'deactivated_at',
+  type: 'timestamptz',
+  nullable: true,
+})
+deactivatedAt?: Date;
+
+@Column({
+  name: 'deactivation_reason',
+  nullable: true,
+})
+deactivationReason?: string;
+
+
   }
   
