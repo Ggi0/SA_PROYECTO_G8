@@ -29,6 +29,9 @@ on:
       gcs_video_bucket:
         description: "Bucket GCS para videos"
         value: ${{ jobs.provision.outputs.gcs_video_bucket }}
+      gcs_backup_bucket:
+        description: "Bucket GCS para respaldos"
+        value: ${{ jobs.provision.outputs.gcs_backup_bucket }}
 
 concurrency:
   group: terraform-infra
@@ -51,6 +54,7 @@ jobs:
       monitor_host: ${{ steps.tfout.outputs.monitor_host }}
       monitor_private_ip: ${{ steps.tfout.outputs.monitor_private_ip }}
       gcs_video_bucket: ${{ steps.tfout.outputs.gcs_video_bucket }}
+      gcs_backup_bucket: ${{ steps.tfout.outputs.gcs_backup_bucket }}
     steps:
       - uses: actions/checkout@v4
 
@@ -172,3 +176,4 @@ jobs:
           echo "monitor_host=$(terraform -chdir=terraform output -raw MONITOR_HOST)" >> "$GITHUB_OUTPUT"
           echo "monitor_private_ip=$(terraform -chdir=terraform output -raw MONITOR_PRIVATE_IP)" >> "$GITHUB_OUTPUT"
           echo "gcs_video_bucket=$(terraform -chdir=terraform output -raw GCS_VIDEO_BUCKET)" >> "$GITHUB_OUTPUT"
+          echo "gcs_backup_bucket=$(terraform -chdir=terraform output -raw GCS_BACKUP_BUCKET)" >> "$GITHUB_OUTPUT"
