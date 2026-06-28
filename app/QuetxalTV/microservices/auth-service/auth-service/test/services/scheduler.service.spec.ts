@@ -15,8 +15,8 @@ describe('SchedulerService', () => {
           useValue: {
             deactivateInactiveUsers: jest.fn(),
             purgeDeactivatedUsers: jest.fn(),
-            logAuditTrail: jest.fn(),
-            logAuditEvent: jest.fn(),
+            logAuditEvent: jest.fn().mockResolvedValue(undefined),
+            logAuditTrail: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
