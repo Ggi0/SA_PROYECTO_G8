@@ -38,9 +38,11 @@ jobs:
           GCE_DB_PUBLIC_IP: ${{ secrets.GCE_DB_PUBLIC_IP }}
           GCE_DB_SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
           GCE_DB_SSH_PRIVATE_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
-          BUCKET: gs://${{ secrets.GCS_BACKUP_BUCKET }}
+          GCS_BACKUP_BUCKET: ${{ secrets.GCS_BACKUP_BUCKET }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           set -euo pipefail
+          BUCKET="gs://${GCS_BACKUP_BUCKET:-quetxal-tv-${GCP_PROJECT_ID}-backups}"
           TS=$(date +%Y%m%d_%H%M%S)
           KEY_FILE="$RUNNER_TEMP/gce-db-ssh-key"
           printf '%s\n' "$GCE_DB_SSH_PRIVATE_KEY" > "$KEY_FILE"

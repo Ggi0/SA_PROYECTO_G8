@@ -193,7 +193,7 @@ jobs:
             --member="serviceAccount:${{ secrets.GCP_SA_EMAIL }}" \
             --quiet
       - name: Configure video bucket CORS
-        run: gcloud storage buckets update gs://quetxal-tv-videos --cors-file=k8s/gcs-cors.json
+        run: gcloud storage buckets update gs://${{ needs.provision-infra.outputs.gcs_video_bucket }} --cors-file=k8s/gcs-cors.json
       - name: K8s Secret -> external DB on Compute Engine
         run: |
           set -euo pipefail
@@ -221,7 +221,7 @@ jobs:
             --from-literal=CATALOGO_DB_PASSWORD="${{ secrets.CATALOGO_DB_PASSWORD }}" \
             --from-literal=CATALOGO_DB_NAME="${{ secrets.CATALOGO_DB_NAME }}" \
             --from-literal=CATALOGO_DB_SCHEMA="catalog" \
-            --from-literal=GCS_BUCKET_NAME="quetxal-tv-videos" \
+            --from-literal=GCS_BUCKET_NAME="${{ needs.provision-infra.outputs.gcs_video_bucket }}" \
             --from-literal=GCS_SERVICE_ACCOUNT_EMAIL="${{ secrets.GCP_SA_EMAIL }}" \
             --from-literal=FX_DB_HOST="$DB_IP" \
             --from-literal=FX_DB_PORT="5435" \

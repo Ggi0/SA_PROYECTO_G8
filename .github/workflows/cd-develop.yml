@@ -133,7 +133,7 @@ jobs:
             set_env CATALOGO_DB_SCHEMA catalog
             set_env CATALOGO_DB_SSLMODE disable
             set_env CATALOG_HTTP_URL http://catalogo-service:8082
-            set_env GCS_BUCKET_NAME quetxal-tv-videos
+            set_env GCS_BUCKET_NAME "${{ needs.provision-infra.outputs.gcs_video_bucket }}"
             set_env_if_not_empty GCS_SERVICE_ACCOUNT_EMAIL "${{ secrets.GCP_SA_EMAIL }}"
             set_env FX_DB_HOST "$DB_IP"
             set_env FX_DB_PORT 5435
