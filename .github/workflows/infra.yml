@@ -66,7 +66,9 @@ jobs:
       - name: Restore SSH key for Ansible
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.GCE_SSH_PRIVATE_KEY }}" > ~/.ssh/quetxal_deploy
+          SSH_KEY='${{ secrets.GCE_SSH_PRIVATE_KEY }}'
+          if [[ "$SSH_KEY" == '"'*'"' ]]; then SSH_KEY="${SSH_KEY:1:${#SSH_KEY}-2}"; fi
+          printf '%b\n' "$SSH_KEY" | sed 's/\r$//' > ~/.ssh/quetxal_deploy
           chmod 600 ~/.ssh/quetxal_deploy
           ssh-keygen -y -f ~/.ssh/quetxal_deploy > ~/.ssh/quetxal_deploy.pub
 
