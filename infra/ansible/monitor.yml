@@ -2,6 +2,8 @@
 - name: Configurar y desplegar VM de Observabilidad
   hosts: monitor
   become: true
+  vars:
+    app_user: "{{ ansible_user }}"
   tasks:
     - name: Dependencias base
       apt:
@@ -24,8 +26,8 @@
         name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
         update_cache: true
 
-    - name: Agregar deployer al grupo docker
-      user: { name: deployer, groups: docker, append: true }
+    - name: Agregar usuario SSH al grupo docker
+      user: { name: "{{ app_user }}", groups: docker, append: true }
 
     - name: Docker activo
       service: { name: docker, state: started, enabled: true }
