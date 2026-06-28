@@ -1,0 +1,66 @@
+---
+- name: Configurar y desplegar VM de Observabilidad
+  hosts: monitor
+  become: true
+  vars:
+    app_user: "{{ ansible_user }}"
+  tasks:
+    - name: Dependencias base
+      apt:
+        name: [ca-certificates, curl, gnupg, python3-pip, python3-venv]
+        update_cache: true
+
+    - name: Clave GPG de Docker
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        keyring: /usr/share/keyrings/docker.gpg
+        state: present
+
+    - name: Repositorio de Docker
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable"
+        state: present
+
+    - name: Instalar Docker + Compose
+      apt:
+        name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+        update_cache: true
+
+    - name: Agregar usuario SSH al grupo docker
+      user: { name: "{{ app_user }}", groups: docker, append: true }
+
+    - name: Docker activo
+      service: { name: docker, state: started, enabled: true }
+
+    - name: SDK docker para Python
+      pip: { name: docker, extra_args: --break-system-packages }
+
+    - name: vm.max_map_count (requisito de Elasticsearch)
+      sysctl: { name: vm.max_map_count, value: "262144", state: present, reload: true }
+
+    - name: Crear carpetas de observabilidad
+      file: { path: "/opt/observability/{{ item }}", state: directory, mode: "0755" }
+      loop: [elk, metrics, load]
+
+    - name: Copiar stack ELK
+      copy: { src: "files/observability/elk/", dest: /opt/observability/elk/ }
+
+    - name: Copiar stack métricas (Prometheus/Grafana)
+      copy: { src: "files/observability/metrics/", dest: /opt/observability/metrics/ }
+
+    - name: Copiar Locust
+      copy: { src: "files/observability/load/", dest: /opt/observability/load/, mode: "0755" }
+
+    - name: Levantar ELK
+      community.docker.docker_compose_v2:
+        project_src: /opt/observability/elk
+        state: present
+
+    - name: Levantar Prometheus + Grafana + node-exporter
+      community.docker.docker_compose_v2:
+        project_src: /opt/observability/metrics
+        state: present
+
+    - name: Instalar Locust (para pruebas de carga)
+      # Debian 12 marca el entorno como "externally managed"; permitimos pip global.
+      pip: { name: locust, extra_args: --break-system-packages }

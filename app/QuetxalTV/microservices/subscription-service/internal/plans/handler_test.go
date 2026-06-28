@@ -50,3 +50,27 @@ func TestGetPlansMapsDomainPlansToProto(t *testing.T) {
 		t.Fatalf("unexpected mapped plan: %#v", resp.Plans[0])
 	}
 }
+
+func TestGetPlanByIdMapsDomainPlan(t *testing.T) {
+	handler := NewHandler(fakePlanService{plan: &Plan{ID: "plan-1", Name: "Basic", Description: "SD", PriceUSD: 5.99, MaxProfiles: 1, MaxStreams: 1, VideoQuality: "SD", IsActive: true}}, clients.NewFallbackFXClient())
+
+	resp, err := handler.GetPlanById(context.Background(), &pb.GetPlanByIdRequest{PlanId: "plan-1"})
+	if err != nil {
+		t.Fatalf("GetPlanById returned error: %v", err)
+	}
+	if resp.Id != "plan-1" || resp.Name != "Basic" || !resp.IsActive {
+		t.Fatalf("unexpected mapped plan: %#v", resp)
+	}
+}
+
+func TestGetPlansWithRatesDefaultsCurrencyToUSD(t *testing.T) {
+	handler := NewHandler(fakePlanService{plans: []Plan{{ID: "plan-1", Name: "Basic", PriceUSD: 5.99}}}, nil)
+
+	resp, err := handler.GetPlansWithRates(context.Background(), &pb.GetPlansWithRatesRequest{})
+	if err != nil {
+		t.Fatalf("GetPlansWithRates returned error: %v", err)
+	}
+	if resp.Currency != "USD" || resp.Plans[0].LocalPrice != 5.99 {
+		t.Fatalf("unexpected default currency response: %#v", resp)
+	}
+}
