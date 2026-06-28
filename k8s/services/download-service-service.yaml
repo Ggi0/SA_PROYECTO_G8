@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Service
+metadata: { name: download-service, namespace: quetxal-tv-prod }
+spec:
+  type: ClusterIP
+  selector: { app: download-service }
+  ports: [{ port: 50057, targetPort: 50057 }]

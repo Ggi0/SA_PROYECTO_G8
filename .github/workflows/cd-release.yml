@@ -93,7 +93,7 @@ jobs:
           docker push $REGISTRY/frontend:$VER
           docker push $REGISTRY/frontend:latest
 
-          for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service; do
+          for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service download-service; do
             DIR="app/QuetxalTV/microservices/$SVC"
             [ "$SVC" = "api-gateway" ] && DIR="app/QuetxalTV/api-gateway"
             [ "$SVC" = "auth-service" ] && DIR="app/QuetxalTV/microservices/auth-service/auth-service"
@@ -258,6 +258,11 @@ jobs:
             --from-literal=HISTORIAL_DB_PASSWORD="${{ secrets.HISTORIAL_DB_PASSWORD }}" \
             --from-literal=HISTORIAL_DB_NAME="${{ secrets.HISTORIAL_DB_NAME }}" \
             --from-literal=HISTORIAL_DB_SCHEMA="playback" \
+            --from-literal=DOWNLOAD_DB_HOST="$DB_IP" \
+            --from-literal=DOWNLOAD_DB_PORT="5438" \
+            --from-literal=DOWNLOAD_DB_USER="${{ secrets.DOWNLOAD_DB_USER || secrets.AUTH_DB_USER }}" \
+            --from-literal=DOWNLOAD_DB_PASSWORD="${{ secrets.DOWNLOAD_DB_PASSWORD || secrets.AUTH_DB_PASSWORD }}" \
+            --from-literal=DOWNLOAD_DB_NAME="${{ secrets.DOWNLOAD_DB_NAME || 'download_db' }}" \
             --from-literal=SMTP_USER="${{ secrets.SMTP_USER }}" \
             --from-literal=SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
             --from-literal=SMTP_FROM="${{ secrets.SMTP_FROM }}" \
@@ -298,7 +303,7 @@ jobs:
         run: |
           set -euo pipefail
           FAILED=0
-          ALL="redis auth-service subscription-service catalogo-service fx-service notification-service historial-service frontend api-gateway"
+          ALL="redis auth-service subscription-service catalogo-service fx-service notification-service historial-service download-service frontend api-gateway"
           for DEP in $ALL; do
             echo "$DEP"
             if ! kubectl rollout status deployment/$DEP -n $NAMESPACE --timeout=10m; then

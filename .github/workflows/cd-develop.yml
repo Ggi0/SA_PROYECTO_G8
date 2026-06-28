@@ -42,7 +42,7 @@ jobs:
           API_URL="http://${{ needs.provision-infra.outputs.dev_host || secrets.GCE_INSTANCE_IP }}:3000"
           docker build --build-arg VITE_API_URL="$API_URL" --build-arg VITE_GATEWAY_URL="$API_URL" -t $REGISTRY/frontend:develop -f app/frontend/Dockerfile app/frontend
           docker push $REGISTRY/frontend:develop
-          for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service; do
+          for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service download-service; do
             DIR="app/QuetxalTV/microservices/$SVC"
             [ "$SVC" = "api-gateway" ] && DIR="app/QuetxalTV/api-gateway"
             [ "$SVC" = "auth-service" ] && DIR="app/QuetxalTV/microservices/auth-service/auth-service"
@@ -169,6 +169,8 @@ jobs:
             set_env CATALOGO_DB_SCHEMA catalog
             set_env CATALOGO_DB_SSLMODE disable
             set_env CATALOG_HTTP_URL http://catalogo-service:8082
+            set_env DOWNLOAD_SERVICE_URL download-service:50057
+            set_env DOWNLOAD_SERVICE_HOST download-service:50057
             set_env GCS_BUCKET_NAME "$GCS_VIDEO_BUCKET"
             set_env_if_not_empty GCS_SERVICE_ACCOUNT_EMAIL "${{ secrets.GCP_SA_EMAIL }}"
             set_env FX_DB_HOST "$DB_IP"
@@ -193,6 +195,13 @@ jobs:
             set_env HISTORIAL_DB_NAME "${{ secrets.HISTORIAL_DB_NAME }}"
             set_env HISTORIAL_DB_SCHEMA playback
             set_env HISTORIAL_DB_SSLMODE disable
+            set_env DOWNLOAD_DB_HOST "$DB_IP"
+            set_env DOWNLOAD_DB_PORT 5438
+            set_env DOWNLOAD_DB_USER "${{ secrets.DOWNLOAD_DB_USER || secrets.AUTH_DB_USER }}"
+            set_env DOWNLOAD_DB_PASSWORD "${{ secrets.DOWNLOAD_DB_PASSWORD || secrets.AUTH_DB_PASSWORD }}"
+            set_env DOWNLOAD_DB_NAME "${{ secrets.DOWNLOAD_DB_NAME || 'download_db' }}"
+            set_env DOWNLOAD_DB_SSLMODE disable
+            set_env DOWNLOAD_EXPIRY_DAYS 30
             set_env_if_not_empty SMTP_HOST "${{ secrets.SMTP_HOST }}"
             set_env_if_not_empty SMTP_PORT "${{ secrets.SMTP_PORT }}"
             set_env_if_not_empty SMTP_USER "${{ secrets.SMTP_USER }}"
