@@ -227,19 +227,19 @@ jobs:
             --from-literal=AUTH_DB_PORT="5432" \
             --from-literal=AUTH_DB_USER="$EXTERNAL_DB_USER" \
             --from-literal=AUTH_DB_PASSWORD="$EXTERNAL_DB_PASSWORD" \
-            --from-literal=AUTH_DB_NAME="${{ secrets.AUTH_DB_NAME }}" \
+            --from-literal=AUTH_DB_NAME="auth_db" \
             --from-literal=AUTH_DB_SCHEMA="auth" \
             --from-literal=SUBSCRIPTION_DB_HOST="$DB_IP" \
             --from-literal=SUBSCRIPTION_DB_PORT="5433" \
             --from-literal=SUBSCRIPTION_DB_USER="$EXTERNAL_DB_USER" \
             --from-literal=SUBSCRIPTION_DB_PASSWORD="$EXTERNAL_DB_PASSWORD" \
-            --from-literal=SUBSCRIPTION_DB_NAME="${{ secrets.SUBSCRIPTION_DB_NAME }}" \
+            --from-literal=SUBSCRIPTION_DB_NAME="subscription_db" \
             --from-literal=SUBSCRIPTION_DB_SCHEMA="subscription" \
             --from-literal=CATALOGO_DB_HOST="$DB_IP" \
             --from-literal=CATALOGO_DB_PORT="5434" \
             --from-literal=CATALOGO_DB_USER="$EXTERNAL_DB_USER" \
             --from-literal=CATALOGO_DB_PASSWORD="$EXTERNAL_DB_PASSWORD" \
-            --from-literal=CATALOGO_DB_NAME="${{ secrets.CATALOGO_DB_NAME }}" \
+            --from-literal=CATALOGO_DB_NAME="catalogo_db" \
             --from-literal=CATALOGO_DB_SCHEMA="catalog" \
             --from-literal=GCS_BUCKET_NAME="$GCS_VIDEO_BUCKET" \
             --from-literal=GCS_SERVICE_ACCOUNT_EMAIL="${{ secrets.GCP_SA_EMAIL }}" \
@@ -247,25 +247,25 @@ jobs:
             --from-literal=FX_DB_PORT="5435" \
             --from-literal=FX_DB_USER="$EXTERNAL_DB_USER" \
             --from-literal=FX_DB_PASSWORD="$EXTERNAL_DB_PASSWORD" \
-            --from-literal=FX_DB_NAME="${{ secrets.FX_DB_NAME }}" \
+            --from-literal=FX_DB_NAME="fx_db" \
             --from-literal=FX_DB_SCHEMA="fx" \
             --from-literal=NOTIFICATION_DB_HOST="$DB_IP" \
             --from-literal=NOTIFICATION_DB_PORT="5436" \
             --from-literal=NOTIFICATION_DB_USER="$EXTERNAL_DB_USER" \
             --from-literal=NOTIFICATION_DB_PASSWORD="$EXTERNAL_DB_PASSWORD" \
-            --from-literal=NOTIFICATION_DB_NAME="${{ secrets.NOTIFICATION_DB_NAME }}" \
+            --from-literal=NOTIFICATION_DB_NAME="notification_db" \
             --from-literal=NOTIFICATION_DB_SCHEMA="notification" \
             --from-literal=HISTORIAL_DB_HOST="$DB_IP" \
             --from-literal=HISTORIAL_DB_PORT="5437" \
             --from-literal=HISTORIAL_DB_USER="$EXTERNAL_DB_USER" \
             --from-literal=HISTORIAL_DB_PASSWORD="$EXTERNAL_DB_PASSWORD" \
-            --from-literal=HISTORIAL_DB_NAME="${{ secrets.HISTORIAL_DB_NAME }}" \
+            --from-literal=HISTORIAL_DB_NAME="historial_db" \
             --from-literal=HISTORIAL_DB_SCHEMA="playback" \
             --from-literal=DOWNLOAD_DB_HOST="$DB_IP" \
             --from-literal=DOWNLOAD_DB_PORT="5438" \
             --from-literal=DOWNLOAD_DB_USER="$EXTERNAL_DB_USER" \
             --from-literal=DOWNLOAD_DB_PASSWORD="$EXTERNAL_DB_PASSWORD" \
-            --from-literal=DOWNLOAD_DB_NAME="${{ secrets.DOWNLOAD_DB_NAME || 'download_db' }}" \
+            --from-literal=DOWNLOAD_DB_NAME="download_db" \
             --from-literal=SMTP_USER="${{ secrets.SMTP_USER }}" \
             --from-literal=SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
             --from-literal=SMTP_FROM="${{ secrets.SMTP_FROM }}" \
