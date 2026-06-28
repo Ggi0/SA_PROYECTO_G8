@@ -29,6 +29,7 @@ describe('AuthService (ROBUST)', () => {
     findValidVerificationToken: jest.fn(),
     markVerificationTokenUsed: jest.fn(),
     dataSourceQuery: jest.fn(),
+    updateLastLogin: jest.fn()
   };
 
   const mockJwtService = {
