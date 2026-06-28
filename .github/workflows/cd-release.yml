@@ -1,14 +1,27 @@
-name: CD - release → GKE
+name: CD - release -> GKE
+
 on:
   push:
     branches: [release]
+
 env:
   REGISTRY: ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}
   NAMESPACE: quetxal-tv-prod
+
 jobs:
   ci-gate:
     name: CI gate
     uses: ./.github/workflows/ci.yml
+
+  provision-infra:
+    name: Infra (Terraform + Ansible)
+    needs: ci-gate
+    uses: ./.github/workflows/infra.yml
+    permissions:
+      id-token: write
+      contents: read
+    secrets: inherit
+
   versioning:
     name: Semantic version tag
     needs: ci-gate
@@ -21,21 +34,43 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Calcular versi\xf3n
+      - name: Ensure required V2.0.0 tag exists
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify refs/tags/V2.0.0 >/dev/null; then
+            echo "V2.0.0 already exists"
+          elif git rev-parse -q --verify refs/tags/v2.0.0 >/dev/null; then
+            SHA=$(git rev-list -n 1 v2.0.0)
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag V2.0.0 "$SHA"
+            git push origin V2.0.0
+          else
+            echo "No existing v2.0.0 tag found; first release will create V2.0.0"
+          fi
+      - name: Calculate version
         id: sv
         run: |
-          LATEST=$(git tag --sort=-v:refname | grep -E '^[Vv]2\.' | head -1)
-          if [ -z "$LATEST" ]; then NEW="v2.0.0"
-          else MINOR=$(echo "$LATEST" | sed 's/[Vv]2\.//;s/\.0$//'); NEW="v2.$((MINOR+1)).0"; fi
-          echo "version=$NEW" >> $GITHUB_OUTPUT && echo "🏷️ $NEW"
+          set -euo pipefail
+          LATEST=$(git tag --sort=-v:refname | grep -E '^[Vv]2\.' | head -1 || true)
+          if [ -z "$LATEST" ]; then
+            NEW="V2.0.0"
+          else
+            MINOR=$(echo "$LATEST" | sed 's/[Vv]2\.//;s/\.0$//')
+            NEW="v2.$((MINOR+1)).0"
+          fi
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+          echo "$NEW"
       - name: Push tag
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag ${{ steps.sv.outputs.version }}
           git push origin ${{ steps.sv.outputs.version }}
+
   build:
-    name: Build & push (${{ needs.versioning.outputs.version }})
+    name: Build and push (${{ needs.versioning.outputs.version }})
     needs: versioning
     runs-on: ubuntu-latest
     permissions:
@@ -49,31 +84,69 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SA_EMAIL }}
-      - run: gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
-      - name: Build microservicios
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
+      - name: Build application images only
         run: |
-          docker build --build-arg VITE_API_URL=/api --build-arg VITE_GATEWAY_URL=/api -t ${{ env.REGISTRY }}/frontend:${{ env.VER }} -t ${{ env.REGISTRY }}/frontend:latest -f app/frontend/Dockerfile app/frontend
-          docker push ${{ env.REGISTRY }}/frontend:${{ env.VER }}
-          docker push ${{ env.REGISTRY }}/frontend:latest
+          set -euo pipefail
+          docker build --build-arg VITE_API_URL=/api --build-arg VITE_GATEWAY_URL=/api -t $REGISTRY/frontend:$VER -t $REGISTRY/frontend:latest -f app/frontend/Dockerfile app/frontend
+          docker push $REGISTRY/frontend:$VER
+          docker push $REGISTRY/frontend:latest
 
           for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service; do
             DIR="app/QuetxalTV/microservices/$SVC"
             [ "$SVC" = "api-gateway" ] && DIR="app/QuetxalTV/api-gateway"
             [ "$SVC" = "auth-service" ] && DIR="app/QuetxalTV/microservices/auth-service/auth-service"
-            docker build -t ${{ env.REGISTRY }}/$SVC:${{ env.VER }} -t ${{ env.REGISTRY }}/$SVC:latest -f $DIR/Dockerfile $DIR
-            docker push ${{ env.REGISTRY }}/$SVC:${{ env.VER }}
-            docker push ${{ env.REGISTRY }}/$SVC:latest
+            docker build -t $REGISTRY/$SVC:$VER -t $REGISTRY/$SVC:latest -f $DIR/Dockerfile $DIR
+            docker push $REGISTRY/$SVC:$VER
+            docker push $REGISTRY/$SVC:latest
           done
-      - name: Build bases de datos
+
+  db-migrations:
+    name: DB migrations on external VM
+    needs: [provision-infra, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate SSH secrets
+        env:
+          GCE_SSH_USER: ${{ secrets.GCE_SSH_USER }}
+          GCE_SSH_PRIVATE_KEY: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
         run: |
-          for DB in auth-db subscription-db catalogo-db fx-db notification-db historial-db; do
-            docker build -t ${{ env.REGISTRY }}/$DB:${{ env.VER }} -t ${{ env.REGISTRY }}/$DB:latest -f app/QuetxalTV/databases/$DB/Dockerfile app/QuetxalTV
-            docker push ${{ env.REGISTRY }}/$DB:${{ env.VER }}
-            docker push ${{ env.REGISTRY }}/$DB:latest
+          set -euo pipefail
+          HOST="${{ needs.provision-infra.outputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}"
+          for s in HOST GCE_SSH_USER GCE_SSH_PRIVATE_KEY; do
+            [ -n "${!s:-}" ] || { echo "::error::Missing $s"; exit 1; }
           done
+      - name: Copy and apply migrations directly to DB VM
+        env:
+          SSH_USER: ${{ secrets.GCE_SSH_USER }}
+          SSH_KEY: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          HOST="${{ needs.provision-infra.outputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}"
+          KEY_FILE="$RUNNER_TEMP/quetxal_db_key"
+          if [[ "$SSH_KEY" == '"'*'"' ]]; then SSH_KEY="${SSH_KEY:1:${#SSH_KEY}-2}"; fi
+          printf '%b\n' "$SSH_KEY" | sed 's/\r$//' > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          ssh-keygen -y -f "$KEY_FILE" >/dev/null || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
+          trap 'rm -f "$KEY_FILE" mig.tgz' EXIT
+          tar czf mig.tgz app/QuetxalTV/database/migrations infra/ansible/files/apply-migrations.sh
+          scp -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null mig.tgz "$SSH_USER@$HOST:/tmp/mig.tgz"
+          ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$SSH_USER@$HOST" '
+            set -euo pipefail
+            sudo rm -rf /tmp/quetxal-mig /opt/quetxal/migrations
+            sudo mkdir -p /tmp/quetxal-mig /opt/quetxal/migrations
+            sudo tar xzf /tmp/mig.tgz -C /tmp/quetxal-mig
+            sudo cp -a /tmp/quetxal-mig/app/QuetxalTV/database/migrations/. /opt/quetxal/migrations/
+            sudo cp /tmp/quetxal-mig/infra/ansible/files/apply-migrations.sh /opt/quetxal/apply-migrations.sh
+            sudo chmod +x /opt/quetxal/apply-migrations.sh
+            sudo bash /opt/quetxal/apply-migrations.sh
+          '
+
   deploy:
-    name: Deploy → GKE (RollingUpdate + rollback)
-    needs: [versioning, build]
+    name: Deploy -> GKE (external DB)
+    needs: [provision-infra, versioning, build, db-migrations]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -91,120 +164,185 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
           location: ${{ secrets.GKE_CLUSTER_ZONE }}
-      - name: Namespace + ConfigMap
+      - name: Validate required secrets
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
         run: |
+          set -euo pipefail
+          DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
+          MON_IP="${{ needs.provision-infra.outputs.monitor_private_ip || secrets.MONITOR_PRIVATE_IP }}"
+          for s in DB_IP MON_IP JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
+            [ -n "${!s:-}" ] || { echo "::error::Missing $s"; exit 1; }
+          done
+      - name: Namespace and base config
+        run: |
+          set -euo pipefail
           kubectl apply -f k8s/namespace.yaml
+          kubectl config set-context --current --namespace=$NAMESPACE
           kubectl apply -f k8s/configmap.yaml
           kubectl apply -f k8s/backendconfig.yaml
-      - name: K8s Secrets
+      - name: Workload Identity for catalog service
         run: |
+          set -euo pipefail
+          gcloud iam service-accounts add-iam-policy-binding "${{ secrets.GCP_SA_EMAIL }}" \
+            --role="roles/iam.workloadIdentityUser" \
+            --member="serviceAccount:${{ secrets.GCP_PROJECT_ID }}.svc.id.goog[$NAMESPACE/catalogo-service-ksa]" \
+            --quiet
+          gcloud iam service-accounts add-iam-policy-binding "${{ secrets.GCP_SA_EMAIL }}" \
+            --role="roles/iam.serviceAccountTokenCreator" \
+            --member="serviceAccount:${{ secrets.GCP_SA_EMAIL }}" \
+            --quiet
+      - name: Configure video bucket CORS
+        run: gcloud storage buckets update gs://${{ needs.provision-infra.outputs.gcs_video_bucket }} --cors-file=k8s/gcs-cors.json
+      - name: K8s Secret -> external DB on Compute Engine
+        run: |
+          set -euo pipefail
+          DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
           kubectl create secret generic quetxal-tv-secrets \
-            --namespace=${{ env.NAMESPACE }} \
+            --namespace=$NAMESPACE \
             --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             --from-literal=JWT_ACCESS_SECRET="${{ secrets.JWT_ACCESS_SECRET }}" \
             --from-literal=JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
-            --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
-            --from-literal=AUTH_DB_HOST="auth-db" \
+            --from-literal=AUTH_DB_HOST="$DB_IP" \
             --from-literal=AUTH_DB_PORT="5432" \
             --from-literal=AUTH_DB_USER="${{ secrets.AUTH_DB_USER }}" \
             --from-literal=AUTH_DB_PASSWORD="${{ secrets.AUTH_DB_PASSWORD }}" \
             --from-literal=AUTH_DB_NAME="${{ secrets.AUTH_DB_NAME }}" \
-            --from-literal=AUTH_DB_SCHEMA="${{ secrets.AUTH_DB_SCHEMA }}" \
-            --from-literal=SUBSCRIPTION_DB_HOST="subscription-db" \
-            --from-literal=SUBSCRIPTION_DB_PORT="5432" \
+            --from-literal=AUTH_DB_SCHEMA="auth" \
+            --from-literal=SUBSCRIPTION_DB_HOST="$DB_IP" \
+            --from-literal=SUBSCRIPTION_DB_PORT="5433" \
             --from-literal=SUBSCRIPTION_DB_USER="${{ secrets.SUBSCRIPTION_DB_USER }}" \
             --from-literal=SUBSCRIPTION_DB_PASSWORD="${{ secrets.SUBSCRIPTION_DB_PASSWORD }}" \
             --from-literal=SUBSCRIPTION_DB_NAME="${{ secrets.SUBSCRIPTION_DB_NAME }}" \
-            --from-literal=SUBSCRIPTION_DB_SCHEMA="${{ secrets.SUBSCRIPTION_DB_SCHEMA }}" \
-            --from-literal=CATALOGO_DB_HOST="catalogo-db" \
-            --from-literal=CATALOGO_DB_PORT="5432" \
+            --from-literal=SUBSCRIPTION_DB_SCHEMA="subscription" \
+            --from-literal=CATALOGO_DB_HOST="$DB_IP" \
+            --from-literal=CATALOGO_DB_PORT="5434" \
             --from-literal=CATALOGO_DB_USER="${{ secrets.CATALOGO_DB_USER }}" \
             --from-literal=CATALOGO_DB_PASSWORD="${{ secrets.CATALOGO_DB_PASSWORD }}" \
             --from-literal=CATALOGO_DB_NAME="${{ secrets.CATALOGO_DB_NAME }}" \
-            --from-literal=CATALOGO_DB_SCHEMA="${{ secrets.CATALOGO_DB_SCHEMA }}" \
-            --from-literal=GCS_BUCKET_NAME="quetxal-tv-videos" \
+            --from-literal=CATALOGO_DB_SCHEMA="catalog" \
+            --from-literal=GCS_BUCKET_NAME="${{ needs.provision-infra.outputs.gcs_video_bucket }}" \
             --from-literal=GCS_SERVICE_ACCOUNT_EMAIL="${{ secrets.GCP_SA_EMAIL }}" \
-            --from-literal=FX_DB_HOST="fx-db" \
-            --from-literal=FX_DB_PORT="5432" \
+            --from-literal=FX_DB_HOST="$DB_IP" \
+            --from-literal=FX_DB_PORT="5435" \
             --from-literal=FX_DB_USER="${{ secrets.FX_DB_USER }}" \
             --from-literal=FX_DB_PASSWORD="${{ secrets.FX_DB_PASSWORD }}" \
             --from-literal=FX_DB_NAME="${{ secrets.FX_DB_NAME }}" \
-            --from-literal=FX_DB_SCHEMA="${{ secrets.FX_DB_SCHEMA }}" \
-            --from-literal=NOTIFICATION_DB_HOST="notification-db" \
-            --from-literal=NOTIFICATION_DB_PORT="5432" \
+            --from-literal=FX_DB_SCHEMA="fx" \
+            --from-literal=NOTIFICATION_DB_HOST="$DB_IP" \
+            --from-literal=NOTIFICATION_DB_PORT="5436" \
             --from-literal=NOTIFICATION_DB_USER="${{ secrets.NOTIFICATION_DB_USER }}" \
             --from-literal=NOTIFICATION_DB_PASSWORD="${{ secrets.NOTIFICATION_DB_PASSWORD }}" \
             --from-literal=NOTIFICATION_DB_NAME="${{ secrets.NOTIFICATION_DB_NAME }}" \
-            --from-literal=NOTIFICATION_DB_SCHEMA="${{ secrets.NOTIFICATION_DB_SCHEMA }}" \
-            --from-literal=HISTORIAL_DB_HOST="historial-db" \
-            --from-literal=HISTORIAL_DB_PORT="5432" \
+            --from-literal=NOTIFICATION_DB_SCHEMA="notification" \
+            --from-literal=HISTORIAL_DB_HOST="$DB_IP" \
+            --from-literal=HISTORIAL_DB_PORT="5437" \
             --from-literal=HISTORIAL_DB_USER="${{ secrets.HISTORIAL_DB_USER }}" \
             --from-literal=HISTORIAL_DB_PASSWORD="${{ secrets.HISTORIAL_DB_PASSWORD }}" \
             --from-literal=HISTORIAL_DB_NAME="${{ secrets.HISTORIAL_DB_NAME }}" \
-            --from-literal=HISTORIAL_DB_SCHEMA="${{ secrets.HISTORIAL_DB_SCHEMA }}" \
+            --from-literal=HISTORIAL_DB_SCHEMA="playback" \
             --from-literal=SMTP_USER="${{ secrets.SMTP_USER }}" \
             --from-literal=SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
             --from-literal=SMTP_FROM="${{ secrets.SMTP_FROM }}" \
             --from-literal=EXCHANGE_API_KEY="${{ secrets.EXCHANGE_API_KEY }}" \
             --save-config --dry-run=client -o yaml | kubectl apply -f -
-      - name: ConfigMap de migración de auditoría (subscription)
+      - name: ConfigMap for subscription audit migration
         run: |
+          set -euo pipefail
           kubectl create configmap subscription-audit-migration-sql \
-            --namespace=${{ env.NAMESPACE }} \
+            --namespace=$NAMESPACE \
             --from-file=002_audit_upgrade.sql=app/QuetxalTV/microservices/subscription-service/internal/database/migrations/002_audit_upgrade.sql \
             --dry-run=client -o yaml | kubectl apply -f -
-          # Borra el Job anterior para forzar su re-ejecución con el SQL vigente.
-          kubectl delete job subscription-audit-migration -n ${{ env.NAMESPACE }} --ignore-not-found=true
-      - name: Aplicar todos los manifiestos
+          kubectl delete job subscription-audit-migration -n $NAMESPACE --ignore-not-found=true
+      - name: Apply manifests without relational DB pods
         run: |
-          export IMAGE_TAG="${{ env.VER }}"
+          set -euo pipefail
+          command -v envsubst >/dev/null || { sudo apt-get update && sudo apt-get install -y gettext-base; }
+          export IMAGE_TAG="$VER"
           export GCP_PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
           export GCP_SA_EMAIL="${{ secrets.GCP_SA_EMAIL }}"
           export ARTIFACT_REGISTRY_LOCATION="${{ secrets.ARTIFACT_REGISTRY_LOCATION }}"
           export ARTIFACT_REGISTRY_REPOSITORY="${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}"
-          for f in k8s/databases/*.yaml k8s/deployments/*.yaml k8s/services/*.yaml k8s/jobs/*.yaml; do
-            envsubst '${IMAGE_TAG} ${GCP_PROJECT_ID} ${GCP_SA_EMAIL} ${ARTIFACT_REGISTRY_LOCATION} ${ARTIFACT_REGISTRY_REPOSITORY}' < "$f" | kubectl apply -f -
+          export MONITOR_PRIVATE_IP="${{ needs.provision-infra.outputs.monitor_private_ip || secrets.MONITOR_PRIVATE_IP }}"
+          for f in k8s/service-accounts/*.yaml k8s/databases/redis.yaml k8s/deployments/*.yaml k8s/services/*.yaml k8s/jobs/*.yaml k8s/cronjobs/*.yaml k8s/observability/*.yaml; do
+            envsubst '${IMAGE_TAG} ${GCP_PROJECT_ID} ${GCP_SA_EMAIL} ${ARTIFACT_REGISTRY_LOCATION} ${ARTIFACT_REGISTRY_REPOSITORY} ${MONITOR_PRIVATE_IP}' < "$f" | kubectl apply -f -
           done
           kubectl apply -f k8s/ingress.yaml
-      - name: Esperar migración de auditoría (corto-circuito si falla)
+      - name: Wait for audit migration
         run: |
+          set -euo pipefail
           JOB=subscription-audit-migration
-          if ! kubectl wait --for=condition=complete --timeout=300s job/$JOB -n ${{ env.NAMESPACE }}; then
-            echo "❌ Migración de auditoría falló; logs:"
-            kubectl logs -n ${{ env.NAMESPACE }} -l app=subscription-audit-migration --tail=200 || true
-            kubectl describe job/$JOB -n ${{ env.NAMESPACE }} || true
+          if ! kubectl wait --for=condition=complete --timeout=300s job/$JOB -n $NAMESPACE; then
+            kubectl logs -n $NAMESPACE -l app=subscription-audit-migration --tail=200 || true
+            kubectl describe job/$JOB -n $NAMESPACE || true
             exit 1
           fi
-          echo "✅ Migración de auditoría aplicada"
-      - name: Verificar RollingUpdate + rollback autom\xe1tico
+      - name: Verify rolling update with rollback
         run: |
+          set -euo pipefail
           FAILED=0
-          ALL="redis auth-db subscription-db catalogo-db fx-db notification-db historial-db auth-service subscription-service catalogo-service fx-service notification-service historial-service frontend api-gateway"
+          ALL="redis auth-service subscription-service catalogo-service fx-service notification-service historial-service frontend api-gateway"
           for DEP in $ALL; do
-            echo "⏳ $DEP..."
-            if ! kubectl rollout status deployment/$DEP -n ${{ env.NAMESPACE }} --timeout=10m; then
-              echo "🔎 Diagnóstico $DEP"
-              kubectl get deployment/$DEP -n ${{ env.NAMESPACE }} -o wide || true
-              kubectl get pods -n ${{ env.NAMESPACE }} -l app=$DEP -o wide || true
-              kubectl describe deployment/$DEP -n ${{ env.NAMESPACE }} || true
-              kubectl describe pods -n ${{ env.NAMESPACE }} -l app=$DEP || true
-              kubectl logs -n ${{ env.NAMESPACE }} -l app=$DEP --all-containers --tail=200 || true
-              kubectl logs -n ${{ env.NAMESPACE }} -l app=$DEP --all-containers --previous --tail=200 || true
-              kubectl get events -n ${{ env.NAMESPACE }} --sort-by=.lastTimestamp || true
-              echo "❌ Rollback $DEP"
-              kubectl rollout undo deployment/$DEP -n ${{ env.NAMESPACE }} || true
+            echo "$DEP"
+            if ! kubectl rollout status deployment/$DEP -n $NAMESPACE --timeout=10m; then
+              kubectl describe deployment/$DEP -n $NAMESPACE || true
+              kubectl describe pods -n $NAMESPACE -l app=$DEP || true
+              kubectl logs -n $NAMESPACE -l app=$DEP --all-containers --tail=200 || true
+              kubectl rollout undo deployment/$DEP -n $NAMESPACE || true
               FAILED=1
-            else echo "✅ $DEP"; fi
+            fi
           done
           [ "$FAILED" -eq 0 ] || exit 1
-          echo "🎉 Deploy ${{ env.VER }} OK"
+
+  smoke:
+    name: Smoke tests after GKE deploy
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+          location: ${{ secrets.GKE_CLUSTER_ZONE }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve Ingress URL
+        id: ingress
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            IP=$(kubectl get ingress quetxal-tv-ingress -n quetxal-tv-prod -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
+            [ -n "$IP" ] && break
+            sleep 10
+          done
+          [ -n "${IP:-}" ] || { echo "::error::Ingress has no IP"; exit 1; }
+          echo "base_url=http://$IP" >> "$GITHUB_OUTPUT"
+      - name: Run smoke suite
+        env:
+          BASE_URL: ${{ steps.ingress.outputs.base_url }}
+        run: |
+          set -euo pipefail
+          pip install -r tests/smoke/requirements.txt -q
+          python tests/smoke/smoke_test.py
 
   backup-after-deploy:
     name: Backup after deploy
-    needs: deploy
+    needs: [provision-infra, smoke]
     uses: ./.github/workflows/backup.yml
     with:
-      target: gke
+      target: gce
+      db_public_ip: ${{ needs.provision-infra.outputs.db_public_ip }}
     permissions:
       id-token: write
       contents: read

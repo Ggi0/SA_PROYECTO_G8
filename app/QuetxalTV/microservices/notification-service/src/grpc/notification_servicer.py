@@ -63,3 +63,44 @@ class NotificationServicer(notification_pb2_grpc.NotificationServiceServicer):
             return notification_pb2.SendWelcomeEmailResponse(
                 success=False, message=str(e)
             )
+    def SendNewContentAlert(self, request, context):
+        try:
+            subscribers = self.repo.get_subscriber_emails()
+            if not subscribers:
+                return notification_pb2.NewContentAlertResponse(
+                    success=True,
+                    message="No hay suscriptores activos",
+                    emails_sent=0
+                )
+
+            count = 0
+            for sub in subscribers:
+                try:
+                    self.repo.queue_notification(
+                        user_id         = sub["user_id"],
+                        recipient_email = sub["email"],
+                        recipient_name  = sub["name"] or sub["email"],
+                        type_code       = "NEW_CONTENT",
+                        template_data   = {
+                            "name":          sub["name"] or "Suscriptor",
+                            "content_title": request.content_title,
+                            "content_type":  request.content_type,
+                            "content_id":    request.content_id,
+                        }
+                    )
+                    count += 1
+                except Exception as e:
+                    logger.error(f"Error encolando alerta para {sub['email']}: {e}")
+
+            return notification_pb2.NewContentAlertResponse(
+                success=True,
+                message=f"Alertas encoladas para {count} suscriptores",
+                emails_sent=count
+            )
+        except Exception as e:
+            logger.error(f"Error en SendNewContentAlert: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return notification_pb2.NewContentAlertResponse(
+                success=False, message=str(e), emails_sent=0
+            )

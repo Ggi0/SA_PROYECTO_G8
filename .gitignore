@@ -27,8 +27,8 @@ app/QuetxalTV/docker-compose.gcp-db.yml
 build/
 
 
-# ─── Tests ───────────────────────────────────────────────
-test_*.py
+# ─── Coverage ────────────────────────────────────────────
+.coverage
 
 # Python
 venv/
@@ -51,7 +51,48 @@ app/frontend/tsconfig.tsbuildinfo
 
 # Documentacion local con datos sensibles de configuracion
 Enunciado-F2/
+Enunciado-F3/
 secrets.env
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+*.tfplan
+*.tfplan.*
+plan.out
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.rc
+.terraformrc
+
+# Ansible local/sensitive inventory and vault files
+infra/ansible/inventory.ini
+infra/ansible/*.retry
+infra/ansible/.vault_pass*
+infra/ansible/group_vars/**/vault*.yml
+infra/ansible/host_vars/**/vault*.yml
+!infra/ansible/inventory.ini.example
+
+# Credenciales y llaves locales
+*.pem
+*.key
+*.p12
+*.p8
+*.crt
+*.csr
+*.keystore
+*.jks
+*service-account*.json
+*credentials*.json
+gcloud*.json
 
 # Locust / Python local files
 app/QuetxalTV/load-tests/venv/

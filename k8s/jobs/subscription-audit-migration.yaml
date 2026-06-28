@@ -15,15 +15,19 @@ spec:
       labels: { app: subscription-audit-migration }
     spec:
       restartPolicy: Never
-      # Espera a que subscription-db acepte conexiones antes de migrar.
+      # Espera a la BD externa en Compute Engine antes de migrar.
       initContainers:
         - name: wait-db
           image: postgres:16-alpine
           command:
             - sh
             - -c
-            - 'until pg_isready -h subscription-db -p 5432 -U "$PGUSER"; do echo "esperando subscription-db..."; sleep 3; done'
+            - 'until pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER"; do echo "esperando subscription-db externo..."; sleep 3; done'
           env:
+            - name: PGHOST
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_HOST } }
+            - name: PGPORT
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_PORT } }
             - name: PGUSER
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_USER } }
       containers:
@@ -33,9 +37,9 @@ spec:
           args: ["-v", "ON_ERROR_STOP=1", "-f", "/sql/002_audit_upgrade.sql"]
           env:
             - name: PGHOST
-              value: subscription-db
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_HOST } }
             - name: PGPORT
-              value: "5432"
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_PORT } }
             - name: PGUSER
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_USER } }
             - name: PGPASSWORD
