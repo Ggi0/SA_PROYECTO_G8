@@ -18,9 +18,6 @@ src/grpc/fx_pb2.py
 src/grpc/fx_pb2.pyi
 src/grpc/fx_pb2_grpc.py
 
-# ─── Tests ───────────────────────────────────────────────
-test_*.py
-
 # ─── IDE ─────────────────────────────────────────────────
 .vscode/
 .idea/

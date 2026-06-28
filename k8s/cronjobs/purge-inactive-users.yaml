@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: purge-inactive-users
+  namespace: quetxal-tv-prod
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: purge
+              image: postgres:16-alpine
+              env:
+                - name: PGHOST
+                  valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_HOST } }
+                - name: PGPORT
+                  valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_PORT } }
+                - name: PGUSER
+                  valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_USER } }
+                - name: PGPASSWORD
+                  valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_PASSWORD } }
+                - name: PGDATABASE
+                  valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: AUTH_DB_NAME } }
+              command:
+                - sh
+                - -c
+                - |
+                  psql -v ON_ERROR_STOP=1 -c "
+                    UPDATE auth.users u
+                    SET is_active = false,
+                        updated_at = NOW()
+                    WHERE u.is_active = true
+                      AND u.created_at < NOW() - INTERVAL '90 days'
+                      AND NOT EXISTS (
+                        SELECT 1
+                        FROM auth.refresh_tokens rt
+                        WHERE rt.user_id = u.user_id
+                          AND rt.created_at > NOW() - INTERVAL '90 days'
+                      );
+                  "

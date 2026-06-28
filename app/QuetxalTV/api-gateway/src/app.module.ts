@@ -7,8 +7,10 @@ import { HistorialModule } from './historial/historial.module';
 import { HealthController } from './health.controller';
 import { AuditModule } from './audit/audit.module';
 import { DownloadModule } from './download/download.module';
+import { MetricsModule } from './metrics/metrics.module';
+
 @Module({
-  imports: [SubscriptionModule, FxModule, CatalogModule, AuthModule, HistorialModule, AuditModule, DownloadModule],
+  imports: [SubscriptionModule, FxModule, CatalogModule, AuthModule, HistorialModule, AuditModule, MetricsModule,DownloadModule],
   controllers: [HealthController],
 })
 export class AppModule {}
