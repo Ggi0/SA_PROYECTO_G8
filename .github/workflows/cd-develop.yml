@@ -98,6 +98,7 @@ jobs:
           key: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
           script: |
             set -euo pipefail
+            git config --global --add safe.directory /app/SA_PROYECTO_G8
             cd /app/SA_PROYECTO_G8
             git fetch origin develop
             git checkout develop
