@@ -108,10 +108,18 @@ jobs:
             gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
             touch .env
             set_env() {
-              grep -q "^$1=" .env && sed -i "s|^$1=.*|$1=$2|" .env || echo "$1=$2" >> .env
+              key="$1"
+              value="$2"
+              if grep -q "^${key}=" .env; then
+                awk -v key="$key" -v value="$value" 'BEGIN { prefix = key "=" } index($0, prefix) == 1 { $0 = prefix value } { print }' .env > .env.tmp
+                mv .env.tmp .env
+              else
+                printf '%s=%s\n' "$key" "$value" >> .env
+              fi
             }
             set_env_if_not_empty() {
-              [ -n "$2" ] && set_env "$1" "$2"
+              [ -n "${2:-}" ] || return 0
+              set_env "$1" "$2"
             }
             DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
             set_env IMAGE_TAG develop
