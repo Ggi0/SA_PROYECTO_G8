@@ -93,3 +93,8 @@ infra/ansible/host_vars/**/vault*.yml
 *service-account*.json
 *credentials*.json
 gcloud*.json
+
+# Locust / Python local files
+app/QuetxalTV/load-tests/venv/
+app/QuetxalTV/load-tests/__pycache__/
+*.pyc

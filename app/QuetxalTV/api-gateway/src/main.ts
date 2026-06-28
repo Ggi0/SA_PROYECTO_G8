@@ -6,10 +6,16 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 import type { NextFunction, Request, Response } from 'express';
+import { MetricsService } from './metrics/metrics.service';
+import { createObservabilityMiddleware } from './metrics/observability.middleware';
 
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const metricsService = app.get(MetricsService);
+  app.use(createObservabilityMiddleware(metricsService));
+
 
     // Necesario para que @Req().cookies funcione en el controlador
   // El refresh_token viaja en cookie HttpOnly y se lee aquí

@@ -93,7 +93,7 @@ jobs:
           docker push $REGISTRY/frontend:$VER
           docker push $REGISTRY/frontend:latest
 
-          for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service; do
+          for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service download-service; do
             DIR="app/QuetxalTV/microservices/$SVC"
             [ "$SVC" = "api-gateway" ] && DIR="app/QuetxalTV/api-gateway"
             [ "$SVC" = "auth-service" ] && DIR="app/QuetxalTV/microservices/auth-service/auth-service"
@@ -166,6 +166,7 @@ jobs:
           location: ${{ secrets.GKE_CLUSTER_ZONE }}
       - name: Validate required secrets
         env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
           JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
@@ -173,7 +174,9 @@ jobs:
           set -euo pipefail
           DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
           MON_IP="${{ needs.provision-infra.outputs.monitor_private_ip || secrets.MONITOR_PRIVATE_IP }}"
-          for s in DB_IP MON_IP JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
+          GCS_VIDEO_BUCKET="${{ needs.provision-infra.outputs.gcs_video_bucket }}"
+          [ -n "$GCS_VIDEO_BUCKET" ] || GCS_VIDEO_BUCKET="quetxal-tv-${GCP_PROJECT_ID}-videos"
+          for s in DB_IP MON_IP GCS_VIDEO_BUCKET JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
             [ -n "${!s:-}" ] || { echo "::error::Missing $s"; exit 1; }
           done
       - name: Namespace and base config
@@ -195,11 +198,23 @@ jobs:
             --member="serviceAccount:${{ secrets.GCP_SA_EMAIL }}" \
             --quiet
       - name: Configure video bucket CORS
-        run: gcloud storage buckets update gs://${{ needs.provision-infra.outputs.gcs_video_bucket }} --cors-file=k8s/gcs-cors.json
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCS_VIDEO_BUCKET: ${{ needs.provision-infra.outputs.gcs_video_bucket }}
+        run: |
+          set -euo pipefail
+          [ -n "$GCS_VIDEO_BUCKET" ] || GCS_VIDEO_BUCKET="quetxal-tv-${GCP_PROJECT_ID}-videos"
+          [ -n "$GCS_VIDEO_BUCKET" ] || { echo "::error::Missing GCS_VIDEO_BUCKET"; exit 1; }
+          gcloud storage buckets update "gs://$GCS_VIDEO_BUCKET" --cors-file=k8s/gcs-cors.json
       - name: K8s Secret -> external DB on Compute Engine
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCS_VIDEO_BUCKET: ${{ needs.provision-infra.outputs.gcs_video_bucket }}
         run: |
           set -euo pipefail
           DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
+          [ -n "$GCS_VIDEO_BUCKET" ] || GCS_VIDEO_BUCKET="quetxal-tv-${GCP_PROJECT_ID}-videos"
+          [ -n "$GCS_VIDEO_BUCKET" ] || { echo "::error::Missing GCS_VIDEO_BUCKET"; exit 1; }
           kubectl create secret generic quetxal-tv-secrets \
             --namespace=$NAMESPACE \
             --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
@@ -223,7 +238,7 @@ jobs:
             --from-literal=CATALOGO_DB_PASSWORD="${{ secrets.CATALOGO_DB_PASSWORD }}" \
             --from-literal=CATALOGO_DB_NAME="${{ secrets.CATALOGO_DB_NAME }}" \
             --from-literal=CATALOGO_DB_SCHEMA="catalog" \
-            --from-literal=GCS_BUCKET_NAME="${{ needs.provision-infra.outputs.gcs_video_bucket }}" \
+            --from-literal=GCS_BUCKET_NAME="$GCS_VIDEO_BUCKET" \
             --from-literal=GCS_SERVICE_ACCOUNT_EMAIL="${{ secrets.GCP_SA_EMAIL }}" \
             --from-literal=FX_DB_HOST="$DB_IP" \
             --from-literal=FX_DB_PORT="5435" \
@@ -243,6 +258,11 @@ jobs:
             --from-literal=HISTORIAL_DB_PASSWORD="${{ secrets.HISTORIAL_DB_PASSWORD }}" \
             --from-literal=HISTORIAL_DB_NAME="${{ secrets.HISTORIAL_DB_NAME }}" \
             --from-literal=HISTORIAL_DB_SCHEMA="playback" \
+            --from-literal=DOWNLOAD_DB_HOST="$DB_IP" \
+            --from-literal=DOWNLOAD_DB_PORT="5438" \
+            --from-literal=DOWNLOAD_DB_USER="${{ secrets.DOWNLOAD_DB_USER || secrets.AUTH_DB_USER }}" \
+            --from-literal=DOWNLOAD_DB_PASSWORD="${{ secrets.DOWNLOAD_DB_PASSWORD || secrets.AUTH_DB_PASSWORD }}" \
+            --from-literal=DOWNLOAD_DB_NAME="${{ secrets.DOWNLOAD_DB_NAME || 'download_db' }}" \
             --from-literal=SMTP_USER="${{ secrets.SMTP_USER }}" \
             --from-literal=SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
             --from-literal=SMTP_FROM="${{ secrets.SMTP_FROM }}" \
@@ -283,7 +303,7 @@ jobs:
         run: |
           set -euo pipefail
           FAILED=0
-          ALL="redis auth-service subscription-service catalogo-service fx-service notification-service historial-service frontend api-gateway"
+          ALL="redis auth-service subscription-service catalogo-service fx-service notification-service historial-service download-service frontend api-gateway"
           for DEP in $ALL; do
             echo "$DEP"
             if ! kubectl rollout status deployment/$DEP -n $NAMESPACE --timeout=10m; then

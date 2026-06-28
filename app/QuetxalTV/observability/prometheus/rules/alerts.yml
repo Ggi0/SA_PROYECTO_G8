@@ -1,0 +1,20 @@
+groups:
+  - name: quetxal-tv-alerts
+    rules:
+      - alert: ApiGatewayDown
+        expr: up{job="api-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API Gateway no está disponible"
+          description: "Prometheus no puede consultar el endpoint /metrics del API Gateway."
+
+      - alert: HighApiGatewayErrorRate
+        expr: increase(quetxal_api_gateway_http_requests_total{status_code=~"5.."}[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta cantidad de errores 5xx"
+          description: "El API Gateway está registrando múltiples respuestas 5xx."

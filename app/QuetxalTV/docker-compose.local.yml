@@ -20,10 +20,13 @@ services:
       SUBSCRIPTION_HTTP_URL: http://subscription-service:8083
       NOTIFICATION_HTTP_URL: http://notification-service:8084
       FX_HTTP_URL: http://fx-service:8085
+      DOWNLOAD_SERVICE_URL: download-service:50057
+      DOWNLOAD_SERVICE_HOST: download-service:50057
     depends_on:
       - auth-service
       - subscription-service
       - notification-service
+      - download-service
     networks:
       - quetxal-network
 
@@ -36,7 +39,7 @@ services:
     ports:
       - "5434:5432"
     environment:
-      POSTGRES_USER: auth_user
+      POSTGRES_USER: auth_usert
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: auth_db
     volumes:
@@ -328,6 +331,52 @@ services:
     restart: unless-stopped
     networks:
       - quetxal-network
+# ──────────────────────────────────────────────
+  # DOWNLOAD
+  # ──────────────────────────────────────────────
+  download-db:
+    image: postgres:16-alpine
+    container_name: download-db
+    ports:
+      - "5439:5432"
+    environment:
+      POSTGRES_USER: download_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: download_db
+    volumes:
+      - download_db_data:/var/lib/postgresql/data
+      - ./database/download.sql:/docker-entrypoint-initdb.d/01_init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U download_user -d download_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+  download-service:
+    build:
+      context: ./microservices/download-service
+      dockerfile: Dockerfile
+    container_name: download-service
+    ports:
+      - "50057:50057"
+    environment:
+      GRPC_PORT: 50057
+      DB_HOST: download-db
+      DB_PORT: 5432
+      DB_USER: download_user
+      DB_PASSWORD: admin
+      DB_NAME: download_db
+      DB_SSLMODE: disable
+      JWT_SECRET: ${JWT_SECRET}
+      GCS_BUCKET: ${GCS_BUCKET_NAME:-quetxaltv-downloads}
+      DOWNLOAD_EXPIRY_DAYS: 30
+    depends_on:
+      download-db:
+        condition: service_healthy
+    networks:
+      - quetxal-network
 
   # ──────────────────────────────────────────────
   # REDIS
@@ -347,6 +396,7 @@ volumes:
   subscription_db_data:
   fx_db_data:
   historial_db_data:
+  download_db_data:
 
 networks:
   quetxal-network:

@@ -78,6 +78,6 @@ jobs:
             gcloud storage cp "$FILE" "$BUCKET/$C/$FILE"
             rm -f "$FILE"
           }
-          for C in auth-db subscription-db catalogo-db fx-db notification-db historial-db; do
+          for C in auth-db subscription-db catalogo-db fx-db notification-db historial-db download-db; do
             backup "$C"
           done

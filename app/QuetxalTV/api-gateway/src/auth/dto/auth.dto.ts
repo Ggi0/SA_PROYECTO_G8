@@ -14,7 +14,7 @@ export class RegisterDto {
     email!: string;
     password!: string;
     display_name?: string;
-    displayName?: string;
+    displayName!: string;
   }
   // ─────────────────────────────────────────────
   //  LOGIN
