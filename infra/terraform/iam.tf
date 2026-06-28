@@ -1,5 +1,9 @@
 data "google_project" "current" {}
 
+data "google_compute_default_service_account" "default" {
+  project = var.project_id
+}
+
 # --- Roles a nivel de proyecto para la SA ---
 locals {
   cicd_sa_email = "quetxal-tv-cicd@${var.project_id}.iam.gserviceaccount.com"
@@ -31,6 +35,12 @@ resource "google_project_iam_member" "cicd_roles" {
   lifecycle {
     prevent_destroy = true
   }
+}
+
+resource "google_project_iam_member" "gke_nodes_artifact_registry_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
 # --- Permite a GitHub Actions (de tu repo) suplantar a la SA ---
