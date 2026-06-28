@@ -80,10 +80,11 @@ resource "google_compute_instance" "monitor" {
 
 # ---------- VM de Desarrollo (entorno develop) ----------
 resource "google_compute_instance" "dev" {
-  name         = "quetxal-dev-vm"
-  machine_type = "e2-standard-2"
-  zone         = var.zone
-  tags         = ["ssh", "dev-app"] # dev-app abre los puertos públicos de develop
+  name                      = "quetxal-dev-vm"
+  machine_type              = "e2-standard-2"
+  zone                      = var.zone
+  tags                      = ["ssh", "dev-app"] # dev-app abre los puertos públicos de develop
+  allow_stopping_for_update = true
 
   boot_disk {
     initialize_params {
@@ -98,6 +99,11 @@ resource "google_compute_instance" "dev" {
     access_config {
       nat_ip = google_compute_address.dev.address
     }
+  }
+
+  service_account {
+    email  = local.cicd_sa_email
+    scopes = ["cloud-platform"]
   }
 
   metadata   = { ssh-keys = local.ssh_keys }
