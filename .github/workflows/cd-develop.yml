@@ -223,6 +223,7 @@ jobs:
     with:
       target: gce
       db_public_ip: ${{ needs.provision-infra.outputs.db_public_ip }}
+      gcs_backup_bucket: ${{ needs.provision-infra.outputs.gcs_backup_bucket }}
     permissions:
       id-token: write
       contents: read

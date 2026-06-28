@@ -23,6 +23,10 @@ on:
         required: false
         default: ''
         type: string
+      gcs_backup_bucket:
+        required: false
+        default: ''
+        type: string
 
 jobs:
   backup:
@@ -42,12 +46,19 @@ jobs:
           GCE_DB_PUBLIC_IP: ${{ inputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}
           GCE_SSH_USER: ${{ secrets.GCE_SSH_USER }}
           GCE_SSH_PRIVATE_KEY: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
-          GCS_BACKUP_BUCKET: ${{ secrets.GCS_BACKUP_BUCKET }}
+          GCS_BACKUP_BUCKET_INPUT: ${{ inputs.gcs_backup_bucket }}
+          GCS_BACKUP_BUCKET_SECRET: ${{ secrets.GCS_BACKUP_BUCKET }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           set -euo pipefail
           [ -n "${GCE_DB_PUBLIC_IP:-}" ] || { echo "::error::Missing GCE_DB_PUBLIC_IP. Pass db_public_ip or configure the GCE_DB_PUBLIC_IP secret."; exit 1; }
-          BUCKET="gs://${GCS_BACKUP_BUCKET:-quetxal-tv-${GCP_PROJECT_ID}-backups}"
+          GCS_BACKUP_BUCKET="${GCS_BACKUP_BUCKET_INPUT:-}"
+          if [ -z "$GCS_BACKUP_BUCKET" ] && [ -n "${GCP_PROJECT_ID:-}" ]; then
+            GCS_BACKUP_BUCKET="quetxal-tv-${GCP_PROJECT_ID}-backups"
+          fi
+          GCS_BACKUP_BUCKET="${GCS_BACKUP_BUCKET:-${GCS_BACKUP_BUCKET_SECRET:-}}"
+          [ -n "$GCS_BACKUP_BUCKET" ] || { echo "::error::Missing backup bucket. Pass gcs_backup_bucket, configure GCP_PROJECT_ID, or configure GCS_BACKUP_BUCKET."; exit 1; }
+          BUCKET="gs://$GCS_BACKUP_BUCKET"
           TS=$(date +%Y%m%d_%H%M%S)
           KEY_FILE="$RUNNER_TEMP/gce-db-ssh-key"
           if [[ "$GCE_SSH_PRIVATE_KEY" == '"'*'"' ]]; then GCE_SSH_PRIVATE_KEY="${GCE_SSH_PRIVATE_KEY:1:${#GCE_SSH_PRIVATE_KEY}-2}"; fi
