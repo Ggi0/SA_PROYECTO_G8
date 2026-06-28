@@ -13,6 +13,7 @@ import {
     UseGuards,
     HttpCode,
     HttpStatus,
+    BadRequestException,
   } from '@nestjs/common';
   import { Request, Response } from 'express';
   import { AuthGatewayService } from './auth.service';
@@ -77,6 +78,10 @@ import {
       @Req()  req:  Request,
       @Res({ passthrough: true }) res: Response,
     ) {
+      if (!body?.email || !body?.password) {
+        throw new BadRequestException('Email y password son requeridos.');
+      }
+
       const result = await this.authService.login({
         email:      body.email,
         password:   body.password,
