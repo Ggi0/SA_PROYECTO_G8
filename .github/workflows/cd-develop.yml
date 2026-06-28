@@ -105,7 +105,6 @@ jobs:
             git checkout develop
             git pull origin develop
             cd app/QuetxalTV
-            gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
             touch .env
             set_env() {
               key="$1"
@@ -133,6 +132,11 @@ jobs:
             for s in DB_IP ARTIFACT_REGISTRY_LOCATION GCP_PROJECT_ID ARTIFACT_REGISTRY_REPOSITORY JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
               [ -n "${!s:-}" ] || { echo "Missing $s"; exit 1; }
             done
+            DOCKER_CONFIG_DIR="$(mktemp -d)"
+            trap 'rm -rf "$DOCKER_CONFIG_DIR"' EXIT
+            export DOCKER_CONFIG="$DOCKER_CONFIG_DIR"
+            ACCESS_TOKEN="$(curl -fsS -H 'Metadata-Flavor: Google' 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token' | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')"
+            printf '%s' "$ACCESS_TOKEN" | docker login -u oauth2accesstoken --password-stdin "https://${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev"
             set_env ARTIFACT_REGISTRY_LOCATION "$ARTIFACT_REGISTRY_LOCATION"
             set_env GCP_PROJECT_ID "$GCP_PROJECT_ID"
             set_env ARTIFACT_REGISTRY_REPOSITORY "$ARTIFACT_REGISTRY_REPOSITORY"
@@ -193,6 +197,7 @@ jobs:
             set_env_if_not_empty SMTP_PASSWORD "${{ secrets.SMTP_PASSWORD }}"
             set_env_if_not_empty SMTP_FROM "${{ secrets.SMTP_FROM }}"
             set_env_if_not_empty EXCHANGE_API_KEY "${{ secrets.EXCHANGE_API_KEY }}"
+            docker compose -f docker-compose.cloud.yml config >/dev/null
             docker compose -f docker-compose.cloud.yml pull
             docker compose -f docker-compose.cloud.yml up -d --remove-orphans
             docker system prune -f
