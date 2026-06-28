@@ -36,8 +36,8 @@ jobs:
       - name: Backup via SSH to Compute Engine DB
         env:
           GCE_DB_PUBLIC_IP: ${{ secrets.GCE_DB_PUBLIC_IP }}
-          GCE_DB_SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
-          GCE_DB_SSH_PRIVATE_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
+          GCE_SSH_USER: ${{ secrets.GCE_SSH_USER }}
+          GCE_SSH_PRIVATE_KEY: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
           GCS_BACKUP_BUCKET: ${{ secrets.GCS_BACKUP_BUCKET }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
@@ -45,8 +45,9 @@ jobs:
           BUCKET="gs://${GCS_BACKUP_BUCKET:-quetxal-tv-${GCP_PROJECT_ID}-backups}"
           TS=$(date +%Y%m%d_%H%M%S)
           KEY_FILE="$RUNNER_TEMP/gce-db-ssh-key"
-          printf '%s\n' "$GCE_DB_SSH_PRIVATE_KEY" > "$KEY_FILE"
+          printf '%b' "$GCE_SSH_PRIVATE_KEY" > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
+          ssh-keygen -y -f "$KEY_FILE" >/dev/null
           trap 'rm -f "$KEY_FILE"' EXIT
           backup() {
             C=$1
@@ -55,7 +56,7 @@ jobs:
             ssh -i "$KEY_FILE" \
               -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
-              "$GCE_DB_SSH_USER@$GCE_DB_PUBLIC_IP" \
+              "$GCE_SSH_USER@$GCE_DB_PUBLIC_IP" \
               "docker exec $C sh -c 'pg_dumpall -U \"\$POSTGRES_USER\"'" | gzip > "$FILE"
             gcloud storage cp "$FILE" "$BUCKET/$C/$FILE"
             rm -f "$FILE"
