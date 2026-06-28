@@ -3,6 +3,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from './catalog.service';
+import { NotificationClient } from '../notification/notification.client';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { CatalogService } from './catalog.service';
     ]),
   ],
   controllers: [CatalogController],
-  providers: [CatalogService],
+  providers: [CatalogService, NotificationClient],
 })
 export class CatalogModule {}
