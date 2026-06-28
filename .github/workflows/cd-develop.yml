@@ -218,10 +218,11 @@ jobs:
 
   backup-after-deploy:
     name: Backup after deploy
-    needs: smoke
+    needs: [provision-infra, smoke]
     uses: ./.github/workflows/backup.yml
     with:
       target: gce
+      db_public_ip: ${{ needs.provision-infra.outputs.db_public_ip }}
     permissions:
       id-token: write
       contents: read
