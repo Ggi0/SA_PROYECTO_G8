@@ -3,6 +3,7 @@
   hosts: dev
   become: true
   vars:
+    app_user: "{{ ansible_user | default(ansible_user_id) }}"
     logstash_host: "{{ lookup('env', 'MONITOR_PRIVATE_IP') | default('10.10.0.9', true) }}"
   tasks:
     - name: Instalar dependencias base + git + gcloud deps
@@ -26,8 +27,8 @@
         name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
         update_cache: true
 
-    - name: Agregar deployer al grupo docker
-      user: { name: deployer, groups: docker, append: true }
+    - name: Agregar usuario SSH al grupo docker
+      user: { name: "{{ app_user }}", groups: docker, append: true }
 
     - name: Docker activo
       service: { name: docker, state: started, enabled: true }
@@ -80,8 +81,8 @@
       file:
         path: /app
         state: directory
-        owner: deployer
-        group: deployer
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
         mode: "0755"
 
     - name: Clonar el repo (entorno develop)
@@ -89,4 +90,4 @@
         repo: "https://github.com/Ggi0/SA_PROYECTO_G8.git"
         dest: /app/SA_PROYECTO_G8
         version: develop
-      become_user: deployer
+      become_user: "{{ app_user }}"
