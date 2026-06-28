@@ -126,9 +126,11 @@ jobs:
           set -euo pipefail
           HOST="${{ needs.provision-infra.outputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}"
           KEY_FILE="$RUNNER_TEMP/quetxal_db_key"
-          printf '%b' "$SSH_KEY" > "$KEY_FILE"
+          SSH_KEY="${SSH_KEY%$'\r'}"
+          if [[ "$SSH_KEY" == '"'*'"' ]]; then SSH_KEY="${SSH_KEY:1:${#SSH_KEY}-2}"; fi
+          printf '%b' "$SSH_KEY" | sed 's/\r$//' > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
-          ssh-keygen -y -f "$KEY_FILE" >/dev/null
+          ssh-keygen -y -f "$KEY_FILE" >/dev/null || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
           trap 'rm -f "$KEY_FILE" mig.tgz' EXIT
           tar czf mig.tgz app/QuetxalTV/database/migrations infra/ansible/files/apply-migrations.sh
           scp -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null mig.tgz "$SSH_USER@$HOST:/tmp/mig.tgz"

@@ -45,9 +45,11 @@ jobs:
           BUCKET="gs://${GCS_BACKUP_BUCKET:-quetxal-tv-${GCP_PROJECT_ID}-backups}"
           TS=$(date +%Y%m%d_%H%M%S)
           KEY_FILE="$RUNNER_TEMP/gce-db-ssh-key"
-          printf '%b' "$GCE_SSH_PRIVATE_KEY" > "$KEY_FILE"
+          GCE_SSH_PRIVATE_KEY="${GCE_SSH_PRIVATE_KEY%$'\r'}"
+          if [[ "$GCE_SSH_PRIVATE_KEY" == '"'*'"' ]]; then GCE_SSH_PRIVATE_KEY="${GCE_SSH_PRIVATE_KEY:1:${#GCE_SSH_PRIVATE_KEY}-2}"; fi
+          printf '%b' "$GCE_SSH_PRIVATE_KEY" | sed 's/\r$//' > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
-          ssh-keygen -y -f "$KEY_FILE" >/dev/null
+          ssh-keygen -y -f "$KEY_FILE" >/dev/null || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
           trap 'rm -f "$KEY_FILE"' EXIT
           backup() {
             C=$1
