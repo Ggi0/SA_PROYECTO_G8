@@ -122,8 +122,25 @@ jobs:
               set_env "$1" "$2"
             }
             DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
+            ARTIFACT_REGISTRY_LOCATION="${{ secrets.ARTIFACT_REGISTRY_LOCATION }}"
+            GCP_PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+            ARTIFACT_REGISTRY_REPOSITORY="${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}"
+            JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            JWT_ACCESS_SECRET="${{ secrets.JWT_ACCESS_SECRET }}"
+            JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}"
+            EXCHANGE_API_URL="${{ secrets.EXCHANGE_API_URL }}"
+            [ -n "$EXCHANGE_API_URL" ] || EXCHANGE_API_URL="https://v6.exchangerate-api.com/v6"
+            for s in DB_IP ARTIFACT_REGISTRY_LOCATION GCP_PROJECT_ID ARTIFACT_REGISTRY_REPOSITORY JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
+              [ -n "${!s:-}" ] || { echo "Missing $s"; exit 1; }
+            done
+            set_env ARTIFACT_REGISTRY_LOCATION "$ARTIFACT_REGISTRY_LOCATION"
+            set_env GCP_PROJECT_ID "$GCP_PROJECT_ID"
+            set_env ARTIFACT_REGISTRY_REPOSITORY "$ARTIFACT_REGISTRY_REPOSITORY"
             set_env IMAGE_TAG develop
             set_env FRONTEND_PUBLIC_PORT 8080
+            set_env JWT_SECRET "$JWT_SECRET"
+            set_env JWT_ACCESS_SECRET "$JWT_ACCESS_SECRET"
+            set_env JWT_REFRESH_SECRET "$JWT_REFRESH_SECRET"
             set_env AUTH_DB_HOST "$DB_IP"
             set_env AUTH_DB_PORT 5432
             set_env AUTH_DB_USER "${{ secrets.AUTH_DB_USER }}"
@@ -155,6 +172,7 @@ jobs:
             set_env FX_DB_NAME "${{ secrets.FX_DB_NAME }}"
             set_env FX_DB_SCHEMA fx
             set_env FX_DB_SSLMODE disable
+            set_env EXCHANGE_API_URL "$EXCHANGE_API_URL"
             set_env NOTIFICATION_DB_HOST "$DB_IP"
             set_env NOTIFICATION_DB_PORT 5436
             set_env NOTIFICATION_DB_USER "${{ secrets.NOTIFICATION_DB_USER }}"
