@@ -14,6 +14,7 @@ export interface Profile {
   name: string
   avatar: string
   userId: string
+  isKidsMode: boolean
 }
 
 // ─── Catalog ────────────────────────────────────────────

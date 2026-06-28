@@ -54,8 +54,9 @@ export default function ProfilesPage() {
       setCurrentProfile({
         id: profile.profileId,
         name: profile.displayName,
-        avatar: '👤',
+        avatar: '',
         userId: userId,
+        isKidsMode: profile.isKidsMode,
       })
 
       navigate('/home')
