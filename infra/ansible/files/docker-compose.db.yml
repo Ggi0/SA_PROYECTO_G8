@@ -77,6 +77,19 @@ services:
       - historial_data:/var/lib/postgresql/data
       - /opt/quetxal/sql/historial.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
 
+  download-db:
+    image: postgres:16-alpine
+    container_name: download-db
+    restart: unless-stopped
+    ports: ["5438:5432"]
+    environment:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: download_db
+    volumes:
+      - download_data:/var/lib/postgresql/data
+      - /opt/quetxal/sql/download.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
 volumes:
   auth_data: {}
   subscription_data: {}
@@ -84,3 +97,4 @@ volumes:
   fx_data: {}
   notification_data: {}
   historial_data: {}
+  download_data: {}
