@@ -49,6 +49,14 @@ output "MONITOR_PRIVATE_IP" {
   description = "IP privada de la VM de observabilidad (Logstash, Prometheus targets)"
   value       = google_compute_instance.monitor.network_interface[0].network_ip
 }
+output "GCS_BACKUP_BUCKET" {
+  description = "Bucket GCS para respaldos"
+  value       = google_storage_bucket.backups.name
+}
+output "GCS_VIDEO_BUCKET" {
+  description = "Bucket GCS para videos"
+  value       = google_storage_bucket.videos.name
+}
 
 # ---------- Inventario de Ansible generado desde Terraform ----------
 output "ansible_inventory" {
