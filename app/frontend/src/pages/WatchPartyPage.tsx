@@ -5,9 +5,12 @@ import { io, Socket } from 'socket.io-client'
 import { useAuth } from '@/context/AuthContext'
 import { watchPartyAPI } from '@/api/watchParty'
 import type { WatchPartyRoom, PartyMember, PartyState } from '@/api/watchParty'
+import { getDownloadUrl } from '@/api/catalogAdmin'
 import {
   Users, Play, Pause, Copy, Check, Crown, LogOut, Loader2, RefreshCcw
 } from 'lucide-react'
+
+const FALLBACK_VIDEO = 'https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4'
 
 const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:3000'
 
@@ -37,6 +40,7 @@ export default function WatchPartyPage() {
   const [playing, setPlaying] = useState(false)
   const [playerReady, setPlayerReady] = useState(false)
   const positionRef = useRef(0)
+  const [videoUrl, setVideoUrl] = useState<string>('')
 
   // Socket ref
   const socketRef = useRef<Socket | null>(null)
@@ -56,6 +60,41 @@ export default function WatchPartyPage() {
       .catch(() => setError('Sala no encontrada o expirada'))
       .finally(() => setLoading(false))
   }, [code]) // eslint-disable-line
+
+  // ─── 1b. Resolver URL de video igual que VideoPlayer ────────────────────────
+  useEffect(() => {
+    if (!room) return
+    let cancelled = false
+
+    async function resolve() {
+      const ref = room!.videoRef || ''
+      const source = (room!.videoSource || '').toLowerCase()
+
+      if (!ref) { if (!cancelled) setVideoUrl(FALLBACK_VIDEO); return }
+
+      if (ref.startsWith('http')) { if (!cancelled) setVideoUrl(ref); return }
+
+      if (source === 'gcs') {
+        try {
+          const { download_url } = await getDownloadUrl(ref)
+          if (!cancelled) setVideoUrl(download_url)
+        } catch {
+          if (!cancelled) setVideoUrl(FALLBACK_VIDEO)
+        }
+        return
+      }
+
+      if (source === 'youtube' || source === 'yt' || ref.length === 11) {
+        if (!cancelled) setVideoUrl(`https://www.youtube.com/watch?v=${ref}`)
+        return
+      }
+
+      if (!cancelled) setVideoUrl(FALLBACK_VIDEO)
+    }
+
+    resolve()
+    return () => { cancelled = true }
+  }, [room])
 
   // ─── 2. WebSocket connection ─────────────────────────────────────────────────
   useEffect(() => {
@@ -165,13 +204,6 @@ export default function WatchPartyPage() {
         </button>
       </div>
     )
-  }
-
-  let videoUrl = ''
-  if (room.videoSource?.toLowerCase() === 'youtube' && room.videoRef) {
-    videoUrl = `https://www.youtube.com/watch?v=${room.videoRef}`
-  } else if (room.videoRef) {
-    videoUrl = room.videoRef
   }
 
   return (
