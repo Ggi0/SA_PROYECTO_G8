@@ -21,6 +21,7 @@ locals {
     "roles/iam.serviceAccountUser",
     "roles/iam.serviceAccountTokenCreator",
     "roles/iam.workloadIdentityPoolAdmin",
+    "roles/iap.tunnelResourceAccessor",
     "roles/resourcemanager.projectIamAdmin",
     "roles/serviceusage.serviceUsageAdmin",
   ]
