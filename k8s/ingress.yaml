@@ -16,6 +16,13 @@ spec:
                 name: api-gateway
                 port:
                   number: 3000
+          - path: /socket.io
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 3000
           - path: /
             pathType: Prefix
             backend:

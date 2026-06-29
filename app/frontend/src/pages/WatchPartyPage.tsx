@@ -178,6 +178,12 @@ export default function WatchPartyPage() {
       setError(msg)
     })
 
+    socket.on('room:closed', () => {
+      console.warn('[WatchParty] sala cerrada por el host')
+      socket.disconnect()
+      navigate('/')
+    })
+
     return () => {
       socket.emit('room:leave', { code, profileId })
       socket.disconnect()
