@@ -153,14 +153,14 @@ jobs:
             set_env AUTH_DB_PORT 5432
             set_env AUTH_DB_USER "$EXTERNAL_DB_USER"
             set_env AUTH_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
-            set_env AUTH_DB_NAME "${{ secrets.AUTH_DB_NAME }}"
+            set_env AUTH_DB_NAME auth_db
             set_env AUTH_DB_SCHEMA auth
             set_env AUTH_DB_SSLMODE disable
             set_env SUBSCRIPTION_DB_HOST "$DB_IP"
             set_env SUBSCRIPTION_DB_PORT 5433
             set_env SUBSCRIPTION_DB_USER "$EXTERNAL_DB_USER"
             set_env SUBSCRIPTION_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
-            set_env SUBSCRIPTION_DB_NAME "${{ secrets.SUBSCRIPTION_DB_NAME }}"
+            set_env SUBSCRIPTION_DB_NAME subscription_db
             set_env SUBSCRIPTION_DB_SCHEMA subscription
             set_env SUBSCRIPTION_DB_SSLMODE disable
             set_env CATALOGO_DB_HOST "$DB_IP"
@@ -179,7 +179,7 @@ jobs:
             set_env FX_DB_PORT 5435
             set_env FX_DB_USER "$EXTERNAL_DB_USER"
             set_env FX_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
-            set_env FX_DB_NAME "${{ secrets.FX_DB_NAME }}"
+            set_env FX_DB_NAME fx_db
             set_env FX_DB_SCHEMA fx
             set_env FX_DB_SSLMODE disable
             set_env EXCHANGE_API_URL "$EXCHANGE_API_URL"
@@ -187,21 +187,21 @@ jobs:
             set_env NOTIFICATION_DB_PORT 5436
             set_env NOTIFICATION_DB_USER "$EXTERNAL_DB_USER"
             set_env NOTIFICATION_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
-            set_env NOTIFICATION_DB_NAME "${{ secrets.NOTIFICATION_DB_NAME }}"
+            set_env NOTIFICATION_DB_NAME notification_db
             set_env NOTIFICATION_DB_SCHEMA notification
             set_env NOTIFICATION_DB_SSLMODE disable
             set_env HISTORIAL_DB_HOST "$DB_IP"
             set_env HISTORIAL_DB_PORT 5437
             set_env HISTORIAL_DB_USER "$EXTERNAL_DB_USER"
             set_env HISTORIAL_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
-            set_env HISTORIAL_DB_NAME "${{ secrets.HISTORIAL_DB_NAME }}"
+            set_env HISTORIAL_DB_NAME historial_db
             set_env HISTORIAL_DB_SCHEMA playback
             set_env HISTORIAL_DB_SSLMODE disable
             set_env DOWNLOAD_DB_HOST "$DB_IP"
             set_env DOWNLOAD_DB_PORT 5438
             set_env DOWNLOAD_DB_USER "$EXTERNAL_DB_USER"
             set_env DOWNLOAD_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
-            set_env DOWNLOAD_DB_NAME "${{ secrets.DOWNLOAD_DB_NAME || 'download_db' }}"
+            set_env DOWNLOAD_DB_NAME download_db
             set_env DOWNLOAD_DB_SSLMODE disable
             set_env DOWNLOAD_EXPIRY_DAYS 30
             set_env_if_not_empty SMTP_HOST "${{ secrets.SMTP_HOST }}"
