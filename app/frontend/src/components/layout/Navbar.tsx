@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -8,11 +9,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Search, Bell } from 'lucide-react'
+import { Search, Bell, X } from 'lucide-react'
 
 export default function Navbar() {
   const { currentProfile, logout } = useAuth()
   const navigate = useNavigate()
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/home?q=${encodeURIComponent(searchQuery.trim())}`)
+      setShowSearch(false)
+      setSearchQuery('')
+    }
+  }
 
   const handleLogout = () => {
     logout()
@@ -23,6 +35,26 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#1a1408]/95 backdrop-blur-sm border-b border-[#3a2e1a]">
       {/* Línea dorada superior */}
       <div className="h-0.5 bg-gradient-to-r from-transparent via-spotlight to-transparent" />
+
+      {/* Barra de búsqueda expandida */}
+      {showSearch && (
+        <div className="absolute inset-0 bg-[#1a1408] flex items-center px-8 gap-4 z-10">
+          <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-3">
+            <Search size={18} className="text-spotlight shrink-0" />
+            <input
+              autoFocus
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar películas, series..."
+              className="flex-1 bg-transparent text-parchment font-mono text-sm outline-none placeholder:text-silver/40"
+            />
+          </form>
+          <button onClick={() => { setShowSearch(false); setSearchQuery('') }} className="text-silver hover:text-spotlight">
+            <X size={18} />
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center justify-between px-8 py-3">
         {/* Logo */}
@@ -54,10 +86,10 @@ export default function Navbar() {
 
         {/* Acciones */}
         <div className="flex items-center gap-4">
-          <button className="text-silver hover:text-spotlight transition-colors">
+          <button onClick={() => setShowSearch(true)} className="text-silver hover:text-spotlight transition-colors">
             <Search size={18} />
           </button>
-          <button className="text-silver hover:text-spotlight transition-colors">
+          <button onClick={() => navigate('/account?tab=notifications')} className="text-silver hover:text-spotlight transition-colors">
             <Bell size={18} />
           </button>
 

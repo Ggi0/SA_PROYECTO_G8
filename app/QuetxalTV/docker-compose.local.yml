@@ -1,15 +1,30 @@
 services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3001
+        VITE_GATEWAY_URL: http://localhost:3001
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - quetxal-network
+
   api-gateway:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       NODE_ENV: development
       PORT: 3000
       FX_SERVICE_HOST: fx-service:50055
       JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       SUBSCRIPTION_SERVICE_URL: subscription-service:50053
       AUTH_SERVICE_HOST: auth-service:50051
       AUTH_SERVICE_URL: auth-service:50051

@@ -79,13 +79,15 @@ CREATE TABLE auth.profiles (
     display_name VARCHAR(100) NOT NULL,
     avatar_url VARCHAR(500),
     preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
-    is_kids_mode BOOLEAN NOT NULL DEFAULT FALSE,
+    is_kids_mode  BOOLEAN NOT NULL DEFAULT FALSE,
+    parental_pin  VARCHAR(255),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 COMMENT ON TABLE auth.profiles IS 'Perfiles del usuario. Máximo 5 por cuenta.';
+COMMENT ON COLUMN auth.profiles.parental_pin IS 'HMAC-SHA256 del PIN de 4 dígitos. NULL si no hay PIN configurado. Solo se usa en el perfil maestro (primer perfil creado).';
 
 
 -- ---------------------------------------------------------
