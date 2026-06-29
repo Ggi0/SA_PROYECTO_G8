@@ -156,13 +156,13 @@ jobs:
       - name: Ansible provision all VMs
         env:
           QUETXAL_DB_PASSWORD: ${{ secrets.AUTH_DB_PASSWORD }}
-          AUTH_DB_NAME: ${{ secrets.AUTH_DB_NAME }}
-          SUBSCRIPTION_DB_NAME: ${{ secrets.SUBSCRIPTION_DB_NAME }}
+          AUTH_DB_NAME: auth_db
+          SUBSCRIPTION_DB_NAME: subscription_db
           CATALOGO_DB_NAME: catalogo_db
-          FX_DB_NAME: ${{ secrets.FX_DB_NAME }}
-          NOTIFICATION_DB_NAME: ${{ secrets.NOTIFICATION_DB_NAME }}
-          HISTORIAL_DB_NAME: ${{ secrets.HISTORIAL_DB_NAME }}
-          DOWNLOAD_DB_NAME: ${{ secrets.DOWNLOAD_DB_NAME }}
+          FX_DB_NAME: fx_db
+          NOTIFICATION_DB_NAME: notification_db
+          HISTORIAL_DB_NAME: historial_db
+          DOWNLOAD_DB_NAME: download_db
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ansible
           ansible-galaxy collection install community.docker community.general
