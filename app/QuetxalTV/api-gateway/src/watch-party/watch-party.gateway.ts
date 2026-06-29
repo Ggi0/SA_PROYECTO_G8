@@ -12,7 +12,6 @@ import { WatchPartyService } from './watch-party.service';
 
 @WebSocketGateway({
   cors: { origin: '*', credentials: true },
-  namespace: '/watch-party',
 })
 export class WatchPartyGateway implements OnGatewayDisconnect {
   @WebSocketServer()
