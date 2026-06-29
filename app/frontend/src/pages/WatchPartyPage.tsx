@@ -109,7 +109,7 @@ export default function WatchPartyPage() {
 
     const token = localStorage.getItem('quetxal_token') || ''
 
-    const socket = io(`${GATEWAY_URL}/watch-party`, {
+    const socket = io(GATEWAY_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
     })
