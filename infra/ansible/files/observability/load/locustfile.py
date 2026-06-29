@@ -10,6 +10,13 @@ def auth_headers():
     return {"Authorization": f"Bearer {token}"}
 
 
+def enabled(name, default=True):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"0", "false", "no", "off"}
+
+
 class QuetxalUser(HttpUser):
     wait_time = between(1, 3)
 
@@ -19,14 +26,20 @@ class QuetxalUser(HttpUser):
 
     @task(5)
     def catalog(self):
+        if not enabled("LOCUST_CATALOG"):
+            return
         self.client.get("/api/catalog", name="catalog")
 
     @task(2)
     def home(self):
+        if not enabled("LOCUST_FRONTEND"):
+            return
         self.client.get("/", name="frontend")
 
     @task(1)
     def login(self):
+        if not enabled("LOCUST_LOGIN"):
+            return
         self.client.post(
             "/api/auth/login",
             json={"email": "demo@quetxal.tv", "password": "demo"},
@@ -44,6 +57,8 @@ class QuetxalUser(HttpUser):
 
     @task(4)
     def catalog_paginated(self):
+        if not enabled("LOCUST_CATALOG"):
+            return
         self.client.get(
             "/api/catalog?page=1&page_size=12",
             name="catalog-paginated",
@@ -51,6 +66,8 @@ class QuetxalUser(HttpUser):
 
     @task(3)
     def catalog_search(self):
+        if not enabled("LOCUST_CATALOG"):
+            return
         search_terms = ["matrix", "accion", "drama", "comedia", "serie"]
         term = random.choice(search_terms)
 
@@ -61,6 +78,8 @@ class QuetxalUser(HttpUser):
 
     @task(2)
     def catalog_genres(self):
+        if not enabled("LOCUST_CATALOG"):
+            return
         self.client.get("/api/catalog/genres", name="catalog-genres")
 
     @task(2)
