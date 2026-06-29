@@ -7,6 +7,7 @@ import { AdminModule } from './admin/admin.module';
 import { HealthGrpcController } from './health-grpc.controller';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AppController } from './app.controller';
     AuthModule,
     PerfilModule,
     AdminModule,
+    SchedulerModule,
   ],
   controllers: [AppController, HealthGrpcController],
   providers: [AppService],
