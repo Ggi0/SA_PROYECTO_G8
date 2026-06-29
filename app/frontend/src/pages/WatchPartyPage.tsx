@@ -12,7 +12,8 @@ import {
 
 const FALLBACK_VIDEO = 'https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4'
 
-const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:3000'
+// En producción sin VITE_GATEWAY_URL, el WebSocket va al mismo origen (nginx proxea /socket.io/ al gateway)
+const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || window.location.origin
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -39,13 +40,19 @@ export default function WatchPartyPage() {
   const playerRef = useRef<ReactPlayer>(null)
   const [playing, setPlaying] = useState(false)
   const [playerReady, setPlayerReady] = useState(false)
+  const playerReadyRef = useRef(false)   // ref para evitar stale closure en handlers de socket
   const positionRef = useRef(0)
   const [videoUrl, setVideoUrl] = useState<string>('')
+  const [needsInteraction, setNeedsInteraction] = useState(false)  // autoplay bloqueado
 
   // Socket ref
   const socketRef = useRef<Socket | null>(null)
+  const [socketConnected, setSocketConnected] = useState(false)
 
   const isHost = room?.hostProfileId === profileId
+  // Ref que siempre tiene el valor actual (evita stale closures en handlers de socket)
+  const isHostRef = useRef(isHost)
+  isHostRef.current = isHost
 
   // ─── 1. HTTP join → get initial room state ──────────────────────────────────
   useEffect(() => {
@@ -108,40 +115,78 @@ export default function WatchPartyPage() {
     })
     socketRef.current = socket
 
-    // Join socket.io room
-    socket.emit('room:join', { code, profileId, displayName: profileName })
+    socket.on('connect', () => {
+      console.log('[WatchParty] socket conectado, id:', socket.id)
+      setSocketConnected(true)
+      // Join socket.io room al conectarse (garantiza que llegue después del handshake)
+      socket.emit('room:join', { code, profileId, displayName: profileName })
+    })
+
+    socket.on('disconnect', (reason: string) => {
+      console.warn('[WatchParty] socket desconectado:', reason)
+      setSocketConnected(false)
+    })
+
+    socket.on('connect_error', (err: Error) => {
+      console.error('[WatchParty] error de conexión:', err.message)
+      setSocketConnected(false)
+    })
 
     // Miembros actualizados
     socket.on('members:update', (updatedMembers: PartyMember[]) => {
+      console.log('[WatchParty] members:update', updatedMembers.length, 'miembros')
       setMembers(updatedMembers)
     })
 
     // Estado sincronizado (host actualizó posición/play/pause)
     socket.on('state:sync', (state: PartyState) => {
+      console.log('[WatchParty] state:sync recibido', state, '| isHost:', isHostRef.current)
       setPartyState(state)
-      if (!isHost) {
-        setPlaying(state.isPlaying)
-        if (playerRef.current && playerReady) {
+      if (!isHostRef.current) {
+        if (playerReadyRef.current && playerRef.current) {
+          // Player listo: sincronizar posición si hay diferencia > 3s
           const diff = Math.abs(positionRef.current - state.positionSeconds)
           if (diff > 3) {
             playerRef.current.seekTo(state.positionSeconds, 'seconds')
           }
         }
+        if (state.isPlaying) {
+          // Intentar reproducir; si el browser bloquea autoplay, mostramos aviso
+          const playPromise = playerRef.current?.getInternalPlayer()?.play?.()
+          if (playPromise instanceof Promise) {
+            playPromise
+              .then(() => setPlaying(true))
+              .catch(() => {
+                console.warn('[WatchParty] autoplay bloqueado por el browser')
+                setNeedsInteraction(true)
+              })
+          } else {
+            setPlaying(true)
+          }
+        } else {
+          setPlaying(false)
+          setNeedsInteraction(false)
+        }
       }
     })
 
-    socket.on('error', (msg: string) => setError(msg))
+    socket.on('error', (msg: string) => {
+      console.error('[WatchParty] error del servidor:', msg)
+      setError(msg)
+    })
 
     return () => {
       socket.emit('room:leave', { code, profileId })
       socket.disconnect()
       socketRef.current = null
+      setSocketConnected(false)
     }
   }, [code, room, loading]) // eslint-disable-line
 
   // ─── 3. HOST: emitir state update vía WebSocket ──────────────────────────────
   const handlePlayPause = useCallback((newPlaying: boolean) => {
     if (!isHost || !code) return
+    console.log('[WatchParty] host emite state:update', { isPlaying: newPlaying, pos: positionRef.current })
     setPlaying(newPlaying)
     socketRef.current?.emit('state:update', {
       code,
@@ -179,9 +224,14 @@ export default function WatchPartyPage() {
   }
 
   const handleSyncNow = () => {
-    if (!partyState || !playerRef.current || !playerReady) return
-    playerRef.current.seekTo(partyState.positionSeconds, 'seconds')
+    console.log('[WatchParty] handleSyncNow', { partyState, playerReady, playerRef: !!playerRef.current })
+    if (!partyState) { console.warn('[WatchParty] no hay partyState'); return }
+    // Sincronizar posición si el player está montado
+    if (playerRef.current) {
+      playerRef.current.seekTo(partyState.positionSeconds, 'seconds')
+    }
     setPlaying(partyState.isPlaying)
+    setNeedsInteraction(false)
   }
 
   if (loading) {
@@ -249,7 +299,7 @@ export default function WatchPartyPage() {
                 playing={playing}
                 width="100%"
                 height="100%"
-                onReady={() => setPlayerReady(true)}
+                onReady={() => { setPlayerReady(true); playerReadyRef.current = true; console.log('[WatchParty] player listo') }}
                 onPlay={() => { if (isHost) handlePlayPause(true) }}
                 onPause={() => { if (isHost) handlePlayPause(false) }}
                 onProgress={({ playedSeconds }) => { positionRef.current = playedSeconds }}
@@ -263,6 +313,18 @@ export default function WatchPartyPage() {
                 ) : (
                   <span className="text-silver/20 font-mono text-sm">Sin video disponible</span>
                 )}
+              </div>
+            )}
+
+            {/* Overlay para autoplay bloqueado por el browser */}
+            {!isHost && needsInteraction && (
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 cursor-pointer z-10"
+                onClick={handleSyncNow}
+              >
+                <Play size={48} className="text-spotlight mb-3" />
+                <p className="text-parchment font-mono text-sm">El host está reproduciendo</p>
+                <p className="text-silver/60 font-mono text-xs mt-1">Haz click para sincronizar y ver</p>
               </div>
             )}
 
@@ -344,6 +406,10 @@ export default function WatchPartyPage() {
                 ? <><Play size={12} className="text-green-400" /><span className="text-green-400">Reproduciendo</span></>
                 : <><Pause size={12} className="text-silver/50" /><span className="text-silver/50">Pausado</span></>}
               <span className="text-silver/30">· {formatTime(partyState?.positionSeconds ?? 0)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-green-400' : 'bg-red-500 animate-pulse'}`} />
+              <span className="text-silver/30 font-mono text-xs">{socketConnected ? 'Conectado' : 'Sin conexión WS'}</span>
             </div>
             <p className="text-silver/20 font-mono text-xs">
               Expira: {new Date(room.expiresAt).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })}
