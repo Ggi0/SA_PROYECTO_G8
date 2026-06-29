@@ -299,6 +299,26 @@ async exportAuditLogs(
 
 
 // ─────────────────────────────────────────────
+//  CONTROL PARENTAL
+// ─────────────────────────────────────────────
+
+// POST /auth/parental/pin  → set (o eliminar con pin vacío)
+@Post('parental/pin')
+@UseGuards(AuthJwtGuard)
+@HttpCode(HttpStatus.OK)
+setParentalPin(@Req() req: AuthRequest, @Body() body: { pin: string }) {
+  return this.authService.setParentalPin(req.authUser.userId, body.pin ?? '');
+}
+
+// POST /auth/parental/verify
+@Post('parental/verify')
+@UseGuards(AuthJwtGuard)
+@HttpCode(HttpStatus.OK)
+verifyParentalPin(@Req() req: AuthRequest, @Body() body: { pin: string }) {
+  return this.authService.verifyParentalPin(req.authUser.userId, body.pin ?? '');
+}
+
+// ─────────────────────────────────────────────
 //  HEALTH
 // ─────────────────────────────────────────────
 

@@ -32,4 +32,5 @@ type RepositoryInterface interface {
 	GetAuditLogs(f AuditLogFilter) ([]AuditLogRow, int, error)
 	SetChangedBy(changedBy string) error
 	ListAllContent(contentType string, genreID, page, pageSize int) ([]CatalogCardRow, int, error)
+	GetRecommendations(profileID, maxRating string, limit int) ([]RecommendationRow, error)
 }

@@ -31,6 +31,12 @@ service AuthService {
   rpc GetProfiles(GetProfilesRequest)
       returns (GetProfilesResponse);
 
+  rpc SetParentalPin(SetParentalPinRequest)
+      returns (SetParentalPinResponse);
+
+  rpc VerifyParentalPin(VerifyParentalPinRequest)
+      returns (VerifyParentalPinResponse);
+
 }
 
 //////////////////////////////////////////////////////
@@ -130,4 +136,27 @@ message Profile {
 
 message GetProfilesResponse {
   repeated Profile profiles = 1;
+}
+
+//////////////////////////////////////////////////////
+// PARENTAL CONTROL
+//////////////////////////////////////////////////////
+
+message SetParentalPinRequest {
+  string user_id = 1;
+  string pin     = 2;
+}
+
+message SetParentalPinResponse {
+  bool   success = 1;
+  string message = 2;
+}
+
+message VerifyParentalPinRequest {
+  string user_id = 1;
+  string pin     = 2;
+}
+
+message VerifyParentalPinResponse {
+  bool valid = 1;
 }

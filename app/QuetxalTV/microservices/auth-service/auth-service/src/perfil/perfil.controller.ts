@@ -9,6 +9,8 @@ import type {
   UpdateProfileRequest,
   DeleteProfileRequest,
   SelectProfileRequest,
+  SetParentalPinRequest,
+  VerifyParentalPinRequest,
 } from './perfil.contract';
 
 // Todos los métodos están declarados en auth.proto → service AuthService
@@ -45,5 +47,15 @@ export class PerfilController {
   @GrpcMethod('AuthService', 'SelectProfile')
   selectProfile(data: SelectProfileRequest) {
     return this.perfilService.selectProfile(data);
+  }
+
+  @GrpcMethod('AuthService', 'SetParentalPin')
+  setParentalPin(data: SetParentalPinRequest) {
+    return this.perfilService.setParentalPin(data);
+  }
+
+  @GrpcMethod('AuthService', 'VerifyParentalPin')
+  verifyParentalPin(data: VerifyParentalPinRequest) {
+    return this.perfilService.verifyParentalPin(data);
   }
 }

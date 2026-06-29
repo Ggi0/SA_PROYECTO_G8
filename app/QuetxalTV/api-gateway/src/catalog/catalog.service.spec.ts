@@ -29,9 +29,9 @@ describe('CatalogService', () => {
     svc.getCatalog().subscribe(() => {
       expect(g.getCatalog).toHaveBeenCalledWith({ contentType: '', genreId: 0, page: 1, pageSize: 24 });
       svc.getContentDetail('c1').subscribe(() => {
-        expect(g.getContentDetail).toHaveBeenCalledWith({ contentId: 'c1' });
+        expect(g.getContentDetail).toHaveBeenCalledWith({ contentId: 'c1' }, expect.anything());
         svc.getSeriesStructure('c1').subscribe(() => {
-          expect(g.getSeriesStructure).toHaveBeenCalledWith({ contentId: 'c1' });
+          expect(g.getSeriesStructure).toHaveBeenCalledWith({ contentId: 'c1' }, expect.anything());
           svc.searchContent('matrix').subscribe(() => {
             expect(g.searchContent).toHaveBeenCalledWith({ query: 'matrix', contentType: '' });
             svc.listGenres().subscribe(() => {

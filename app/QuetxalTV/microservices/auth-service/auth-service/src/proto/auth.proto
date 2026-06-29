@@ -46,6 +46,9 @@ service AuthService {
   // ── Admin: audit_log (eventos de seguridad del cron) ──────────
   rpc GetAuditEventLogs (GetAuditEventLogsRequest) returns (GetAuditEventLogsResponse);
 
+  // ── Control parental ───────────────────────
+  rpc SetParentalPin    (SetParentalPinRequest)    returns (SetParentalPinResponse);
+  rpc VerifyParentalPin (VerifyParentalPinRequest) returns (VerifyParentalPinResponse);
 
 }
 
@@ -444,6 +447,29 @@ message GetAuditEventLogsResponse {
 //    bool   sent       = 1;
 //    string message_id = 2;
 //  }
+
+// ─────────────────────────────────────────────
+//  CONTROL PARENTAL
+// ─────────────────────────────────────────────
+
+message SetParentalPinRequest {
+  string user_id = 1;
+  string pin     = 2;
+}
+
+message SetParentalPinResponse {
+  bool   success = 1;
+  string message = 2;
+}
+
+message VerifyParentalPinRequest {
+  string user_id = 1;
+  string pin     = 2;
+}
+
+message VerifyParentalPinResponse {
+  bool valid = 1;
+}
 
 // ─────────────────────────────────────────────
 //  SUBSCRIPTION SERVICE  (futuro — cliente gRPC)

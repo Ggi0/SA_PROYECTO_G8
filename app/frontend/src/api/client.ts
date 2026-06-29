@@ -24,9 +24,8 @@ gateway.interceptors.response.use(
       localStorage.removeItem('auth_token')
 
       // Evita un loop si ya estamos en login
-      if (!window.location.hash.includes('/login')) {
-        window.location.hash = '#/login'
-        window.location.reload()
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login'
       }
     }
     return Promise.reject(error)
