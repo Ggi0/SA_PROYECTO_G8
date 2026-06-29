@@ -11,6 +11,7 @@ import type { Movie, SeriesStructure, Episode } from '@/types'
 import { subscriptionAPI } from '@/services/api/subscriptionService'
 import { watchPartyAPI } from '@/api/watchParty'
 import { profilesAPI } from '@/api/profiles'
+import DownloadButton from '@/components/shared/DownloadButton'
 
 // Clasificaciones que requieren PIN en modo niño
 const ADULT_RATINGS = ['PG-13', 'R', 'NC-17', 'TV-14', 'TV-MA']
@@ -488,6 +489,13 @@ useEffect(() => {
               </span>
             )}
           </div>
+
+          {/* Descarga — solo Plan Premium */}
+          <DownloadButton
+            contentId={id!}
+            contentTitle={movie.title}
+            isPremium={isPremium}
+          />
         </div>
 
         {/* Sinopsis */}
