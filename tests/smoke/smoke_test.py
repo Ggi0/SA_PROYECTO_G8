@@ -8,10 +8,32 @@ BASE = os.environ["BASE_URL"].rstrip("/")
 TIMEOUT = 10
 
 CHECKS = [
-    ("GET", "/api/health", {200}),
-    ("GET", "/", {200}),
-    ("GET", "/api/catalog", {200, 401}),
-    ("POST", "/api/auth/login", {200, 400, 401}),
+    # ── Health ────────────────────────────────────────
+    ("GET",  "/api/health",                              {200}),
+    ("GET",  "/api/health/live",                         {200}),
+    ("GET",  "/api/health/ready",                        {200, 503}),
+
+    # ── Auth ──────────────────────────────────────────
+    ("POST", "/api/auth/login",                          {200, 400, 401}),
+    ("POST", "/api/auth/register",                       {200, 201, 400}),
+
+    # ── Catálogo ──────────────────────────────────────
+    ("GET",  "/api/catalog",                             {200, 401}),
+    ("GET",  "/api/catalog/genres",                      {200, 401}),
+
+    # ── Suscripciones ─────────────────────────────────
+    ("GET",  "/api/subscriptions/me",                    {200, 401}),
+
+    # ── FX ────────────────────────────────────────────
+    ("GET",  "/api/fx/rates",                            {200}),
+    ("GET",  "/api/fx/rates/GTQ",                        {200}),
+
+    # ── Historial ─────────────────────────────────────
+    ("GET",  "/api/historial/continue-watching/test",    {200, 401, 403}),
+
+    # ── Descargas ─────────────────────────────────────
+    ("GET",  "/api/downloads",                           {200, 401}),
+    ("POST", "/api/downloads/initiate",                  {200, 201, 400, 401}),
 ]
 
 
