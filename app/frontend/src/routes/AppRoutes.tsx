@@ -13,6 +13,7 @@ import AuditPage from '@/pages/admin/AuditPage'
 import LayoutAdmin from '@/pages/admin/layoutAdmin'
 import MainPage from '@/pages/admin/mainPage'
 import CatalogAdminPage from '@/pages/admin/CatalogAdminPage'
+import UserAdminPage from '@/pages/admin/userAdminPage'
 
 
 export default function AppRoutes() {
@@ -55,6 +56,8 @@ export default function AppRoutes() {
         <Route path="audit" element={<AuditPage />} />
         <Route index element={<MainPage />} />
         <Route path="catalog" element={<CatalogAdminPage />} />
+        <Route path="users" element={<UserAdminPage/>}/>
+
       </Route>
 
     </Routes>
