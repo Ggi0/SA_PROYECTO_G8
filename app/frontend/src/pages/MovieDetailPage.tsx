@@ -32,6 +32,7 @@ export default function MovieDetailPage() {
   const [playerEpisode, setPlayerEpisode] = useState<Episode | null>(null)
   const [playerSeasonNum, setPlayerSeasonNum] = useState<number>(0)
   const [showPlayer, setShowPlayer] = useState(false)
+  const [offlineUrl, setOfflineUrl] = useState<string | null>(null)
 
   // Calificación
   const [thumb, setThumb] = useState<'UP' | 'DOWN' | ''>('')
@@ -354,8 +355,8 @@ useEffect(() => {
           title={movie.title}
           posterUrl={movie.coverImage}
           contentType={movie.type === 'series' ? 'SERIES' : 'MOVIE'}
-          videoRef={playerEpisode ? playerEpisode.videoRef || '' : movie.videoRef || ''}
-          videoSource={playerEpisode ? playerEpisode.videoSource || '' : movie.videoSource || ''}
+          videoRef={offlineUrl || (playerEpisode ? playerEpisode.videoRef || '' : movie.videoRef || '')}
+          videoSource={offlineUrl ? 'blob' : (playerEpisode ? playerEpisode.videoSource || '' : movie.videoSource || '')} 
           totalDuration={playerEpisode ? playerEpisode.duration : (movie.durationMin || 90)}
           seasonNum={playerSeasonNum || undefined}
           episodeNum={playerEpisode?.episodeNum}
@@ -494,7 +495,12 @@ useEffect(() => {
           <DownloadButton
             contentId={id!}
             contentTitle={movie.title}
+            thumbnail={movie.coverImage || ''}
             isPremium={isPremium}
+            onOfflineReady={(url) => {
+              setOfflineUrl(url)
+              setShowPlayer(true)
+            }}
           />
         </div>
 

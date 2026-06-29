@@ -52,11 +52,11 @@ export default function VideoPlayer(props: VideoPlayerProps) {
       }
 
       // Link directo ya armado (http...) → úsalo tal cual
-      if (ref.startsWith('http')) {
-        if (!cancelled) setVideoUrl(ref)
-        return
-      }
-
+      // Link directo ya armado (http... o blob:...) → úsalo tal cual
+        if (ref.startsWith('http') || ref.startsWith('blob:')) {
+          if (!cancelled) setVideoUrl(ref)
+          return
+        }
       // Video subido a GCS → object_name guardado, hay que pedir signed URL
       if (source === 'gcs') {
         try {

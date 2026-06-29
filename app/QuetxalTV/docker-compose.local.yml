@@ -385,7 +385,9 @@ services:
       DB_NAME: download_db
       DB_SSLMODE: disable
       JWT_SECRET: ${JWT_SECRET}
-      GCS_BUCKET: ${GCS_BUCKET_NAME:-quetxaltv-downloads}
+      GCS_BUCKET: ${GCS_BUCKET:-}                    # ← vacío en local
+      LOCAL_VIDEO_URL: ${LOCAL_VIDEO_URL:-http://localhost:5173/BigBuckBunny.mp4}
+      GCS_SERVICE_ACCOUNT_EMAIL: ${GCS_SERVICE_ACCOUNT_EMAIL:-}
       DOWNLOAD_EXPIRY_DAYS: 30
     depends_on:
       download-db:

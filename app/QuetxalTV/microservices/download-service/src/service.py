@@ -24,7 +24,6 @@ BLOCKED_MESSAGES = {
 }
 
 DOWNLOAD_EXPIRY_DAYS = int(os.getenv("DOWNLOAD_EXPIRY_DAYS", "30"))
-GCS_BUCKET = os.getenv("GCS_BUCKET", "LOCAL_MODE")
 
 
 def is_plan_allowed(plan: int) -> bool:
@@ -35,6 +34,58 @@ def get_blocked_message(plan: int) -> str:
     return BLOCKED_MESSAGES.get(plan, "Plan de suscripción no válido.")
 
 
+def generate_gcs_url(user_id: str, content_id: str) -> str:
+    """
+    Genera la URL del video según el entorno:
+    - Local (sin GCS_BUCKET): usa LOCAL_VIDEO_URL
+    - Producción (con GCS_BUCKET): genera Signed URL de GCS
+    """
+    bucket     = os.getenv("GCS_BUCKET", "")
+    creds_file = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+    sa_email   = os.getenv("GCS_SERVICE_ACCOUNT_EMAIL", "")
+
+    # Local — sin bucket configurado
+    if not bucket or bucket == "LOCAL_MODE":
+        local_url = os.getenv("LOCAL_VIDEO_URL", "http://localhost:5173/BigBuckBunny.mp4")
+        logger.info("Modo local — usando URL: %s", local_url)
+        return local_url
+
+    # Producción — Signed URL de GCS (igual que catalogo-service)
+    try:
+        from google.cloud import storage as gcs
+
+        client = (
+            gcs.Client.from_service_account_json(creds_file)
+            if creds_file
+            else gcs.Client()  # ADC / Workload Identity en GKE
+        )
+
+        blob = client.bucket(bucket).blob(f"{user_id}/{content_id}.enc")
+
+        if sa_email and not creds_file:
+            # IAM signing para Workload Identity (igual que iamSignBytes en Go)
+            url = blob.generate_signed_url(
+                expiration=timedelta(hours=24),
+                method="GET",
+                version="v4",
+                service_account_email=sa_email,
+                access_token=client._credentials.token,
+            )
+        else:
+            url = blob.generate_signed_url(
+                expiration=timedelta(hours=24),
+                method="GET",
+                version="v4",
+            )
+
+        logger.info("Signed URL generada para content=%s", content_id)
+        return url
+
+    except Exception as e:
+        logger.error("Error generando Signed URL: %s", e)
+        return ""
+
+
 class DownloadService(download_pb2_grpc.DownloadServiceServicer):
 
     def __init__(self):
@@ -43,8 +94,8 @@ class DownloadService(download_pb2_grpc.DownloadServiceServicer):
     def InitiateDownload(self, request, context):
         logger.info(
             "InitiateDownload | user=%s content=%s title=%s plan=%s",
-            request.user_id, request.content_id, 
-            getattr(request, 'title', 'SIN_TITULO'),  # ← agregar
+            request.user_id, request.content_id,
+            getattr(request, 'title', ''),
             request.plan
         )
 
@@ -60,6 +111,7 @@ class DownloadService(download_pb2_grpc.DownloadServiceServicer):
             request.user_id, request.profile_id, request.content_id
         )
         if existing:
+            logger.info("Descarga ya existe | id=%s", existing["download_id"])
             return download_pb2.InitiateDownloadResponse(
                 allowed=True,
                 download_id=existing["download_id"],
@@ -69,15 +121,8 @@ class DownloadService(download_pb2_grpc.DownloadServiceServicer):
             )
 
         download_id = str(uuid.uuid4())
-        expires_at = datetime.utcnow() + timedelta(days=DOWNLOAD_EXPIRY_DAYS)
-
-        if GCS_BUCKET != "LOCAL_MODE" and GCS_BUCKET != "":
-            gcs_url = (
-                f"https://storage.googleapis.com/{GCS_BUCKET}"
-                f"/{request.user_id}/{request.content_id}.enc"
-            )
-        else:
-            gcs_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        expires_at  = datetime.utcnow() + timedelta(days=DOWNLOAD_EXPIRY_DAYS)
+        gcs_url     = generate_gcs_url(request.user_id, request.content_id)
 
         self.repo.create_download(
             download_id=download_id,
@@ -89,6 +134,8 @@ class DownloadService(download_pb2_grpc.DownloadServiceServicer):
             title=getattr(request, 'title', ''),
             thumbnail=getattr(request, 'thumbnail', '')
         )
+
+        logger.info("Descarga creada | id=%s", download_id)
 
         return download_pb2.InitiateDownloadResponse(
             allowed=True,
@@ -115,22 +162,23 @@ class DownloadService(download_pb2_grpc.DownloadServiceServicer):
         )
 
         items = [
-                download_pb2.DownloadItem(
-                    download_id=r["download_id"],
-                    content_id=r["content_id"],
-                    title=r["title"] or "",
-                    thumbnail=r["thumbnail"] or "",
-                    status={
-                        "QUEUED": 1, "PENDING": 2, "COMPLETED": 3,
-                        "FAILED": 4, "DELETED": 5
-                    }.get(str(r["status"]), 0),
-                    created_at=int(r["created_at"].timestamp()),
-                    expires_at=int(r["expires_at"].timestamp()),
-                    size_bytes=r["size_bytes"] or 0,
-                    gcs_url=r["gcs_url"] or ""   # ← agregar
-                )
-                for r in records
-            ]
+            download_pb2.DownloadItem(
+                download_id=r["download_id"],
+                content_id=r["content_id"],
+                title=r["title"] or "",
+                thumbnail=r["thumbnail"] or "",
+                status={
+                    "QUEUED": 1, "PENDING": 2, "COMPLETED": 3,
+                    "FAILED": 4, "DELETED": 5
+                }.get(str(r["status"]), 0),
+                created_at=int(r["created_at"].timestamp()),
+                expires_at=int(r["expires_at"].timestamp()),
+                size_bytes=r["size_bytes"] or 0,
+                gcs_url=r["gcs_url"] or ""
+            )
+            for r in records
+        ]
+
         return download_pb2.ListDownloadsResponse(
             allowed=True,
             message=f"{len(items)} descarga(s) encontrada(s).",
