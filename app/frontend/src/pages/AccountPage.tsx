@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/AuthContext'
 import { subscriptionAPI } from '@/services/api/subscriptionService'
-import { LogOut, Play, Loader2 } from 'lucide-react'
+import { LogOut, Play, Loader2, Download, Trash2 } from 'lucide-react'
+import { downloadAPI, type DownloadItem } from '@/api/download'
 import { getAllProgress } from '@/lib/progress'
 import type { SavedProgress } from '@/lib/progress'
 import { gateway } from '@/api/client'
@@ -17,12 +18,18 @@ export default function AccountPage() {
   useEffect(() => {
     setHistory(getAllProgress())
   }, [])
+    // ─── Estado de descargas ─────────────────────────────
+  const [downloads, setDownloads] = useState<DownloadItem[]>([])
+  const [loadingDownloads, setLoadingDownloads] = useState(true)
+  const [isPremium, setIsPremium] = useState(false)
+ 
 
   // ─── Estado de suscripción ───────────────────────────
   const [subscription, setSubscription] = useState<any>(null)
   const [paymentHistory, setPaymentHistory] = useState<any[]>([])
   const [loadingSub, setLoadingSub] = useState(true)
   const [cancelling, setCancelling] = useState(false)
+
 const [profileName, setProfileName] = useState(
   currentProfile?.name || user?.name || user?.email?.split('@')[0] || 'Usuario'
 )
@@ -42,29 +49,47 @@ const handleSaveProfile = async () => {
     setSavingProfile(false)
   }
 }
-  useEffect(() => {
-    const fetchSubscriptionData = async () => {
-      try {
-        const [subData, paymentsData] = await Promise.all([
-          subscriptionAPI.getMySubscription(),
-          subscriptionAPI.getPaymentHistory(),
-        ])
-        setSubscription(subData)
-        setPaymentHistory(paymentsData)
-      } catch (error) {
-        console.error('Subscription service no disponible:', error)
-        setSubscription({
-          plan_name: 'Estándar',
-          status: 'ACTIVE',
-          current_period_end: '2026-07-01',
-          days_remaining: 22,
-        })
-      } finally {
-        setLoadingSub(false)
+ useEffect(() => {
+  const fetchSubscriptionData = async () => {
+    try {
+      const [subData, paymentsData] = await Promise.all([
+        subscriptionAPI.getMySubscription(),
+        subscriptionAPI.getPaymentHistory(),
+      ])
+      setSubscription(subData)
+      setPaymentHistory(paymentsData)
+
+      const premium = subData?.status === 'ACTIVE' && subData?.planName === 'Premium'
+      console.log('isPremium:', premium, 'planName:', subData?.planName)
+      setIsPremium(premium)
+
+      // ← esto faltaba
+      if (premium) {
+        try {
+          const dlData = await downloadAPI.listDownloads(3)
+          console.log('downloads:', dlData)
+          setDownloads(dlData.downloads || [])
+        } catch (err) {
+          console.log('error downloads:', err)
+          setDownloads([])
+        }
       }
+
+    } catch (error) {
+      console.error('Subscription service no disponible:', error)
+      setSubscription({
+        plan_name: 'Estándar',
+        status: 'ACTIVE',
+        current_period_end: '2026-07-01',
+        days_remaining: 22,
+      })
+    } finally {
+      setLoadingSub(false)
+      setLoadingDownloads(false)  // ← esto también faltaba
     }
-    fetchSubscriptionData()
-  }, [])
+  }
+  fetchSubscriptionData()
+}, [])
 
   const handleLogout = () => {
     logout()
@@ -238,6 +263,103 @@ const handleSaveProfile = async () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Mis Descargas — solo Plan Premium */}
+        {isPremium && (
+          <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-1 h-5 bg-spotlight" />
+              <h2 className="font-display text-lg text-parchment">Mis Descargas</h2>
+              <span className="text-xs font-mono border border-spotlight/40 text-spotlight px-2 py-0.5 tracking-widest uppercase">
+                Premium
+              </span>
+            </div>
+
+            {loadingDownloads ? (
+              <div className="flex items-center gap-2 text-silver/50 font-mono text-sm">
+                <Loader2 size={14} className="animate-spin" />
+                Cargando descargas...
+              </div>
+            ) : downloads.length === 0 ? (
+              <div className="p-4 border border-dashed border-[#3a2e1a] text-center">
+                <p className="text-silver/40 font-mono text-sm">
+                  Aún no tenés contenido descargado.
+                </p>
+                <p className="text-silver/30 font-mono text-xs mt-1">
+                  Descargá películas o series desde su página de detalle.
+                </p>
+              </div>
+            ) : (
+              downloads.map((dl: any) => {
+        const expiresMs = typeof dl.expires_at === 'object'
+          ? dl.expires_at.low * 1000
+          : (dl.expires_at || 0) * 1000
+        const daysLeft = Math.ceil((expiresMs - Date.now()) / (1000 * 60 * 60 * 24))
+        const sizeMB = dl.size_bytes > 0 ? `${(dl.size_bytes / (1024 * 1024)).toFixed(1)} MB` : null
+
+        // status viene como número del proto: 1=QUEUED, 2=PENDING, 3=COMPLETED, 4=FAILED, 5=DELETED
+        const statusLabel: Record<number, string> = {
+          1: 'En cola', 2: 'Pendiente', 3: 'Listo', 4: 'Fallido', 5: 'Eliminado'
+        }
+        const isCompleted = dl.status === 3
+
+  return (
+    <div
+      key={dl.download_id}
+      className="flex items-center gap-4 p-3 border border-[#3a2e1a] bg-[#0f0b04] group"
+    >
+      <div className="w-10 h-10 flex items-center justify-center border border-[#3a2e1a] shrink-0">
+        <Download size={14} className="text-spotlight/60" />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-parchment font-mono text-sm font-medium truncate">
+          {dl.title || `Contenido ${(dl.content_id || '').slice(0, 8)}...`}
+        </p>
+        <div className="flex items-center gap-3 mt-0.5">
+          {sizeMB && (
+            <span className="text-silver/40 font-mono text-xs">{sizeMB}</span>
+          )}
+          <span className={`font-mono text-xs ${daysLeft <= 3 ? 'text-red-400' : 'text-silver/40'}`}>
+            {daysLeft <= 0 ? 'Expirado' : `Expira en ${daysLeft} días`}
+          </span>
+          <span className={`font-mono text-xs border px-2 py-0.5 ${
+            isCompleted
+              ? 'border-green-700/50 text-green-400'
+              : 'border-[#3a2e1a] text-silver/40'
+          }`}>
+            {statusLabel[dl.status] || 'Desconocido'}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        {isCompleted && (
+          <button
+            onClick={() => navigate(`/movie/${dl.content_id}?autoplay=1`)}
+            className="flex items-center gap-1 border border-[#3a2e1a] hover:border-spotlight px-3 py-2 text-silver hover:text-spotlight transition-colors"
+          >
+            <Play size={12} />
+            <span className="font-mono text-xs">Ver</span>
+          </button>
+        )}
+        <button
+          onClick={async () => {
+            await downloadAPI.deleteDownload(dl.download_id)
+            setDownloads((prev: any[]) => prev.filter((d) => d.download_id !== dl.download_id))
+          }}
+          className="border border-[#3a2e1a] hover:border-red-500/40 p-2 text-silver/40 hover:text-red-400 transition-colors"
+          title="Eliminar descarga"
+        >
+          <Trash2 size={12} />
+        </button>
+      </div>
+    </div>
+  )
+})
+            )}
           </div>
         )}
 

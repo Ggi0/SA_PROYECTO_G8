@@ -9,6 +9,7 @@ import { getProgress, clearProgress } from '@/lib/progress'
 import { useAuth } from '@/context/AuthContext'
 import type { Movie, SeriesStructure, Episode } from '@/types'
 import { subscriptionAPI } from '@/services/api/subscriptionService'
+import DownloadButton from '@/components/shared/DownloadButton'
 
 export default function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -31,11 +32,19 @@ export default function MovieDetailPage() {
   const [thumb, setThumb] = useState<'UP' | 'DOWN' | ''>('')
   const [ratingPct, setRatingPct] = useState<number>(0)
   const [hasSubscription, setHasSubscription] = useState<boolean>(false)
+  const [isPremium, setIsPremium] = useState<boolean>(false)
 
 useEffect(() => {
   subscriptionAPI.getMySubscription()
-    .then((sub: any) => setHasSubscription(sub?.status === 'ACTIVE'))
-    .catch(() => setHasSubscription(false))
+    .then((sub: any) => {
+      console.log('subscription data:', sub) // 👈 aquí
+      setHasSubscription(sub?.status === 'ACTIVE')
+      setIsPremium(sub?.status === 'ACTIVE' && sub?.planName === 'Premium')
+    })
+    .catch(() => {
+      setHasSubscription(false)
+      setIsPremium(false)
+    })
 }, [])
 
   useEffect(() => {
@@ -265,6 +274,13 @@ useEffect(() => {
               </span>
             )}
           </div>
+
+          {/* Descarga — solo Plan Premium */}
+          <DownloadButton
+            contentId={id!}
+            contentTitle={movie.title}
+            isPremium={isPremium}
+          />
         </div>
 
         {/* Sinopsis */}
