@@ -32,6 +32,8 @@ spec:
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: CATALOGO_DB_PASSWORD } }
             - name: DB_NAME
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: CATALOGO_DB_NAME } }
+            - name: DB_SCHEMA
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: CATALOGO_DB_SCHEMA } }
             - { name: DB_SSLMODE, value: "disable" }
             - { name: AUDIT_HTTP_PORT, value: "8082" }
             - name: GCS_BUCKET_NAME

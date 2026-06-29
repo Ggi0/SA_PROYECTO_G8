@@ -6,6 +6,13 @@
     app_user: "{{ ansible_user }}"
     db_user: "quetxal"
     db_password: "{{ lookup('env', 'QUETXAL_DB_PASSWORD') | default('CAMBIA_ESTA_PASSWORD', true) }}"   # mejor: ansible-vault
+    auth_db_name: "{{ lookup('env', 'AUTH_DB_NAME') | default('auth_db', true) }}"
+    subscription_db_name: "{{ lookup('env', 'SUBSCRIPTION_DB_NAME') | default('subscription_db', true) }}"
+    catalogo_db_name: "{{ lookup('env', 'CATALOGO_DB_NAME') | default('catalogo_db', true) }}"
+    fx_db_name: "{{ lookup('env', 'FX_DB_NAME') | default('fx_db', true) }}"
+    notification_db_name: "{{ lookup('env', 'NOTIFICATION_DB_NAME') | default('notification_db', true) }}"
+    historial_db_name: "{{ lookup('env', 'HISTORIAL_DB_NAME') | default('historial_db', true) }}"
+    download_db_name: "{{ lookup('env', 'DOWNLOAD_DB_NAME') | default('download_db', true) }}"
     logstash_host: "{{ lookup('env', 'MONITOR_PRIVATE_IP') | default('10.10.0.9', true) }}"
     repo_sql_dir: "../../app/QuetxalTV/database"   # desde infra/ansible: dos niveles arriba
   tasks:
