@@ -12,8 +12,11 @@ import {
 
 const FALLBACK_VIDEO = 'https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4'
 
-// En producción sin VITE_GATEWAY_URL, el WebSocket va al mismo origen (nginx proxea /socket.io/ al gateway)
-const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || window.location.origin
+// Para WebSocket necesitamos URL completa (http://host).
+// VITE_GATEWAY_URL puede ser '/api' (relativa) en prod o 'http://localhost:3001' en local.
+// Si es relativa, usamos window.location.origin para que nginx proxee /socket.io/ al gateway.
+const _rawGw = import.meta.env.VITE_GATEWAY_URL || ''
+const WS_URL = _rawGw.startsWith('http') ? _rawGw : window.location.origin
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -109,7 +112,7 @@ export default function WatchPartyPage() {
 
     const token = localStorage.getItem('quetxal_token') || ''
 
-    const socket = io(`${GATEWAY_URL}/watch-party`, {
+    const socket = io(WS_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
     })
@@ -173,6 +176,12 @@ export default function WatchPartyPage() {
     socket.on('error', (msg: string) => {
       console.error('[WatchParty] error del servidor:', msg)
       setError(msg)
+    })
+
+    socket.on('room:closed', () => {
+      console.warn('[WatchParty] sala cerrada por el host')
+      socket.disconnect()
+      navigate('/')
     })
 
     return () => {

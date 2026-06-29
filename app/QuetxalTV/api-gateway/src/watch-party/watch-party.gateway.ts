@@ -12,7 +12,8 @@ import { WatchPartyService } from './watch-party.service';
 
 @WebSocketGateway({
   cors: { origin: '*', credentials: true },
-  namespace: '/watch-party',
+  pingInterval: 20000,
+  pingTimeout: 5000,
 })
 export class WatchPartyGateway implements OnGatewayDisconnect {
   @WebSocketServer()
@@ -90,23 +91,29 @@ export class WatchPartyGateway implements OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { code: string; profileId: string },
   ) {
-    this._doLeave(client, payload.code, payload.profileId);
+    const room = this.svc.get(payload.code);
+    const isHost = room?.hostProfileId === payload.profileId;
+    this.svc.leave(payload.code, payload.profileId);
+    client.leave(payload.code);
+    this.socketMap.delete(client.id);
+    if (isHost) {
+      // Host salió a propósito: destruir sala y notificar a todos
+      this.server.to(payload.code).emit('room:closed', 'El host cerró la sala');
+      this.svc.destroy(payload.code);
+    } else {
+      const updated = this.svc.get(payload.code);
+      if (updated) this.server.to(payload.code).emit('members:update', updated.members);
+    }
   }
 
-  // Desconexión inesperada (cerrar tab, etc.)
+  // Desconexión inesperada (cerrar tab, caída de red, etc.) — NO destruye la sala
   handleDisconnect(client: Socket) {
     const entry = this.socketMap.get(client.id);
     if (!entry) return;
-    this._doLeave(client, entry.code, entry.profileId);
-  }
-
-  private _doLeave(client: Socket, code: string, profileId: string) {
-    this.svc.leave(code, profileId);
-    client.leave(code);
+    this.svc.leave(entry.code, entry.profileId);
+    client.leave(entry.code);
     this.socketMap.delete(client.id);
-    const room = this.svc.get(code);
-    if (room) {
-      this.server.to(code).emit('members:update', room.members);
-    }
+    const room = this.svc.get(entry.code);
+    if (room) this.server.to(entry.code).emit('members:update', room.members);
   }
 }

@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: "{{ db_user }}"
       POSTGRES_PASSWORD: "{{ db_password }}"
-      POSTGRES_DB: auth_db
+      POSTGRES_DB: "{{ auth_db_name }}"
     volumes:
       - auth_data:/var/lib/postgresql/data
       - /opt/quetxal/sql/auth.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
@@ -20,7 +20,7 @@ services:
     environment:
       POSTGRES_USER: "{{ db_user }}"
       POSTGRES_PASSWORD: "{{ db_password }}"
-      POSTGRES_DB: subscription_db
+      POSTGRES_DB: "{{ subscription_db_name }}"
     volumes:
       - subscription_data:/var/lib/postgresql/data
       - /opt/quetxal/sql/subscription.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
@@ -33,7 +33,7 @@ services:
     environment:
       POSTGRES_USER: "{{ db_user }}"
       POSTGRES_PASSWORD: "{{ db_password }}"
-      POSTGRES_DB: catalogo_db
+      POSTGRES_DB: "{{ catalogo_db_name }}"
     volumes:
       - catalogo_data:/var/lib/postgresql/data
       - /opt/quetxal/sql/catalogo.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
@@ -46,7 +46,7 @@ services:
     environment:
       POSTGRES_USER: "{{ db_user }}"
       POSTGRES_PASSWORD: "{{ db_password }}"
-      POSTGRES_DB: fx_db
+      POSTGRES_DB: "{{ fx_db_name }}"
     volumes:
       - fx_data:/var/lib/postgresql/data
       - /opt/quetxal/sql/fx.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
@@ -59,7 +59,7 @@ services:
     environment:
       POSTGRES_USER: "{{ db_user }}"
       POSTGRES_PASSWORD: "{{ db_password }}"
-      POSTGRES_DB: notification_db
+      POSTGRES_DB: "{{ notification_db_name }}"
     volumes:
       - notification_data:/var/lib/postgresql/data
       - /opt/quetxal/sql/notificacion.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
@@ -72,7 +72,7 @@ services:
     environment:
       POSTGRES_USER: "{{ db_user }}"
       POSTGRES_PASSWORD: "{{ db_password }}"
-      POSTGRES_DB: historial_db
+      POSTGRES_DB: "{{ historial_db_name }}"
     volumes:
       - historial_data:/var/lib/postgresql/data
       - /opt/quetxal/sql/historial.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
@@ -85,7 +85,7 @@ services:
     environment:
       POSTGRES_USER: "{{ db_user }}"
       POSTGRES_PASSWORD: "{{ db_password }}"
-      POSTGRES_DB: download_db
+      POSTGRES_DB: "{{ download_db_name }}"
     volumes:
       - download_data:/var/lib/postgresql/data
       - /opt/quetxal/sql/download.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
