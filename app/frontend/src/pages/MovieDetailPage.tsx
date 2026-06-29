@@ -160,7 +160,7 @@ useEffect(() => {
           posterUrl={movie.coverImage}
           contentType={movie.type === 'series' ? 'SERIES' : 'MOVIE'}
           videoRef={offlineUrl || (playerEpisode ? playerEpisode.videoRef || '' : movie.videoRef || '')}
-          videoSource={offlineUrl ? 'http' : (playerEpisode ? playerEpisode.videoSource || '' : movie.videoSource || '')}
+          videoSource={offlineUrl ? 'blob' : (playerEpisode ? playerEpisode.videoSource || '' : movie.videoSource || '')} 
           totalDuration={playerEpisode ? playerEpisode.duration : (movie.durationMin || 90)}
           seasonNum={playerSeasonNum || undefined}
           episodeNum={playerEpisode?.episodeNum}

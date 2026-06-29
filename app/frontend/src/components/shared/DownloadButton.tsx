@@ -154,7 +154,7 @@ export default function DownloadButton({
     try {
       // 1. Registrar descarga en el backend
       const res = await downloadAPI.initiateDownload(contentId, 3, contentTitle, thumbnail)
-
+       console.log('1. Backend respondió:', res)
       if (!res.allowed) {
         setMessage(res.message)
         setState('error')
@@ -163,28 +163,34 @@ export default function DownloadButton({
 
       const dlId = res.download_id ?? res.downloadId ?? crypto.randomUUID()
       const gcsUrl = res.gcs_url ?? res.gcsUrl ?? ''
-      const expiresAt = typeof res.expires_at === 'object'
-        ? (res.expires_at as any).low
-        : (res.expires_at ?? 0)
+      console.log('2. gcsUrl:', gcsUrl)
+      console.log('3. dlId:', dlId)
+      const expiresAt = typeof res.expiresAt === 'object'
+        ? (res.expiresAt as any).low
+        : (res.expiresAt ?? 0)
 
       if (!gcsUrl) {
         setMessage('URL de descarga no disponible.')
         setState('error')
         return
       }
-
+       console.log('4. Iniciando storeEncryptedVideo...')
       // 2. Descargar, cifrar con AES-256-GCM y almacenar en IndexedDB
       await storeEncryptedVideo(
         dlId,
         gcsUrl,
         { contentId, title: contentTitle, thumbnail, expiresAt },
-        (pct) => setProgress(pct)
+         (pct) => {
+        console.log('Progreso:', pct)
+        setProgress(pct)
+      }
       )
-
+      console.log('5. storeEncryptedVideo completado')
       setDownloadId(dlId)
       setState('done')
 
-    } catch (err: any) {
+    } 
+    catch (err: any) {
       console.error('[Download] Error:', err)
       setMessage(`No se pudo descargar "${contentTitle}". Intenta de nuevo.`)
       setState('error')
