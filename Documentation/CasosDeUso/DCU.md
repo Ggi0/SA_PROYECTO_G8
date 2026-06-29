@@ -729,3 +729,125 @@ Sus expandidos son:
 | **Reglas de Negocio** | - Readiness controla recepción de tráfico. <br> - Liveness controla reinicio del contenedor. |
 | **Flujo de Excepción** | **FE1: Fallo de despliegue persistente** <br> FE1.1 El Pod entra en ciclo de error. <br> FE1.2 El pipeline debe activar rollback automático según la estrategia de despliegue. |
 | **Reglas de Calidad** | - La recuperación no debe requerir intervención manual en condiciones esperadas. |
+
+---
+
+#### CDU-012: Descarga de Contenido Offline (download-service)
+
+Sus expandidos son:
+- CDU012.1: Solicitar descarga de contenido
+- CDU012.2: Validar plan Premium
+- CDU012.3: Generar URL firmada en GCS
+- CDU012.4: Listar descargas activas
+- CDU012.5: Eliminar descarga local
+- CDU012.6: Expirar descargas vencidas (30 días)
+
+![Diagrama CDU-012](imgs/CDU-012.png)
+
+### CDU012.1: Solicitar Descarga de Contenido
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Solicitar descarga de contenido |
+| **Código** | CDU012.1 |
+| **Actores** | Usuario |
+| **Descripción** | Permite al usuario solicitar la descarga offline de una película, serie o episodio disponible dentro de Quetxal TV mediante el microservicio `download-service`. Este caso incluye la validación del plan Premium antes de autorizar la generación del recurso descargable. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - El usuario debe tener un perfil seleccionado. <br> - El contenido debe existir y estar disponible para reproducción. <br> - El servicio `download-service` debe estar disponible. |
+| **Post Condiciones** | - La solicitud de descarga queda registrada. <br> - Si el usuario cumple las condiciones, se genera un enlace temporal para descargar el contenido. <br> - Si el usuario no cumple las condiciones, la descarga no se autoriza. |
+| **Flujo Principal** | 1. El usuario ingresa al detalle de un contenido disponible. <br> 2. El sistema muestra la opción de descarga offline. <br> 3. El usuario selecciona "Descargar". <br> 4. El sistema envía la solicitud al `download-service`. <br> 5. El `download-service` identifica al usuario, perfil y contenido solicitado. <br> 6. El sistema ejecuta la validación del plan Premium mediante el caso incluido CDU012.2. <br> 7. Si la validación es correcta, el sistema continúa con la generación de URL firmada mediante CDU012.3. <br> 8. El sistema registra la descarga como activa. <br> 9. El sistema retorna al usuario la información necesaria para iniciar la descarga. |
+| **Flujos Alternos** | **FA1: Contenido no descargable** <br> FA1.1 El contenido seleccionado no permite descarga offline. <br> FA1.2 El sistema oculta o deshabilita la opción de descarga. <br> FA1.3 El sistema notifica que el contenido solo está disponible para reproducción en línea. |
+| **Reglas de Negocio** | - Solo los usuarios con plan Premium pueden descargar contenido offline. <br> - La descarga debe asociarse al usuario, perfil y contenido solicitado. <br> - La descarga debe tener una vigencia controlada. <br> - El contenido descargable debe obtenerse mediante un enlace temporal y no mediante rutas públicas permanentes. |
+| **Flujo de Excepción** | **FE1: Error al procesar la solicitud** <br> FE1.1 El `download-service` no responde o genera un error interno. <br> FE1.2 El sistema notifica al usuario que la descarga no pudo iniciarse. <br> FE1.3 El sistema registra el error para trazabilidad técnica. |
+| **Reglas de Calidad** | - La solicitud de descarga debe responder en ≤ 2 segundos, excluyendo el tiempo real de transferencia del archivo. <br> - La operación debe mantener trazabilidad mediante logs. <br> - La URL generada no debe exponer credenciales ni rutas internas sensibles. |
+
+---
+
+### CDU012.2: Validar Plan Premium
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Validar plan Premium |
+| **Código** | CDU012.2 |
+| **Actores** | Usuario |
+| **Descripción** | Permite verificar si el usuario cuenta con una suscripción Premium activa antes de permitir la descarga offline de contenido. Este caso de uso es incluido por CDU012.1. |
+| **Precondiciones** | - El usuario debe estar autenticado. <br> - Debe existir una suscripción asociada a la cuenta del usuario. <br> - El sistema debe poder consultar el estado de la suscripción. |
+| **Post Condiciones** | - Se determina si el usuario está autorizado para descargar contenido. <br> - Si el plan es Premium y está activo, el flujo continúa hacia CDU012.3. <br> - Si el plan no cumple, se rechaza la solicitud de descarga. |
+| **Flujo Principal** | 1. El `download-service` recibe la solicitud de descarga desde CDU012.1. <br> 2. El sistema consulta la suscripción asociada a la cuenta del usuario. <br> 3. El sistema verifica que la suscripción esté activa. <br> 4. El sistema valida que el tipo de plan sea Premium. <br> 5. El sistema autoriza la descarga offline. <br> 6. El sistema continúa con la generación de URL firmada en CDU012.3. |
+| **Flujos Alternos** | **FA1: Usuario con plan no Premium** <br> FA1.1 El sistema detecta que el usuario tiene plan Básico o Estándar. <br> FA1.2 El sistema rechaza la descarga offline. <br> FA1.3 El sistema muestra un mensaje indicando que la funcionalidad requiere plan Premium. |
+| **Reglas de Negocio** | - La descarga offline es un beneficio exclusivo del plan Premium. <br> - La suscripción debe estar activa al momento de solicitar la descarga. <br> - Una suscripción cancelada o vencida no debe autorizar nuevas descargas. |
+| **Flujo de Excepción** | **FE1: No se puede validar la suscripción** <br> FE1.1 El sistema no logra consultar el estado del plan. <br> FE1.2 La descarga no se autoriza por seguridad. <br> FE1.3 El sistema registra el incidente. |
+| **Reglas de Calidad** | - La validación debe realizarse antes de generar cualquier URL de descarga. <br> - La consulta del plan debe ejecutarse con timeout controlado. <br> - La respuesta debe evitar exponer detalles internos de la suscripción. |
+
+---
+
+### CDU012.3: Generar URL Firmada en GCS
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Generar URL firmada en GCS |
+| **Código** | CDU012.3 |
+| **Actores** | Usuario |
+| **Descripción** | Permite generar una URL firmada temporal para que el usuario autorizado pueda descargar el recurso multimedia desde Google Cloud Storage sin exponer credenciales ni hacer público el archivo. Este caso de uso es incluido por CDU012.2. |
+| **Precondiciones** | - El usuario debe haber sido autorizado mediante la validación de plan Premium. <br> - El contenido debe tener un archivo asociado en Google Cloud Storage. <br> - El sistema debe contar con configuración válida para generar URLs firmadas. |
+| **Post Condiciones** | - Se genera una URL firmada temporal. <br> - La URL queda asociada a una descarga activa. <br> - El usuario puede iniciar la descarga del contenido dentro del período de vigencia. |
+| **Flujo Principal** | 1. El sistema recibe la autorización de descarga desde CDU012.2. <br> 2. El sistema obtiene la referencia del archivo multimedia en Google Cloud Storage. <br> 3. El sistema valida que el archivo exista y esté disponible. <br> 4. El sistema genera una URL firmada con tiempo de expiración. <br> 5. El sistema registra la fecha de creación y expiración de la descarga. <br> 6. El sistema retorna la URL firmada al cliente. |
+| **Flujos Alternos** | **FA1: Archivo no disponible** <br> FA1.1 El archivo asociado al contenido no existe o no está disponible. <br> FA1.2 El sistema rechaza la descarga. <br> FA1.3 El usuario recibe un mensaje indicando que el recurso no está disponible temporalmente. |
+| **Reglas de Negocio** | - La URL firmada debe ser temporal. <br> - La URL debe generarse únicamente después de validar el plan Premium. <br> - El archivo no debe exponerse mediante enlaces públicos permanentes. <br> - La descarga debe conservar una vigencia máxima definida por la plataforma. |
+| **Flujo de Excepción** | **FE1: Error al generar la URL** <br> FE1.1 El sistema no puede comunicarse con Google Cloud Storage o no puede firmar el recurso. <br> FE1.2 El sistema cancela la operación de descarga. <br> FE1.3 El sistema registra el error técnico. |
+| **Reglas de Calidad** | - La generación de la URL debe completarse en ≤ 1 segundo bajo condiciones normales. <br> - La URL firmada debe proteger el acceso directo al archivo. <br> - El proceso no debe almacenar credenciales sensibles en el cliente. |
+
+---
+
+### CDU012.4: Listar Descargas Activas
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Listar descargas activas |
+| **Código** | CDU012.4 |
+| **Actores** | Usuario |
+| **Descripción** | Permite al usuario consultar las descargas offline activas asociadas a su cuenta o perfil, incluyendo contenido descargado, fecha de creación y estado de vigencia. Este caso puede extenderse con CDU012.6 cuando existan descargas vencidas. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - El usuario debe tener un perfil seleccionado. <br> - Pueden existir descargas activas o vencidas asociadas al perfil. |
+| **Post Condiciones** | - El usuario visualiza el listado actualizado de descargas activas. <br> - Las descargas vencidas pueden ser identificadas y expiradas mediante CDU012.6. |
+| **Flujo Principal** | 1. El usuario ingresa a la sección de descargas. <br> 2. El sistema solicita al `download-service` las descargas asociadas al usuario y perfil. <br> 3. El sistema consulta los registros de descarga. <br> 4. El sistema valida el estado y vigencia de cada descarga. <br> 5. Si existen descargas vencidas, se ejecuta el caso extendido CDU012.6. <br> 6. El sistema retorna únicamente las descargas activas o el estado actualizado de las descargas. <br> 7. El usuario visualiza la lista de descargas disponibles. |
+| **Flujos Alternos** | **FA1: No existen descargas activas** <br> FA1.1 El sistema no encuentra descargas vigentes para el perfil. <br> FA1.2 El sistema muestra el mensaje "No tienes descargas activas". |
+| **Reglas de Negocio** | - El usuario solo puede consultar sus propias descargas. <br> - Las descargas vencidas no deben mostrarse como disponibles. <br> - El listado debe considerar la vigencia máxima de 30 días. |
+| **Flujo de Excepción** | **FE1: Error al consultar descargas** <br> FE1.1 El `download-service` no responde. <br> FE1.2 El sistema muestra un mensaje de error y permite reintentar. |
+| **Reglas de Calidad** | - El listado debe cargar en ≤ 2 segundos. <br> - La información mostrada debe reflejar el estado más reciente de las descargas. |
+
+---
+
+### CDU012.5: Eliminar Descarga Local
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Eliminar descarga local |
+| **Código** | CDU012.5 |
+| **Actores** | Usuario |
+| **Descripción** | Permite al usuario eliminar una descarga offline previamente registrada, retirándola de su listado de descargas disponibles y liberando el recurso local asociado en el dispositivo cuando aplique. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - Debe existir una descarga asociada al usuario o perfil. <br> - La descarga debe aparecer en el listado del usuario. |
+| **Post Condiciones** | - La descarga queda eliminada o marcada como inactiva. <br> - El contenido deja de mostrarse como disponible offline. <br> - El sistema conserva trazabilidad de la operación si aplica. |
+| **Flujo Principal** | 1. El usuario ingresa a la sección de descargas. <br> 2. El sistema muestra las descargas disponibles. <br> 3. El usuario selecciona la opción "Eliminar descarga" sobre un contenido. <br> 4. El sistema solicita confirmación. <br> 5. El usuario confirma la eliminación. <br> 6. El sistema marca la descarga como eliminada o inactiva. <br> 7. El sistema actualiza el listado de descargas. <br> 8. El contenido deja de estar disponible como descarga offline para el usuario. |
+| **Flujos Alternos** | **FA1: Cancelación de eliminación** <br> FA1.1 El usuario decide no eliminar la descarga. <br> FA1.2 El sistema conserva la descarga activa sin cambios. |
+| **Reglas de Negocio** | - Un usuario solo puede eliminar descargas asociadas a su propia cuenta o perfil. <br> - La eliminación no debe borrar el contenido original del catálogo ni de Google Cloud Storage. <br> - La eliminación afecta únicamente la disponibilidad offline del usuario. |
+| **Flujo de Excepción** | **FE1: Error al eliminar descarga** <br> FE1.1 El sistema no puede actualizar el estado de la descarga. <br> FE1.2 El sistema informa el error y permite reintentar. |
+| **Reglas de Calidad** | - La eliminación debe reflejarse inmediatamente en el listado. <br> - La operación debe completarse en ≤ 1 segundo bajo condiciones normales. |
+
+---
+
+### CDU012.6: Expirar Descargas Vencidas
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Expirar descargas vencidas |
+| **Código** | CDU012.6 |
+| **Actores** | Usuario |
+| **Descripción** | Permite marcar como vencidas las descargas offline que superaron el período permitido de 30 días. Según el diagrama, este comportamiento extiende el listado de descargas activas cuando el sistema detecta descargas vencidas durante la consulta. |
+| **Precondiciones** | - Deben existir descargas registradas. <br> - La fecha de creación o expiración de la descarga debe estar almacenada. <br> - El usuario consulta su listado de descargas o el sistema valida la vigencia de las descargas. |
+| **Post Condiciones** | - Las descargas vencidas quedan marcadas como expiradas. <br> - Las descargas vencidas dejan de mostrarse como activas. <br> - El usuario visualiza únicamente descargas vigentes. |
+| **Flujo Principal** | 1. El usuario consulta sus descargas activas mediante CDU012.4. <br> 2. El sistema revisa la fecha de creación o expiración de cada descarga. <br> 3. El sistema identifica descargas con más de 30 días de vigencia o con fecha de expiración alcanzada. <br> 4. El sistema marca dichas descargas como vencidas. <br> 5. El sistema actualiza el listado de descargas. <br> 6. El usuario visualiza únicamente las descargas vigentes. |
+| **Flujos Alternos** | **FA1: No existen descargas vencidas** <br> FA1.1 El sistema no encuentra descargas expiradas. <br> FA1.2 El listado se muestra sin modificaciones. |
+| **Reglas de Negocio** | - La vigencia máxima de una descarga offline es de 30 días. <br> - Una descarga vencida no debe permitir reproducción offline. <br> - La expiración no elimina el contenido original del catálogo ni del almacenamiento principal. |
+| **Flujo de Excepción** | **FE1: Error al actualizar estado de expiración** <br> FE1.1 El sistema detecta descargas vencidas, pero no puede actualizar su estado. <br> FE1.2 El sistema registra el error y evita mostrarlas como disponibles si no puede garantizar su vigencia. |
+| **Reglas de Calidad** | - La validación de expiración debe ejecutarse sin afectar significativamente el tiempo de carga del listado. <br> - El usuario no debe acceder a descargas vencidas. |
+
+
