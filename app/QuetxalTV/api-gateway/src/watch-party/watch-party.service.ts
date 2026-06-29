@@ -111,13 +111,16 @@ export class WatchPartyService {
     return room.state;
   }
 
+  // Elimina un miembro de la sala (sin borrar la sala, para soportar reconexiones)
   leave(code: string, profileId: string): void {
     const room = this.get(code);
     if (!room) return;
     room.members = room.members.filter((m) => m.profileId !== profileId);
-    if (room.members.length === 0 || room.hostProfileId === profileId) {
-      this.rooms.delete(code.toUpperCase());
-    }
+  }
+
+  // Destruye la sala explícitamente (solo cuando el host sale a propósito)
+  destroy(code: string): void {
+    this.rooms.delete(code.toUpperCase());
   }
 
   private cleanExpired(): void {
