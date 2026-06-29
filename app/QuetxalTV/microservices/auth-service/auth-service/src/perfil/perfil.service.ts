@@ -7,6 +7,7 @@ import {
     ForbiddenException,
     BadRequestException,
   } from '@nestjs/common';
+  import { createHmac, timingSafeEqual } from 'crypto';
   import { PerfilRepository } from './perfil.repository';
   import { JwtService } from '../JWT/jwt.service';
   import { AuthRepository } from '../auth/auth.repository';
@@ -23,6 +24,10 @@ import {
     DeleteProfileResponse,
     SelectProfileRequest,
     SelectProfileResponse,
+    SetParentalPinRequest,
+    SetParentalPinResponse,
+    VerifyParentalPinRequest,
+    VerifyParentalPinResponse,
   } from './perfil.contract';
   import type { Profile } from './entities/profile.entity';
   
@@ -196,13 +201,14 @@ import {
         throw new ForbiddenException('Usuario no disponible.');
       }
   
-      // 3. Emitir nuevo access token con active_profile_id
+      // 3. Emitir nuevo access token con active_profile_id y maxRating según modo niño
       const accessToken = this.jwtService.signAccessToken({
         sub:             user.userId,
         email:           user.email,
         role:            user.role,
         tokenVersion:    user.tokenVersion,
         activeProfileId: profile.profileId,
+        maxRating:       profile.isKidsMode ? 'PG' : 'NC-17',
       });
   
       this.logger.log(
@@ -213,5 +219,38 @@ import {
         accessToken,
         activeProfile: this.toDto(profile),
       };
+    }
+
+    // ─────────────────────────────────────────────
+    //  SET PARENTAL PIN  (solo el dueño de la cuenta)
+    // ─────────────────────────────────────────────
+
+    async setParentalPin(req: SetParentalPinRequest): Promise<SetParentalPinResponse> {
+      if (req.pin && !/^\d{4}$/.test(req.pin)) {
+        throw new BadRequestException('El PIN debe ser exactamente 4 dígitos numéricos.');
+      }
+      const hashedPin = req.pin
+        ? createHmac('sha256', req.userId).update(req.pin).digest('hex')
+        : null;
+      await this.perfilRepository.setParentalPin(req.userId, hashedPin);
+      this.logger.log(`PIN parental ${hashedPin ? 'configurado' : 'eliminado'} → usuario ${req.userId}`);
+      return { success: true, message: hashedPin ? 'PIN configurado correctamente.' : 'PIN eliminado.' };
+    }
+
+    // ─────────────────────────────────────────────
+    //  VERIFY PARENTAL PIN
+    // ─────────────────────────────────────────────
+
+    async verifyParentalPin(req: VerifyParentalPinRequest): Promise<VerifyParentalPinResponse> {
+      const stored = await this.perfilRepository.getParentalPin(req.userId);
+      if (!stored) {
+        return { valid: true }; // sin PIN = libre acceso
+      }
+      const inputHash = createHmac('sha256', req.userId).update(req.pin).digest('hex');
+      let valid = false;
+      try {
+        valid = timingSafeEqual(Buffer.from(inputHash, 'hex'), Buffer.from(stored, 'hex'));
+      } catch { valid = false; }
+      return { valid };
     }
   }
