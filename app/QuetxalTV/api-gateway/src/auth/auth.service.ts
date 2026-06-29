@@ -48,6 +48,10 @@ interface AuthGrpcService {
   // ── Health ─────────────────────────
   HealthLive(data: unknown): Observable<unknown>;
   HealthReady(data: unknown): Observable<unknown>;
+
+  // admin
+  GetAllUsersWithProfiles(data: unknown): Observable<unknown>;
+GetAuditEventLogs(data: unknown): Observable<unknown>;
 }
 
 @Injectable()
@@ -294,6 +298,36 @@ healthReady() {
   return this.call(this.authSvc.HealthReady({}));
 }
 
+
+// ─────────────────────────────────────────────
+//  ADMIN — CRON MONITORING
+// ─────────────────────────────────────────────
+
+getAllUsersWithProfiles(adminUserId: string) {
+  return this.call(this.authSvc.GetAllUsersWithProfiles({
+    adminUserId: adminUserId,
+  }));
+}
+
+getAuditEventLogs(data: {
+  adminUserId: string;
+  eventType?: string;
+  userId?: string;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  return this.call(this.authSvc.GetAuditEventLogs({
+    adminUserId: data.adminUserId,
+    eventType:   data.eventType   ?? '',
+    userId:      data.userId      ?? '',
+    fromDate:    data.fromDate    ?? '',
+    toDate:      data.toDate      ?? '',
+    page:        data.page        ?? 1,
+    pageSize:    data.pageSize    ?? 20,
+  }));
+}
 
 
 }

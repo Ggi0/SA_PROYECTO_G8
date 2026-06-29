@@ -44,27 +44,55 @@ describe('SchedulerService', () => {
   });
 
   it('FASE 1: procesa usuarios correctamente', async () => {
-    const users = [
-      {
-        user_id: 'u1',
-        email: 'test@test.com',
-        role: 'client',
-        last_login_at: null,
-        created_at: new Date(),
-        deactivated_at: new Date(),
-        deactivation_reason: 'inactividad',
-      },
-    ];
+    const users = [{
+      user_id: 'u1',
+      email: 'test@test.com',
+      role: 'client',
+      last_login_at: null,
+      created_at: new Date(),
+      deactivated_at: new Date(),
+      deactivation_reason: 'inactividad',
+    }];
 
-    repo.deactivateInactiveUsers.mockResolvedValue({
-      count: 1,
-      users,
-    });
+    repo.deactivateInactiveUsers.mockResolvedValue({ count: 1, users });
 
     await service.handleDeactivateInactiveUsers();
 
     expect(repo.logAuditTrail).toHaveBeenCalledTimes(1);
     expect(repo.logAuditEvent).toHaveBeenCalled();
+
+    // batch log ✅
+    expect(repo.logAuditEvent).toHaveBeenCalledWith(
+      null,
+      'CRON_DEACTIVATION_BATCH',
+      expect.stringContaining('Batch'),
+      expect.any(Object),
+    );
+  });
+
+  it('FASE 1: rama con last_login_at diferente de null', async () => {
+    const users = [{
+      user_id: 'u2',
+      email: 'login@test.com',
+      role: 'client',
+      last_login_at: new Date(), // 👈 cubre branch
+      created_at: new Date(),
+      deactivated_at: new Date(),
+      deactivation_reason: 'test',
+    }];
+
+    repo.deactivateInactiveUsers.mockResolvedValue({ count: 1, users });
+
+    await service.handleDeactivateInactiveUsers();
+
+    expect(repo.logAuditEvent).toHaveBeenCalledWith(
+      'u2',
+      'ACCOUNT_AUTO_DEACTIVATED',
+      expect.any(String),
+      expect.objectContaining({
+        motivo: 'inactividad_post_login', // ✅ branch
+      }),
+    );
   });
 
   it('FASE 1: maneja error', async () => {
@@ -94,27 +122,53 @@ describe('SchedulerService', () => {
   });
 
   it('FASE 2: procesa eliminación correctamente', async () => {
-    const users = [
-      {
-        user_id: 'u1',
-        email: 'delete@test.com',
-        role: 'client',
-        created_at: new Date(),
-        last_login_at: null,
-        deactivated_at: new Date(),
-        deactivation_reason: 'test',
-      },
-    ];
+    const users = [{
+      user_id: 'u1',
+      email: 'delete@test.com',
+      role: 'client',
+      created_at: new Date(),
+      last_login_at: null,
+      deactivated_at: new Date(),
+      deactivation_reason: 'test',
+    }];
 
-    repo.purgeDeactivatedUsers.mockResolvedValue({
-      count: 1,
-      users,
-    });
+    repo.purgeDeactivatedUsers.mockResolvedValue({ count: 1, users });
 
     await service.handlePurgeDeactivatedUsers();
 
     expect(repo.logAuditTrail).toHaveBeenCalledTimes(1);
     expect(repo.logAuditEvent).toHaveBeenCalled();
+
+    // batch log ✅
+    expect(repo.logAuditEvent).toHaveBeenCalledWith(
+      null,
+      'CRON_PURGE_BATCH',
+      expect.stringContaining('Batch'),
+      expect.any(Object),
+    );
+  });
+
+  it('FASE 2: cubre audit event individual', async () => {
+    const users = [{
+      user_id: 'u3',
+      email: 'purge@test.com',
+      role: 'client',
+      created_at: new Date(),
+      last_login_at: null,
+      deactivated_at: new Date(),
+      deactivation_reason: 'test',
+    }];
+
+    repo.purgeDeactivatedUsers.mockResolvedValue({ count: 1, users });
+
+    await service.handlePurgeDeactivatedUsers();
+
+    expect(repo.logAuditEvent).toHaveBeenCalledWith(
+      null,
+      'ACCOUNT_PURGED',
+      expect.stringContaining('Cuenta eliminada'),
+      expect.any(Object),
+    );
   });
 
   it('FASE 2: maneja error', async () => {

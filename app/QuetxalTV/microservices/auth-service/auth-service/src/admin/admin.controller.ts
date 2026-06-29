@@ -17,4 +17,19 @@ export class AdminController {
   exportAuditLogs(data: any) {
     return this.adminService.exportAuditLogs(data);
   }
+
+
+
+  @GrpcMethod('AuthService', 'GetAllUsersWithProfiles')
+getAllUsersWithProfiles(data: any) {
+  return this.adminService.getAllUsersWithProfiles(data);
+}
+
+@GrpcMethod('AuthService', 'GetAuditEventLogs')
+getAuditEventLogs(data: any) {
+  return this.adminService.getAuditEventLogs(data);
+}
+
+
+
 }

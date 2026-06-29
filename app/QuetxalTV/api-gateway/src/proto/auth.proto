@@ -40,6 +40,11 @@ service AuthService {
   rpc HealthLive  (HealthRequest) returns (HealthResponse);
   rpc HealthReady (HealthRequest) returns (HealthResponse);
 
+  // ── Admin: usuarios con perfiles (para visualizar el cron) ────
+  rpc GetAllUsersWithProfiles (GetAllUsersWithProfilesRequest) returns (GetAllUsersWithProfilesResponse);
+
+  // ── Admin: audit_log (eventos de seguridad del cron) ──────────
+  rpc GetAuditEventLogs (GetAuditEventLogsRequest) returns (GetAuditEventLogsResponse);
 
 
 }
@@ -320,6 +325,63 @@ message HealthRequest {}
 message HealthResponse {
   string status = 1;
   string message = 2;
+}
+
+
+// ─────────────────────────────────────────────
+//  ADMIN — USUARIOS CON PERFILES
+// ─────────────────────────────────────────────
+
+message GetAllUsersWithProfilesRequest {
+  string admin_user_id = 1;
+}
+
+message UserWithProfilesMessage {
+  string user_id             = 1;
+  string email               = 2;
+  string role                = 3;
+  bool   is_active           = 4;
+  string created_at          = 5;
+  string updated_at          = 6;
+  string last_login_at       = 7;  // vacío si nunca logueó
+  string deactivated_at      = 8;  // vacío si no está desactivado
+  string deactivation_reason = 9;  // vacío si no aplica
+  repeated ProfileMessage profiles = 10;
+}
+
+message GetAllUsersWithProfilesResponse {
+  repeated UserWithProfilesMessage users = 1;
+  int32 total = 2;
+}
+
+// ─────────────────────────────────────────────
+//  ADMIN — AUDIT LOG (eventos del cron y seguridad)
+// ─────────────────────────────────────────────
+
+message GetAuditEventLogsRequest {
+  string admin_user_id = 1;
+  string event_type    = 2;  // filtro opcional: ACCOUNT_AUTO_DEACTIVATED, ACCOUNT_PURGED, etc.
+  string user_id       = 3;  // filtro opcional por usuario afectado
+  string from_date     = 4;
+  string to_date       = 5;
+  int32  page          = 6;
+  int32  page_size     = 7;
+}
+
+message AuditEventLogMessage {
+  string log_id      = 1;
+  string user_id     = 2;
+  string event_type  = 3;
+  string description = 4;
+  string metadata    = 5;  // JSON serializado
+  string created_at  = 6;
+}
+
+message GetAuditEventLogsResponse {
+  repeated AuditEventLogMessage logs = 1;
+  int32 total_records = 2;
+  int32 page          = 3;
+  int32 page_size     = 4;
 }
 
 

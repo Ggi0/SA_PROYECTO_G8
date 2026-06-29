@@ -117,4 +117,70 @@ export class AuditService {
       ...rows.map((row) => row.join(',')),
     ].join('\n');
   }
+
+
+  // ─────────────────────────────────────────────
+// GET ALL USERS WITH PROFILES
+// Para visualizar el estado del cron en el frontend
+// ─────────────────────────────────────────────
+async getAllUsersWithProfiles(request: any) {
+  await this.validateAdmin(request.adminUserId);
+
+  const rows = await this.auditRepository.findAllUsersWithProfiles();
+
+  const users = rows.map((u: any) => ({
+    userId:             u.user_id,
+    email:              u.email,
+    role:               u.role,
+    isActive:           u.is_active,
+    createdAt:          u.created_at  ? new Date(u.created_at).toISOString()  : '',
+    updatedAt:          u.updated_at  ? new Date(u.updated_at).toISOString()  : '',
+    lastLoginAt:        u.last_login_at    ? new Date(u.last_login_at).toISOString()    : '',
+    deactivatedAt:      u.deactivated_at   ? new Date(u.deactivated_at).toISOString()   : '',
+    deactivationReason: u.deactivation_reason ?? '',
+    profiles: (u.profiles ?? []).map((p: any) => ({
+      profileId:   p.profile_id,
+      displayName: p.display_name,
+      avatarUrl:   p.avatar_url   ?? '',
+      isKidsMode:  p.is_kids_mode ?? false,
+    })),
+  }));
+
+  return { users, total: users.length };
+}
+
+// ─────────────────────────────────────────────
+// GET AUDIT EVENT LOGS (audit_log, no audit_trail)
+// Muestra eventos del cron: ACCOUNT_AUTO_DEACTIVATED, ACCOUNT_PURGED, etc.
+// ─────────────────────────────────────────────
+async getAuditEventLogs(request: any) {
+  await this.validateAdmin(request.adminUserId);
+
+  const result = await this.auditRepository.findAuditEventLogs({
+    eventType: request.eventType,
+    userId:    request.userId,
+    fromDate:  request.fromDate,
+    toDate:    request.toDate,
+    page:      request.page,
+    pageSize:  request.pageSize,
+  });
+
+  return {
+    logs: result.logs.map((l: any) => ({
+      logId:       String(l.log_id),
+      userId:      l.user_id   ?? '',
+      eventType:   l.event_type,
+      description: l.description ?? '',
+      metadata:    l.metadata  ? JSON.stringify(l.metadata) : '{}',
+      createdAt:   l.created_at ? new Date(l.created_at).toISOString() : '',
+    })),
+    totalRecords: result.total,
+    page:         result.page,
+    pageSize:     result.pageSize,
+  };
+}
+
+
+
+
 }
