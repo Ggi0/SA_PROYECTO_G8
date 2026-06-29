@@ -1,5 +1,6 @@
 // test/perfil.service.spec.ts
 
+import { createHmac } from 'node:crypto';
 import { PerfilService } from '../../src/perfil/perfil.service';
 import {
   NotFoundException,
@@ -17,6 +18,8 @@ describe('PerfilService', () => {
     findByIdAndUser: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    setParentalPin: jest.fn(),
+    getParentalPin: jest.fn(),
   };
 
   const mockAuthRepository = {
@@ -223,5 +226,51 @@ describe('PerfilService', () => {
         profileId: 'p1',
       }),
     ).rejects.toThrow(ForbiddenException);
+  });
+
+  // ─────────────────────────────────────────────
+  // SET PARENTAL PIN
+  // ─────────────────────────────────────────────
+  it('should set parental pin successfully', async () => {
+    mockPerfilRepository.setParentalPin.mockResolvedValue(undefined);
+    const result = await service.setParentalPin({ userId: 'u1', pin: '1234' });
+    expect(result.success).toBe(true);
+    expect(result.message).toContain('configurado');
+  });
+
+  it('should remove parental pin when pin is empty', async () => {
+    mockPerfilRepository.setParentalPin.mockResolvedValue(undefined);
+    const result = await service.setParentalPin({ userId: 'u1', pin: '' });
+    expect(result.success).toBe(true);
+    expect(result.message).toContain('eliminado');
+  });
+
+  it('should throw if pin is not 4 digits', async () => {
+    await expect(
+      service.setParentalPin({ userId: 'u1', pin: 'abc' }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  // ─────────────────────────────────────────────
+  // VERIFY PARENTAL PIN
+  // ─────────────────────────────────────────────
+  it('should return valid=true when no pin is set', async () => {
+    mockPerfilRepository.getParentalPin.mockResolvedValue(null);
+    const result = await service.verifyParentalPin({ userId: 'u1', pin: '0000' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('should return valid=true when pin matches', async () => {
+    const hash = createHmac('sha256', 'u1').update('1234').digest('hex');
+    mockPerfilRepository.getParentalPin.mockResolvedValue(hash);
+    const result = await service.verifyParentalPin({ userId: 'u1', pin: '1234' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('should return valid=false when pin does not match', async () => {
+    const hash = createHmac('sha256', 'u1').update('1234').digest('hex');
+    mockPerfilRepository.getParentalPin.mockResolvedValue(hash);
+    const result = await service.verifyParentalPin({ userId: 'u1', pin: '9999' });
+    expect(result.valid).toBe(false);
   });
 });

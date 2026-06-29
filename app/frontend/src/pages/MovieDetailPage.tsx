@@ -3,13 +3,18 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import MoviePoster from '@/components/shared/MoviePoster'
 import VideoPlayer from '@/components/shared/VideoPlayer'
-import { ThumbsUp, ThumbsDown, Play, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Play, ArrowLeft, ChevronDown, ChevronUp, Users, Eye, EyeOff, Lock } from 'lucide-react'
 import { getContentDetail, getSeriesStructure, rateContent } from '@/api/catalog'
 import { getProgress, clearProgress } from '@/lib/progress'
 import { useAuth } from '@/context/AuthContext'
 import type { Movie, SeriesStructure, Episode } from '@/types'
 import { subscriptionAPI } from '@/services/api/subscriptionService'
+import { watchPartyAPI } from '@/api/watchParty'
+import { profilesAPI } from '@/api/profiles'
 import DownloadButton from '@/components/shared/DownloadButton'
+
+// Clasificaciones que requieren PIN en modo niño
+const ADULT_RATINGS = ['PG-13', 'R', 'NC-17', 'TV-14', 'TV-MA']
 
 export default function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -35,17 +40,24 @@ export default function MovieDetailPage() {
   const [hasSubscription, setHasSubscription] = useState<boolean>(false)
   const [isPremium, setIsPremium] = useState<boolean>(false)
 
+  // PIN parental
+  const [showPinModal, setShowPinModal] = useState(false)
+  const [pin, setPin] = useState('')
+  const [showPin, setShowPin] = useState(false)
+  const [pinError, setPinError] = useState('')
+  const [pinLoading, setPinLoading] = useState(false)
+  const [pendingPlay, setPendingPlay] = useState<(() => void) | null>(null)
+
+  // Watch Party
+  const [creatingParty, setCreatingParty] = useState(false)
+
 useEffect(() => {
   subscriptionAPI.getMySubscription()
     .then((sub: any) => {
-      console.log('subscription data:', sub) // 👈 aquí
       setHasSubscription(sub?.status === 'ACTIVE')
-      setIsPremium(sub?.status === 'ACTIVE' && sub?.planName === 'Premium')
+      setIsPremium(sub?.status === 'ACTIVE' && sub?.planName?.toLowerCase() === 'premium')
     })
-    .catch(() => {
-      setHasSubscription(false)
-      setIsPremium(false)
-    })
+    .catch(() => { setHasSubscription(false); setIsPremium(false) })
 }, [])
 
   useEffect(() => {
@@ -71,43 +83,117 @@ useEffect(() => {
           return getSeriesStructure(id).then(setStructure)
         }
       })
-      .catch(() => setError(true))
+      .catch((err) => {
+        // Si el perfil es niño y hay error 403/404, mostrar PIN en vez de error genérico
+        if (currentProfile?.isKidsMode && [403, 404].includes(err?.response?.status)) {
+          setPin('')
+          setPinError('')
+          setShowPinModal(true)
+        } else {
+          setError(true)
+        }
+      })
       .finally(() => setLoading(false))
   }, [id]) // eslint-disable-line
 
-  const handlePlay = () => {
-     if (!hasSubscription) {
-    navigate('/plans')
-    return
+  const isAdultContent = (ratingClass?: string) =>
+    ratingClass != null && ADULT_RATINGS.includes(ratingClass)
+
+  const requiresPin = () =>
+    currentProfile?.isKidsMode === true && isAdultContent(movie?.ratingClass)
+
+  // Mostrar PIN automáticamente si es perfil niño y contenido adulto
+  useEffect(() => {
+    if (movie && requiresPin()) {
+      setPin('')
+      setPinError('')
+      setShowPinModal(true)
+    }
+  }, [movie]) // eslint-disable-line
+
+  const withPinGuard = (action: () => void) => {
+    if (!requiresPin()) { action(); return }
+    setPendingPlay(() => action)
+    setPin('')
+    setPinError('')
+    setShowPinModal(true)
   }
-    if (movie?.type === 'series' && structure?.seasons[0]?.episodes[0]) {
-      const saved = getProgress(id!)
-      if (saved?.episodeNum && saved?.seasonNum) {
-        const season = structure.seasons.find((s) => s.number === saved.seasonNum)
-        const ep = season?.episodes.find((e) => e.episodeNum === saved.episodeNum)
-        if (ep) {
-          setPlayerEpisode(ep)
-          setPlayerSeasonNum(saved.seasonNum)
-          setShowPlayer(true)
-          return
+
+  const handlePinSubmit = async () => {
+    setPinLoading(true)
+    setPinError('')
+    try {
+      const res = await profilesAPI.verifyParentalPin(pin)
+      if (res.valid) {
+        setShowPinModal(false)
+        if (pendingPlay) {
+          pendingPlay()
+          setPendingPlay(null)
+        } else if (error || !movie) {
+          // Contenido no cargado aún — reintentarlo
+          setError(false)
+          setLoading(true)
+          getContentDetail(id!)
+            .then((detail) => { setMovie(detail); setRatingPct(detail.recommendationPct) })
+            .catch(() => setError(true))
+            .finally(() => setLoading(false))
         }
+      } else {
+        setPinError('PIN incorrecto')
       }
-      setPlayerEpisode(structure.seasons[0].episodes[0])
-      setPlayerSeasonNum(structure.seasons[0].number)
-      setShowPlayer(true)
-    } else {
-      setShowPlayer(true)
+    } catch {
+      setPinError('Error al verificar PIN')
+    } finally {
+      setPinLoading(false)
     }
   }
 
+  const handlePlay = () => {
+    if (!hasSubscription) { navigate('/plans'); return }
+    withPinGuard(() => {
+      if (movie?.type === 'series' && structure?.seasons[0]?.episodes[0]) {
+        const saved = getProgress(id!)
+        if (saved?.episodeNum && saved?.seasonNum) {
+          const season = structure.seasons.find((s) => s.number === saved.seasonNum)
+          const ep = season?.episodes.find((e) => e.episodeNum === saved.episodeNum)
+          if (ep) { setPlayerEpisode(ep); setPlayerSeasonNum(saved.seasonNum); setShowPlayer(true); return }
+        }
+        setPlayerEpisode(structure.seasons[0].episodes[0])
+        setPlayerSeasonNum(structure.seasons[0].number)
+        setShowPlayer(true)
+      } else {
+        setShowPlayer(true)
+      }
+    })
+  }
+
   const handleEpisodePlay = (ep: Episode, seasonNum: number) => {
-    if (!hasSubscription) {
-      navigate('/plans')
+    if (!hasSubscription) { navigate('/plans'); return }
+    withPinGuard(() => { setPlayerEpisode(ep); setPlayerSeasonNum(seasonNum); setShowPlayer(true) })
+  }
+
+  const handleWatchParty = async () => {
+    if (!movie || !id) return
+    if (!hasSubscription) { navigate('/plans'); return }
+    if (!isPremium) {
+      alert('La función Watch Party está disponible solo para suscriptores Premium.')
       return
     }
-    setPlayerEpisode(ep)
-    setPlayerSeasonNum(seasonNum)
-    setShowPlayer(true)
+    setCreatingParty(true)
+    try {
+      const room = await watchPartyAPI.create({
+        contentId: id,
+        contentTitle: movie.title,
+        posterUrl: movie.coverImage || '',
+        videoRef: movie.videoRef || '',
+        videoSource: movie.videoSource || '',
+      })
+      navigate(`/watch-party/${room.code}`)
+    } catch {
+      alert('No se pudo crear la sala. Inténtalo de nuevo.')
+    } finally {
+      setCreatingParty(false)
+    }
   }
 
   const handleRate = async (newThumb: 'UP' | 'DOWN') => {
@@ -133,6 +219,62 @@ useEffect(() => {
     )
   }
 
+  // Modo niño con contenido bloqueado — mostrar PIN aunque el detail haya fallado
+  if ((error || !movie) && showPinModal && currentProfile?.isKidsMode) {
+    return (
+      <MainLayout>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-[#1a1408] border border-spotlight/40 p-8 w-full max-w-sm mx-4">
+            <div className="flex items-center gap-3 mb-6">
+              <Lock size={20} className="text-spotlight" />
+              <h2 className="font-display text-xl text-parchment">Control Parental</h2>
+            </div>
+            <p className="text-silver/70 font-mono text-sm mb-2">
+              Este contenido está restringido para el perfil activo (modo niño).
+            </p>
+            <p className="text-silver/50 font-mono text-xs mb-6">
+              Ingresa el PIN parental para acceder.
+            </p>
+            <div className="relative mb-4">
+              <input
+                type={showPin ? 'text' : 'password'}
+                inputMode="numeric"
+                maxLength={4}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                onKeyDown={(e) => { if (e.key === 'Enter' && pin.length === 4) handlePinSubmit() }}
+                placeholder="••••"
+                className="w-full bg-[#0f0b04] border border-[#3a2e1a] focus:border-spotlight text-parchment font-mono text-center text-2xl tracking-[0.5em] px-4 py-3 outline-none"
+              />
+              <button
+                onClick={() => setShowPin(!showPin)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-silver/40 hover:text-silver"
+              >
+                {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {pinError && <p className="text-red-400 font-mono text-xs mb-4">{pinError}</p>}
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowPinModal(false); navigate(-1) }}
+                className="flex-1 border border-[#3a2e1a] hover:border-spotlight/50 text-silver font-mono text-sm py-2 transition-colors"
+              >
+                Volver
+              </button>
+              <button
+                onClick={handlePinSubmit}
+                disabled={pin.length !== 4 || pinLoading}
+                className="flex-1 bg-spotlight text-film font-mono text-sm py-2 disabled:opacity-40 transition-colors"
+              >
+                {pinLoading ? 'Verificando...' : 'Continuar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
+
   if (error || !movie) {
     return (
       <MainLayout>
@@ -153,6 +295,60 @@ useEffect(() => {
 
   return (
     <MainLayout>
+      {/* Modal PIN parental */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-[#1a1408] border border-spotlight/40 p-8 w-full max-w-sm mx-4">
+            <div className="flex items-center gap-3 mb-6">
+              <Lock size={20} className="text-spotlight" />
+              <h2 className="font-display text-xl text-parchment">Control Parental</h2>
+            </div>
+            <p className="text-silver/70 font-mono text-sm mb-2">
+              <span className="text-parchment font-bold">{movie?.title}</span> está clasificado{' '}
+              <span className="text-spotlight font-bold">{movie?.ratingClass}</span> y el perfil activo está en modo niño.
+            </p>
+            <p className="text-silver/50 font-mono text-xs mb-6">
+              Ingresa el PIN parental para acceder a este contenido.
+            </p>
+            <div className="relative mb-4">
+              <input
+                type={showPin ? 'text' : 'password'}
+                inputMode="numeric"
+                maxLength={4}
+                value={pin}
+                onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setPinError('') }}
+                onKeyDown={(e) => e.key === 'Enter' && pin.length === 4 && handlePinSubmit()}
+                placeholder="● ● ● ●"
+                className="w-full bg-[#0f0b04] border border-[#3a2e1a] focus:border-spotlight text-parchment font-mono text-center text-2xl tracking-[1rem] px-4 py-3 outline-none"
+                autoFocus
+              />
+              <button
+                onClick={() => setShowPin(!showPin)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-silver/40 hover:text-silver"
+              >
+                {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {pinError && <p className="text-red-400 font-mono text-xs mb-4">{pinError}</p>}
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowPinModal(false); setPendingPlay(null); navigate(-1) }}
+                className="flex-1 border border-[#3a2e1a] hover:border-spotlight/50 text-silver font-mono text-sm py-2 transition-colors"
+              >
+                Volver
+              </button>
+              <button
+                onClick={handlePinSubmit}
+                disabled={pin.length !== 4 || pinLoading}
+                className="flex-1 bg-spotlight hover:bg-spotlight/80 disabled:opacity-40 text-film font-mono text-sm py-2 transition-colors"
+              >
+                {pinLoading ? 'Verificando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showPlayer && (
         <VideoPlayer
           contentId={id!}
@@ -247,6 +443,25 @@ useEffect(() => {
             <Play size={16} fill="currentColor" />
             {savedProgress && savedProgress.minuteReached > 0 ? 'Continuar' : 'Reproducir'}
           </button>
+
+          {movie.type !== 'series' && (
+            <button
+              onClick={handleWatchParty}
+              disabled={creatingParty}
+              title={!isPremium && hasSubscription ? 'Solo disponible para suscriptores Premium' : undefined}
+              className={`flex items-center gap-2 border px-6 py-3 font-mono text-sm tracking-widest uppercase transition-colors disabled:opacity-50 ${
+                isPremium
+                  ? 'border-[#3a2e1a] hover:border-spotlight text-silver hover:text-spotlight'
+                  : 'border-[#3a2e1a]/50 text-silver/40 cursor-not-allowed'
+              }`}
+            >
+              <Users size={16} />
+              {creatingParty ? 'Creando...' : 'Watch Party'}
+              {!isPremium && hasSubscription && (
+                <span className="ml-1 text-[10px] text-spotlight/60 font-normal normal-case tracking-normal">Premium</span>
+              )}
+            </button>
+          )}
 
           <div className="flex items-center gap-2 ml-2">
             <button

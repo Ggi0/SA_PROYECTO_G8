@@ -1,14 +1,16 @@
 import * as http from 'node:http';
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Request, Response } from 'express';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Metadata } from '@grpc/grpc-js';
 
 interface CatalogGrpcService {
   // Público
   getCatalog(data: { contentType: string; genreId: number; page: number; pageSize: number }): Observable<unknown>;
-  getContentDetail(data: { contentId: string }): Observable<unknown>;
-  getSeriesStructure(data: { contentId: string }): Observable<unknown>;
+  getContentDetail(data: { contentId: string }, metadata?: Metadata): Observable<unknown>;
+  getSeriesStructure(data: { contentId: string }, metadata?: Metadata): Observable<unknown>;
   searchContent(data: { query: string; contentType: string }): Observable<unknown>;
   listGenres(data: Record<string, never>): Observable<unknown>;
   getPerson(data: { personId: string }): Observable<unknown>;
@@ -57,11 +59,27 @@ export class CatalogService implements OnModuleInit {
   getCatalog(contentType = '', genreId = 0, page = 1, pageSize = 24) {
     return this.grpcClient.getCatalog({ contentType, genreId, page, pageSize });
   }
-  getContentDetail(contentId: string) {
-    return this.grpcClient.getContentDetail({ contentId });
+  getContentDetail(contentId: string, maxRating = 'NC-17') {
+    const md = new Metadata();
+    md.add('x-max-rating', maxRating);
+    return this.grpcClient.getContentDetail({ contentId }, md).pipe(
+      catchError((err) => {
+        if (err?.code === 7) return throwError(() => new ForbiddenException('Contenido restringido por control parental'));
+        if (err?.code === 5) return throwError(() => new NotFoundException('Contenido no encontrado'));
+        return throwError(() => err);
+      }),
+    );
   }
-  getSeriesStructure(contentId: string) {
-    return this.grpcClient.getSeriesStructure({ contentId });
+  getSeriesStructure(contentId: string, maxRating = 'NC-17') {
+    const md = new Metadata();
+    md.add('x-max-rating', maxRating);
+    return this.grpcClient.getSeriesStructure({ contentId }, md).pipe(
+      catchError((err) => {
+        if (err?.code === 7) return throwError(() => new ForbiddenException('Contenido restringido por control parental'));
+        if (err?.code === 5) return throwError(() => new NotFoundException('Contenido no encontrado'));
+        return throwError(() => err);
+      }),
+    );
   }
   searchContent(query: string, contentType = '') {
     return this.grpcClient.searchContent({ query, contentType });

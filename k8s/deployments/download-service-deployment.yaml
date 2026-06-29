@@ -35,3 +35,5 @@ spec:
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: JWT_SECRET } }
             - name: GCS_BUCKET
               valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: GCS_BUCKET_NAME } }
+          readinessProbe: { tcpSocket: { port: 50057 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { tcpSocket: { port: 50057 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }

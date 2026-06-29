@@ -6,6 +6,7 @@ import RegisterPage from '@/pages/RegisterPage'
 import ProfilesPage from '@/pages/ProfilesPage'
 import HomePage from '@/pages/HomePage'
 import MovieDetailPage from '@/pages/MovieDetailPage'
+import WatchPartyPage from '@/pages/WatchPartyPage'
 import PlansPage from '@/pages/PlansPage'
 import AccountPage from '@/pages/AccountPage'
 import CheckoutPage from '@/pages/CheckoutPage'
@@ -38,6 +39,9 @@ export default function AppRoutes() {
       } />
       <Route path="/movie/:id" element={
         <ProtectedRoute><MovieDetailPage /></ProtectedRoute>
+      } />
+      <Route path="/watch-party/:code" element={
+        <ProtectedRoute><WatchPartyPage /></ProtectedRoute>
       } />
       <Route path="/account" element={
         <ProtectedRoute><AccountPage /></ProtectedRoute>

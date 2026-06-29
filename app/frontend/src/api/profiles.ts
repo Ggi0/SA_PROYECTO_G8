@@ -86,4 +86,14 @@ export const profilesAPI = {
 
     return res.data
   },
+
+  setParentalPin: async (pin: string) => {
+    const res = await api.post('/auth/parental/pin', { pin })
+    return res.data as { success: boolean; message: string }
+  },
+
+  verifyParentalPin: async (pin: string) => {
+    const res = await api.post('/auth/parental/verify', { pin })
+    return res.data as { valid: boolean }
+  },
 }
