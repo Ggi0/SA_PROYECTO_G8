@@ -150,6 +150,42 @@ export async function getUserRating(
     return null
   }
 }
+
+export async function getRecommendations(limit = 20): Promise<Movie[]> {
+  try {
+    const res = await gateway.get('/catalog/recommendations', { params: { limit } })
+    const data = res.data as {
+      recommendations: Array<{
+        contentId: string
+        contentType: string
+        title: string
+        releaseYear: number
+        durationMin: number
+        ratingClass: string
+        posterUrl: string
+        recommendationPct: number
+        score: number
+      }>
+    }
+    return (data.recommendations || []).map((r) => ({
+      id: r.contentId,
+      title: r.title,
+      description: '',
+      coverImage: r.posterUrl || '',
+      genre: [],
+      year: r.releaseYear || 0,
+      rating: 0,
+      recommendationPct: r.recommendationPct || 0,
+      type: r.contentType === 'SERIES' ? 'series' : ('movie' as const),
+      cast: [],
+      durationMin: r.durationMin || 0,
+      ratingClass: r.ratingClass || '',
+    }))
+  } catch {
+    return []
+  }
+}
+
 ////////////////////// Admin functions
 // ─────────────────────────────────────────────────────────────────────────────
 // AGREGAR estas funciones al final de src/api/catalog.ts

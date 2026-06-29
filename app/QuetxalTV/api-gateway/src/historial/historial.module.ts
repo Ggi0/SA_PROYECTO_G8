@@ -16,6 +16,7 @@ import { HistorialService } from './historial.service';
             package: 'historial',
             protoPath: join(__dirname, '../proto/historial.proto'),
             url: process.env.HISTORIAL_SERVICE_URL || 'localhost:50055',
+            loader: { keepCase: true },
           },
         }),
       },

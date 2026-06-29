@@ -10,17 +10,17 @@ import {
   Query,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { CatalogService } from './catalog.service';
-import { NotificationClient } from '../notification/notification.client';
+import { AuthJwtGuard, AuthRequest, OptionalAuthJwtGuard } from '../common/guards/auth-jwt.guard';
+
+type RequestWithAuth = Request & { authUser?: AuthRequest['authUser'] };
 
 @Controller('catalog')
 export class CatalogController {
-  constructor(
-    private readonly catalogService: CatalogService,
-    private readonly notificationClient: NotificationClient,
-  ) {}
+  constructor(private readonly catalogService: CatalogService) {}
 
   // ===== Público =====
 
@@ -54,14 +54,33 @@ export class CatalogController {
     return this.catalogService.getPerson(id);
   }
 
+  // GET /catalog/recommendations?max_rating=PG&limit=20
+  // Pasa profile_id desde el JWT; proxea al servidor HTTP del catalog-service
+  @Get('recommendations')
+  @UseGuards(AuthJwtGuard)
+  getRecommendations(@Query('limit') limit: string, @Req() req: AuthRequest, @Res() res: Response) {
+    const profileId = req.authUser?.activeProfileId ?? ''
+    const maxRating = req.authUser?.maxRating ?? 'NC-17'
+    const qs = new URLSearchParams({
+      profile_id: profileId,
+      max_rating: maxRating,
+      limit: limit || '20',
+    }).toString()
+    this.catalogService.proxyGet('/recommendations', qs, res)
+  }
+
   @Get('content/:id')
-  getContentDetail(@Param('id') id: string) {
-    return this.catalogService.getContentDetail(id);
+  @UseGuards(OptionalAuthJwtGuard)
+  getContentDetail(@Param('id') id: string, @Req() req: RequestWithAuth) {
+    const maxRating = req.authUser?.maxRating ?? 'NC-17';
+    return this.catalogService.getContentDetail(id, maxRating);
   }
 
   @Get('series/:id/structure')
-  getSeriesStructure(@Param('id') id: string) {
-    return this.catalogService.getSeriesStructure(id);
+  @UseGuards(OptionalAuthJwtGuard)
+  getSeriesStructure(@Param('id') id: string, @Req() req: RequestWithAuth) {
+    const maxRating = req.authUser?.maxRating ?? 'NC-17';
+    return this.catalogService.getSeriesStructure(id, maxRating);
   }
 
   @Get('content/:id/rating')
@@ -95,20 +114,8 @@ export class CatalogController {
   }
 
   @Post('admin/content/:id/publish')
-  async publishContent(@Param('id') id: string) {
-    const result = await this.catalogService.publishContent(id) as any;
-     try {
-    const title = result?.title || result?.content?.title || 'Nuevo contenido';
-    const type = result?.type || result?.content?.type || 'MOVIE';
-    this.notificationClient.sendNewContentAlert({
-      content_title: title,
-      content_type:  type.toUpperCase(),
-      content_id:    id,
-    }).catch((err: any) => console.warn('Alerta de contenido fallida:', err));
-  } catch (e) {
-    // No bloquear el publish si la notificación falla
-  }
-    return result;
+  publishContent(@Param('id') id: string) {
+    return this.catalogService.publishContent(id);
   }
 
   @Delete('admin/content/:id')
