@@ -220,3 +220,6 @@ func (m *mockRepo) ListAllContent(ct string, gid, p, ps int) ([]CatalogCardRow, 
 	}
 	return nil, 0, nil
 }
+func (m *mockRepo) GetRecommendations(profileID, maxRating string, limit int) ([]RecommendationRow, error) {
+	return nil, nil
+}

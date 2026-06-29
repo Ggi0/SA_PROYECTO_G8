@@ -51,7 +51,11 @@ interface AuthGrpcService {
 
   // admin
   GetAllUsersWithProfiles(data: unknown): Observable<unknown>;
-GetAuditEventLogs(data: unknown): Observable<unknown>;
+  GetAuditEventLogs(data: unknown): Observable<unknown>;
+
+  // ── Control parental ───────────────
+  SetParentalPin(data: unknown): Observable<unknown>;
+  VerifyParentalPin(data: unknown): Observable<unknown>;
 }
 
 @Injectable()
@@ -296,6 +300,18 @@ healthLive() {
 
 healthReady() {
   return this.call(this.authSvc.HealthReady({}));
+}
+
+// ─────────────────────────────────────────────
+//  CONTROL PARENTAL
+// ─────────────────────────────────────────────
+
+setParentalPin(userId: string, pin: string) {
+  return this.call(this.authSvc.SetParentalPin({ userId, pin }));
+}
+
+verifyParentalPin(userId: string, pin: string) {
+  return this.call(this.authSvc.VerifyParentalPin({ userId, pin }));
 }
 
 

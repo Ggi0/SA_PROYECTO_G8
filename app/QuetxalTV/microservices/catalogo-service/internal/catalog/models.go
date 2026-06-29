@@ -190,3 +190,16 @@ type AuditLogFilter struct {
 	Page      int
 	PageSize  int
 }
+
+// RecommendationRow es la fila que devuelve GetRecommendations.
+type RecommendationRow struct {
+	ContentID         string
+	ContentType       string
+	Title             string
+	ReleaseYear       int
+	DurationMin       int
+	RatingClass       string
+	PosterURL         string
+	RecommendationPct float64
+	Score             float64
+}

@@ -83,3 +83,26 @@ export interface ProfileDto {
     accessToken:   string;
     activeProfile: ProfileDto;
   }
+
+  // ─────────────────────────────────────────────
+  //  PARENTAL PIN
+  // ─────────────────────────────────────────────
+
+  export interface SetParentalPinRequest {
+    userId: string;
+    pin:    string; // 4 dígitos, o vacío para eliminar PIN
+  }
+
+  export interface SetParentalPinResponse {
+    success: boolean;
+    message: string;
+  }
+
+  export interface VerifyParentalPinRequest {
+    userId: string;
+    pin:    string;
+  }
+
+  export interface VerifyParentalPinResponse {
+    valid: boolean;
+  }
