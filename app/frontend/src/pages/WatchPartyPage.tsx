@@ -12,7 +12,8 @@ import {
 
 const FALLBACK_VIDEO = 'https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4'
 
-const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:3000'
+// En producción sin VITE_GATEWAY_URL, el WebSocket va al mismo origen (nginx proxea /socket.io/ al gateway)
+const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || window.location.origin
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
