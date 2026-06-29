@@ -1,36 +1,46 @@
 import { useState, useEffect } from 'react'
 import { Download, Check, Lock, Trash2 } from 'lucide-react'
 import { downloadAPI } from '@/api/download'
+import {
+  storeEncryptedVideo,
+  getDecryptedVideoUrl,
+  isStoredLocally,
+  deleteLocalDownload,
+} from '@/lib/encryptedStorage'
 
 interface DownloadButtonProps {
   contentId: string
   contentTitle: string
-  isPremium: boolean  // true si el usuario tiene Plan Premium
+  isPremium: boolean
+  thumbnail?: string
+  onOfflineReady?: (objectUrl: string) => void
 }
 
 type DownloadState = 'idle' | 'loading' | 'done' | 'error'
 
-export default function DownloadButton({ contentId, contentTitle, isPremium }: DownloadButtonProps) {
+export default function DownloadButton({
+  contentId,
+  contentTitle,
+  isPremium,
+  thumbnail = '',
+  onOfflineReady,
+}: DownloadButtonProps) {
   const [state, setState] = useState<DownloadState>('idle')
   const [downloadId, setDownloadId] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0)
   const [message, setMessage] = useState('')
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
-  // Al montar, verificar si ya está descargado
+  // Al montar, verificar si ya está almacenado localmente
   useEffect(() => {
-  if (!isPremium) return
-  downloadAPI.listDownloads()
-    .then(({ downloads }) => {
-      const existing = (downloads as any[]).find(
-        (d) => d.content_id === contentId && d.status === 3  // 3 = COMPLETED
-      )
-      if (existing) {
-        setDownloadId(existing.download_id ?? existing.downloadId)
+    if (!isPremium) return
+    isStoredLocally(contentId).then(({ stored, downloadId: dlId }) => {
+      if (stored && dlId) {
+        setDownloadId(dlId)
         setState('done')
       }
     })
-    .catch(() => {})
-}, [contentId, isPremium])
+  }, [contentId, isPremium])
 
   // ── Plan no Premium → botón bloqueado ──────────────────
   if (!isPremium) {
@@ -45,11 +55,22 @@ export default function DownloadButton({ contentId, contentTitle, isPremium }: D
     )
   }
 
-  // ── Descarga completada → opción de eliminar ────────────
+  // ── Descarga completada ─────────────────────────────────
   if (state === 'done' && downloadId) {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 border border-green-500/40 bg-green-500/10 px-5 py-3 font-mono text-sm text-green-400">
+        <div
+          className="flex items-center gap-2 border border-green-500/40 bg-green-500/10 px-5 py-3 font-mono text-sm text-green-400 cursor-pointer hover:bg-green-500/20 transition-colors"
+          onClick={async () => {
+            try {
+              const url = await getDecryptedVideoUrl(downloadId)
+              onOfflineReady?.(url)
+            } catch {
+              // Si no está en local, el VideoPlayer usa la URL normal
+            }
+          }}
+          title="Ver contenido descargado offline"
+        >
           <Check size={14} />
           <span className="tracking-widest uppercase text-xs">Descargado</span>
         </div>
@@ -59,7 +80,8 @@ export default function DownloadButton({ contentId, contentTitle, isPremium }: D
             <span className="text-silver/50 font-mono text-xs">¿Eliminar?</span>
             <button
               onClick={async () => {
-                await downloadAPI.deleteDownload(downloadId)
+                await downloadAPI.deleteDownload(downloadId).catch(() => {})
+                await deleteLocalDownload(downloadId).catch(() => {})
                 setDownloadId(null)
                 setState('idle')
                 setShowConfirmDelete(false)
@@ -88,12 +110,24 @@ export default function DownloadButton({ contentId, contentTitle, isPremium }: D
     )
   }
 
-  // ── Descargando ─────────────────────────────────────────
+  // ── Descargando con progreso ────────────────────────────
   if (state === 'loading') {
     return (
-      <div className="flex items-center gap-2 border border-spotlight/30 bg-spotlight/5 px-5 py-3 font-mono text-sm text-spotlight/70">
-        <Download size={14} className="animate-bounce" />
-        <span className="tracking-widest uppercase text-xs">Descargando...</span>
+      <div className="flex flex-col gap-1 border border-spotlight/30 bg-spotlight/5 px-5 py-3 font-mono text-sm text-spotlight/70 min-w-[160px]">
+        <div className="flex items-center gap-2">
+          <Download size={14} className="animate-bounce shrink-0" />
+          <span className="tracking-widest uppercase text-xs">
+            {progress > 0 ? `Cifrando ${progress}%` : 'Iniciando...'}
+          </span>
+        </div>
+        {progress > 0 && (
+          <div className="h-0.5 bg-spotlight/20 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-spotlight rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
       </div>
     )
   }
@@ -102,7 +136,7 @@ export default function DownloadButton({ contentId, contentTitle, isPremium }: D
   if (state === 'error') {
     return (
       <button
-        onClick={() => setState('idle')}
+        onClick={() => { setState('idle'); setProgress(0) }}
         className="flex items-center gap-2 border border-red-500/40 bg-red-500/10 px-5 py-3 font-mono text-sm text-red-400 hover:bg-red-500/20 transition-colors"
         title={message}
       >
@@ -113,24 +147,49 @@ export default function DownloadButton({ contentId, contentTitle, isPremium }: D
   }
 
   // ── Idle → botón principal ──────────────────────────────
- const handleDownload = async () => {
-  setState('loading')
-  try {
-    const res = await downloadAPI.initiateDownload(contentId, 3, contentTitle, '')
-    console.log('respuesta descarga:', res)  // ← agregar
-    if (!res.allowed) {
-      setMessage(res.message)
+  const handleDownload = async () => {
+    setState('loading')
+    setProgress(0)
+
+    try {
+      // 1. Registrar descarga en el backend
+      const res = await downloadAPI.initiateDownload(contentId, 3, contentTitle, thumbnail)
+
+      if (!res.allowed) {
+        setMessage(res.message)
+        setState('error')
+        return
+      }
+
+      const dlId = res.download_id ?? res.downloadId ?? crypto.randomUUID()
+      const gcsUrl = res.gcs_url ?? res.gcsUrl ?? ''
+      const expiresAt = typeof res.expires_at === 'object'
+        ? (res.expires_at as any).low
+        : (res.expires_at ?? 0)
+
+      if (!gcsUrl) {
+        setMessage('URL de descarga no disponible.')
+        setState('error')
+        return
+      }
+
+      // 2. Descargar, cifrar con AES-256-GCM y almacenar en IndexedDB
+      await storeEncryptedVideo(
+        dlId,
+        gcsUrl,
+        { contentId, title: contentTitle, thumbnail, expiresAt },
+        (pct) => setProgress(pct)
+      )
+
+      setDownloadId(dlId)
+      setState('done')
+
+    } catch (err: any) {
+      console.error('[Download] Error:', err)
+      setMessage(`No se pudo descargar "${contentTitle}". Intenta de nuevo.`)
       setState('error')
-      return
     }
-    setDownloadId(res.download_id ?? res.downloadId ?? null)
-    setState('done')
-  } catch (err) {
-    console.log('error:', err)  // ← agregar
-    setMessage(`No se pudo descargar "${contentTitle}". Intenta de nuevo.`)
-    setState('error')
   }
-}
 
   return (
     <button
