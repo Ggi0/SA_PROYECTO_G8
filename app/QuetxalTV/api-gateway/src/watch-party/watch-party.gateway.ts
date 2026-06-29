@@ -12,6 +12,8 @@ import { WatchPartyService } from './watch-party.service';
 
 @WebSocketGateway({
   cors: { origin: '*', credentials: true },
+  pingInterval: 20000,
+  pingTimeout: 5000,
 })
 export class WatchPartyGateway implements OnGatewayDisconnect {
   @WebSocketServer()
