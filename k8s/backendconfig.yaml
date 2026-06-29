@@ -4,7 +4,6 @@ metadata:
   name: api-gateway-backendconfig
   namespace: quetxal-tv-prod
 spec:
-  timeoutSec: 3600
   healthCheck:
     type: HTTP
     requestPath: /health
