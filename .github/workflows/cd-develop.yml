@@ -220,14 +220,18 @@ jobs:
     needs: [provision-infra, deploy]
     runs-on: ubuntu-latest
     steps:
-      - name: Probe VM dev endpoints
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests -q
+      - name: Run smoke tests
+        env:
+          BASE_URL: "http://${{ needs.provision-infra.outputs.dev_host || secrets.GCE_INSTANCE_IP }}:3000"
         run: |
           set -euo pipefail
-          HOST="${{ needs.provision-infra.outputs.dev_host || secrets.GCE_INSTANCE_IP }}"
-          BASE="http://$HOST:3000"
-          FRONT="http://$HOST:8080"
-          curl -fsS --retry 5 --retry-delay 10 "$BASE/health" >/dev/null
-          curl -fsS --retry 5 --retry-delay 10 "$FRONT/" >/dev/null
+          # Esperar que el servicio esté listo
+          curl -fsS --retry 5 --retry-delay 10 "$BASE_URL/api/health" >/dev/null
+          # Correr smoke tests
+          python tests/smoke/smoke_test.py
 
   backup-after-deploy:
     name: Backup after deploy
