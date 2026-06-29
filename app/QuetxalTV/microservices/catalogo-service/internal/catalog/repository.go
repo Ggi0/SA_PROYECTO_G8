@@ -749,3 +749,93 @@ func nullableInt(i int) any {
 	}
 	return i
 }
+
+// GetRecommendations implementa el motor de recomendación híbrido (content-based + popularidad).
+func (r *Repository) GetRecommendations(profileID, maxRating string, limit int) ([]RecommendationRow, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 20
+	}
+	query := `
+WITH liked_genres AS (
+    SELECT DISTINCT cg.genre_id
+    FROM ratings r
+    JOIN content_genres cg ON r.content_id = cg.content_id
+    WHERE r.profile_id = $1::UUID AND r.thumb = 'UP'
+),
+liked_actors AS (
+    SELECT DISTINCT cp.person_id
+    FROM ratings r
+    JOIN content_people cp ON r.content_id = cp.content_id
+    WHERE r.profile_id = $1::UUID AND r.thumb = 'UP' AND cp.role_type = 'ACTOR'
+),
+already_rated AS (
+    SELECT content_id FROM ratings WHERE profile_id = $1::UUID
+),
+rating_order AS (
+    SELECT unnest(ARRAY['G','PG','PG-13','R','NC-17']) AS rating,
+           generate_series(1,5) AS ord
+),
+scored AS (
+    SELECT
+        c.content_id,
+        c.content_type,
+        c.title,
+        COALESCE(c.release_year, 0)              AS release_year,
+        COALESCE(c.duration_min, 0)              AS duration_min,
+        COALESCE(c.rating_class, '')             AS rating_class,
+        COALESCE(c.poster_url, '')               AS poster_url,
+        COALESCE(fn_recommendation_percentage(c.content_id), 0) AS recommendation_pct,
+        (
+            COALESCE((
+                SELECT COUNT(*) * 2.0
+                FROM content_genres cg
+                WHERE cg.content_id = c.content_id
+                  AND cg.genre_id IN (SELECT genre_id FROM liked_genres)
+            ), 0)
+            + COALESCE((
+                SELECT COUNT(*) * 1.5
+                FROM content_people cp
+                WHERE cp.content_id = c.content_id
+                  AND cp.person_id IN (SELECT person_id FROM liked_actors)
+                  AND cp.role_type = 'ACTOR'
+            ), 0)
+            + COALESCE(fn_recommendation_percentage(c.content_id), 0) * 0.4
+            + CASE WHEN COALESCE(c.release_year, 0) >= EXTRACT(YEAR FROM NOW())::INT - 3
+                   THEN 1.0 ELSE 0.0 END
+        ) AS score
+    FROM content c
+    WHERE c.is_published = TRUE
+      AND c.content_id NOT IN (SELECT content_id FROM already_rated)
+      AND (
+          $2 = 'NC-17'
+          OR c.rating_class IS NULL OR c.rating_class = ''
+          OR COALESCE((SELECT ord FROM rating_order WHERE rating = c.rating_class), 5)
+             <= COALESCE((SELECT ord FROM rating_order WHERE rating = $2), 5)
+      )
+)
+SELECT content_id, content_type, title, release_year, duration_min,
+       rating_class, poster_url, recommendation_pct, score
+FROM scored
+ORDER BY score DESC, recommendation_pct DESC
+LIMIT $3`
+
+	rows, err := r.db.Query(query, profileID, maxRating, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []RecommendationRow
+	for rows.Next() {
+		var row RecommendationRow
+		if err := rows.Scan(
+			&row.ContentID, &row.ContentType, &row.Title, &row.ReleaseYear,
+			&row.DurationMin, &row.RatingClass, &row.PosterURL,
+			&row.RecommendationPct, &row.Score,
+		); err != nil {
+			return nil, err
+		}
+		result = append(result, row)
+	}
+	return result, rows.Err()
+}

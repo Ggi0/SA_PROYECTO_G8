@@ -125,4 +125,26 @@ await this.profileRepo.update(
   async delete(profileId: string): Promise<void> {
     await this.profileRepo.delete({ profileId });
   }
+
+  // ─────────────────────────────────────────────
+  //  PERFIL MAESTRO (primer perfil creado → guarda el PIN parental)
+  // ─────────────────────────────────────────────
+
+  async findMasterProfile(userId: string): Promise<Profile | null> {
+    return this.profileRepo.findOne({
+      where: { userId },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async setParentalPin(userId: string, hashedPin: string | null): Promise<void> {
+    const master = await this.findMasterProfile(userId);
+    if (!master) return;
+    await this.profileRepo.update({ profileId: master.profileId }, { parentalPin: hashedPin });
+  }
+
+  async getParentalPin(userId: string): Promise<string | null> {
+    const master = await this.findMasterProfile(userId);
+    return master?.parentalPin ?? null;
+  }
 }
