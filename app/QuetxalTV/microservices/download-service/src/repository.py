@@ -35,15 +35,17 @@ class DownloadRepository:
         profile_id: str,
         content_id: str,
         gcs_url: str,
-        expires_at: datetime
+        expires_at: datetime,
+        title: str = '',
+        thumbnail: str = ''
     ) -> None:
         sql = """
             INSERT INTO downloads (
                 download_id, user_id, profile_id, content_id,
-                gcs_url, status, expires_at, created_at
+                gcs_url, status, expires_at, created_at, title, thumbnail
             ) VALUES (
                 %(download_id)s, %(user_id)s, %(profile_id)s, %(content_id)s,
-                %(gcs_url)s, 'QUEUED', %(expires_at)s, NOW()
+                %(gcs_url)s, 'COMPLETED', %(expires_at)s, NOW(), %(title)s, %(thumbnail)s
             )
         """
         with self._get_conn() as conn:
@@ -54,7 +56,9 @@ class DownloadRepository:
                     "profile_id": profile_id,
                     "content_id": content_id,
                     "gcs_url": gcs_url,
-                    "expires_at": expires_at
+                    "expires_at": expires_at,
+                    "title": title,
+                    "thumbnail": thumbnail
                 })
             conn.commit()
 

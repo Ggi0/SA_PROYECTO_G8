@@ -31,6 +31,7 @@ message InitiateDownloadRequest {
   string profile_id = 2;
   string content_id = 3;
   SubscriptionPlan plan = 4;
+  string token      = 5;  //
 }
 
 message InitiateDownloadResponse {
@@ -41,10 +42,12 @@ message InitiateDownloadResponse {
   int64  expires_at    = 5;
 }
 
+
 message ListDownloadsRequest {
   string user_id    = 1;
   string profile_id = 2;
   SubscriptionPlan plan = 3;
+  string token      = 4;  // ← agregar
 }
 
 message DownloadItem {
@@ -56,6 +59,7 @@ message DownloadItem {
   int64  created_at   = 6;
   int64  expires_at   = 7;
   int64  size_bytes   = 8;
+  string gcs_url      = 9;   // ← agregar
 }
 
 message ListDownloadsResponse {
@@ -69,6 +73,7 @@ message DeleteDownloadRequest {
   string profile_id  = 2;
   string download_id = 3;
   SubscriptionPlan plan = 4;
+  string token       = 5;  // 
 }
 
 message DeleteDownloadResponse {
