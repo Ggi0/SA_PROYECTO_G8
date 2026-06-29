@@ -61,6 +61,20 @@
         project_src: /opt/observability/metrics
         state: present
 
-    - name: Instalar Locust (para pruebas de carga)
-      # Debian 12 marca el entorno como "externally managed"; permitimos pip global.
-      pip: { name: locust, extra_args: --break-system-packages }
+    - name: Crear virtualenv para Locust
+      command: python3 -m venv /opt/observability/load/.venv
+      args:
+        creates: /opt/observability/load/.venv/bin/python
+
+    - name: Instalar Locust aislado
+      pip:
+        name:
+          - locust==2.31.6
+        virtualenv: /opt/observability/load/.venv
+
+    - name: Exponer comando locust del virtualenv
+      file:
+        src: /opt/observability/load/.venv/bin/locust
+        dest: /usr/local/bin/locust
+        state: link
+        force: true

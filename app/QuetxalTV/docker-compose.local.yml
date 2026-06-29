@@ -39,7 +39,7 @@ services:
     ports:
       - "5434:5432"
     environment:
-      POSTGRES_USER: auth_usert
+      POSTGRES_USER: auth_user
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: auth_db
     volumes:

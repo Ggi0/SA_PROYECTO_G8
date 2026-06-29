@@ -7,6 +7,7 @@ const NAV_ITEMS = [
     { label: 'Dashboard',   href: '/admin',          icon: Film         },
     { label: 'Catálogo',    href: '/admin/catalog',  icon: Film         },
     { label: 'Auditoría',   href: '/admin/audit',    icon: ScrollText   },
+    { label: 'Periles',   href: '/admin/users',    icon: ScrollText   },
 ]
 
 export default function LayoutAdmin() {
