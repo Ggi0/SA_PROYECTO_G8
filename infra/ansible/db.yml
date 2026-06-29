@@ -100,13 +100,14 @@
         - { src: "{{ repo_sql_dir }}/fx.sql",            dest: "fx.sql" }
         - { src: "{{ repo_sql_dir }}/notificacion.sql",  dest: "notificacion.sql" }
         - { src: "{{ repo_sql_dir }}/historial.sql",     dest: "historial.sql" }
+        - { src: "{{ repo_sql_dir }}/download.sql",      dest: "download.sql" }
 
     - name: Copiar docker-compose de BDs
       template:
         src: files/docker-compose.db.yml
         dest: /opt/quetxal/docker-compose.db.yml
 
-    - name: Levantar las 6 bases de datos
+    - name: Levantar las bases de datos
       community.docker.docker_compose_v2:
         project_src: /opt/quetxal
         files: [docker-compose.db.yml]

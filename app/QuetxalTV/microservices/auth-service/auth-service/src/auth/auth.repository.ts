@@ -56,6 +56,15 @@ export class AuthRepository {
     await this.userRepo.update({ userId }, { isActive: true });
   }
 
+  async updateLastLogin(userId: string): Promise<void> {
+  await this.userRepo.update(
+    { userId },
+    {
+      lastLoginAt: new Date(),
+    },
+  );
+}
+
   async updatePassword(userId: string, passwordHash: string): Promise<void> {
     // El trigger trg_audit_password_change registra esto automáticamente
     await this.userRepo.update({ userId }, { passwordHash });

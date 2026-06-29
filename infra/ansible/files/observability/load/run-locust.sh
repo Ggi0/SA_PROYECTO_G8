@@ -9,7 +9,7 @@ TS=$(date +%Y%m%d_%H%M%S)
 OUT="/opt/observability/load/locust_report_${TS}.html"
 
 cd "$(dirname "$0")"
-locust -f locustfile.py --host "$HOST" \
+./.venv/bin/locust -f locustfile.py --host "$HOST" \
   --users "$USERS" --spawn-rate "$SPAWN" --run-time "$TIME" \
   --headless --only-summary --html "$OUT"
 

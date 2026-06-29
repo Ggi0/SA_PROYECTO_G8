@@ -13,6 +13,7 @@ import {
     UseGuards,
     HttpCode,
     HttpStatus,
+    BadRequestException,
   } from '@nestjs/common';
   import { Request, Response } from 'express';
   import { AuthGatewayService } from './auth.service';
@@ -77,6 +78,10 @@ import {
       @Req()  req:  Request,
       @Res({ passthrough: true }) res: Response,
     ) {
+      if (!body?.email || !body?.password) {
+        throw new BadRequestException('Email y password son requeridos.');
+      }
+
       const result = await this.authService.login({
         email:      body.email,
         password:   body.password,
@@ -307,6 +312,29 @@ healthLive() {
 @Get('health/ready')
 healthReady() {
   return this.authService.healthReady();
+}
+
+
+
+// GET /auth/admin/users
+// Trae todos los usuarios con sus perfiles y campos del cron
+// (is_active, last_login_at, deactivated_at, deactivation_reason)
+@Get('admin/users')
+@UseGuards(AuthJwtGuard)
+getAllUsersWithProfiles(@Req() req: AuthRequest) {
+  return this.authService.getAllUsersWithProfiles(req.authUser.userId); //.authUser.userId
+}
+
+// GET /auth/admin/audit-events
+// Trae los eventos de audit_log (lo que registra el cron)
+// Query params opcionales: event_type, user_id, from_date, to_date, page, page_size
+@Get('admin/audit-events')
+@UseGuards(AuthJwtGuard)
+getAuditEventLogs(@Req() req: AuthRequest) {
+  return this.authService.getAuditEventLogs({
+    adminUserId: req.authUser.userId,
+    // Si quieres filtros por query params, agrega @Query() aquí después
+  });
 }
 
 
