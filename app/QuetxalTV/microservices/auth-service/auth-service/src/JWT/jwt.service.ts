@@ -14,6 +14,7 @@ export interface JwtPayload {
   role: 'client' | 'admin';
   tokenVersion: number;     // para invalidación masiva
   activeProfileId: string | null;
+  maxRating?: string;       // clasificación máxima permitida (control parental)
   iat?: number;
   exp?: number;
 }

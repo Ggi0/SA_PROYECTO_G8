@@ -30,6 +30,7 @@ import {
     role:            string;
     activeProfileId: string | null;
     tokenVersion:    number;
+    maxRating:       string;
   }
   
   export type AuthRequest = Request & { authUser: AuthUser };
@@ -60,6 +61,7 @@ import {
           role:            payload['role']             ?? 'client',
           activeProfileId: payload['activeProfileId'] ?? null,
           tokenVersion:    payload['tokenVersion']    ?? 1,
+          maxRating:       payload['maxRating']       ?? 'NC-17',
         };
   
         return true;
@@ -69,3 +71,31 @@ import {
       }
     }
   }
+
+// Guard que lee el JWT si existe pero nunca rechaza requests sin token.
+// Útil para endpoints que adaptan su respuesta según si hay sesión o no.
+@Injectable()
+export class OptionalAuthJwtGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const req = context.switchToHttp().getRequest<AuthRequest>();
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) return true;
+    const token = authHeader.slice('Bearer '.length).trim();
+    const secret = process.env.JWT_ACCESS_SECRET || 'super_access_secret_cambiala';
+    try {
+      const payload = jwt.verify(token, secret) as jwt.JwtPayload;
+      const userId = String(payload['sub'] || '');
+      if (userId) {
+        req.authUser = {
+          userId,
+          email:           payload['email']           ?? '',
+          role:            payload['role']             ?? 'client',
+          activeProfileId: payload['activeProfileId'] ?? null,
+          tokenVersion:    payload['tokenVersion']    ?? 1,
+          maxRating:       payload['maxRating']       ?? 'NC-17',
+        };
+      }
+    } catch { /* token inválido — ignorar, tratar como anónimo */ }
+    return true;
+  }
+}
