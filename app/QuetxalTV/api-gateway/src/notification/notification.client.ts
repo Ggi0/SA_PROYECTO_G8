@@ -22,15 +22,15 @@ export class NotificationClient implements OnModuleInit {
     const proto = grpc.loadPackageDefinition(packageDef) as any;
     const host = process.env.NOTIFICATION_SERVICE_HOST || 'localhost';
     const port = process.env.NOTIFICATION_SERVICE_PORT || '50056';
-
-    const address = process.env.NOTIFICATION_SERVICE_HOST || 'localhost:50056';
+    const address = process.env.NOTIFICATION_SERVICE_URL
+      || (host.includes(':') ? host : `${host}:${port}`);
 
     this.client = new proto.notification.NotificationService(
     address,
     grpc.credentials.createInsecure(),
     );
 
-    this.logger.log(`NotificationClient conectado a ${host}:${port}`);
+    this.logger.log(`NotificationClient conectado a ${address}`);
   }
 
   async sendNewContentAlert(data: {
