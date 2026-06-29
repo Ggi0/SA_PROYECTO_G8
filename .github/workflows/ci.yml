@@ -58,6 +58,7 @@ jobs:
             --collectCoverageFrom=src/catalog/catalog.service.ts \
             --collectCoverageFrom=src/health.controller.ts \
             --coverageThreshold='{"global":{"lines":75}}' \
+            --collectCoverageFrom=src/download/download.service.ts \
             --forceExit
       - name: auth-service
         working-directory: app/QuetxalTV/microservices/auth-service/auth-service
@@ -104,5 +105,6 @@ jobs:
         env:
           PYTHONPATH: src
         run: |
-          pip install -r requirements.txt -q
-          python -m compileall src
+          pip install -r requirements.txt pytest pytest-cov -q
+          test -d tests && test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "download-service sin tests"; exit 1; }
+          pytest tests/ --cov=service --cov=repository --cov-fail-under=75 --cov-report=term-missing -v
