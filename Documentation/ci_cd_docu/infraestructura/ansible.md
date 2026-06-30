@@ -617,7 +617,9 @@ A continuación se documentan los logs esperados de la ejecución de los playboo
 
 El paso de setup en GitHub Actions instala Ansible y las colecciones necesarias.
 
-> **📸 Captura:** GitHub Actions > infra.yml > paso `Ansible provision all VMs` — inicio del log mostrando la instalación de `community.docker` y `community.general`.
+> GitHub Actions > infra.yml > paso `Ansible provision all VMs` — inicio del log mostrando la instalación de `community.docker` y `community.general`.
+
+![incio_ansible](./img/ansible/inicio.png)
 
 ### 8.2 Ejecución de db.yml
 
@@ -684,7 +686,36 @@ PLAY RECAP *******************************************************************
 quetxal-db-vm : ok=16  changed=14  unreachable=0  failed=0  skipped=0
 ```
 
-> **📸 Captura:** GitHub Actions > infra.yml > paso `Ansible provision all VMs` — log completo del playbook `db.yml` mostrando el `PLAY RECAP` con `failed=0`.
+>  GitHub Actions > infra.yml > paso `Ansible provision all VMs` — log completo del playbook `db.yml` mostrando el `PLAY RECAP` con `failed=0`.
+> paso 1
+![](./img/ansible/provisionen.png)
+
+> paso 2
+![](./img/ansible/provisioning2.png)
+
+> paso 3
+![](./img/ansible/provisioning3.png)
+
+> paso 4
+![](./img/ansible/provisioning4.png)
+
+
+> paso 5
+![](./img/ansible/provisioning5.png)
+
+
+> paso 6
+![](./img/ansible/provisioning6.png)
+
+
+
+> paso 7
+![](./img/ansible/provisioning7.png)
+
+
+
+> paso 8
+![](./img/ansible/provisioning8.png)
 
 ### 8.3 Ejecución de dev.yml
 

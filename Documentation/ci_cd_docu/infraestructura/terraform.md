@@ -669,43 +669,74 @@ A continuación se documentan los recursos que Terraform crea en GCP. Las captur
 
 Las tres instancias (`quetxal-db-vm`, `quetxal-monitor-vm`, `quetxal-dev-vm`) aparecen en la consola de GCP bajo **Compute Engine > Instancias de VM**.
 
-> **📸 Captura:** Consola GCP > Compute Engine > Instancias de VM — mostrar las tres instancias con sus IPs externas estáticas, estado RUNNING y zona `us-central1-a`.
+> Captura: Consola GCP > Compute Engine > Instancias de VM — mostrar las tres instancias con sus IPs externas estáticas, estado RUNNING y zona `us-central1-a`.
+
+![cluster gcp](./img/cluster_gcp.png)
+
+> nodos y autoscaling
+![nodos y autoscaling](./img/nodos_autoscaling.png)
+
+> cuenta github
+![cuenta github](./img/cuenta_github.png)
+
+
+> reglas firewall
+![reglas firewall](./img/reglas_firewall.png)
+
+> taggeo de imagenes
+![tag](./img/tag.png)
+
+
 
 ### 7.2 Clúster GKE
 
 El clúster `quetxal-tv-cluster` aparece en **Kubernetes Engine > Clústeres** con el node pool `quetxal-pool` y autoscaling activo (1-3 nodos).
 
-> **📸 Captura:** Consola GCP > Kubernetes Engine > Clústeres — mostrar `quetxal-tv-cluster` en estado OK, versión de Kubernetes y nodos activos.
+> Consola GCP > Kubernetes Engine > Clústeres — mostrar `quetxal-tv-cluster` en estado OK, versión de Kubernetes y nodos activos.
+![nodos y vms](./img/nodos\)vm.png)
 
 ### 7.3 VPC y Reglas de Firewall
 
 La red `quetxal-vpc` y sus reglas de firewall (7 reglas) aparecen en **VPC Network > Redes de VPC** y **Firewall**.
 
-> **📸 Captura:** Consola GCP > VPC Network > Firewall — mostrar la lista de reglas (`quetxal-allow-ssh`, `quetxal-allow-internal`, `quetxal-allow-postgres`, etc.).
+>  Consola GCP > VPC Network > Firewall — mostrar la lista de reglas (`quetxal-allow-ssh`, `quetxal-allow-internal`, `quetxal-allow-postgres`, etc.).
+![firewall](./img/reglas_firewall.png)
+![firewall](./img/firewall2.png)
 
 ### 7.4 Artifact Registry
 
 El repositorio Docker `quetxal-tv-rp` con las imágenes de todos los microservicios aparece en **Artifact Registry**.
 
-> **📸 Captura:** Consola GCP > Artifact Registry > quetxal-tv-rp — mostrar las imágenes (`api-gateway`, `auth-service`, `frontend`, etc.) con sus tags (`develop`, versión semántica).
+> Consola GCP > Artifact Registry > quetxal-tv-rp — mostrar las imágenes (`api-gateway`, `auth-service`, `frontend`, etc.) con sus tags (`develop`, versión semántica).
+![registry](./img/registry.png)
+
 
 ### 7.5 GCS Buckets
 
 Los dos buckets (`-videos` y `-backups`) aparecen en **Cloud Storage > Buckets**.
 
-> **📸 Captura:** Consola GCP > Cloud Storage — mostrar ambos buckets con la región `us-central1` y el acceso uniforme habilitado.
+> Consola GCP > Cloud Storage — mostrar ambos buckets con la región `us-central1` y el acceso uniforme habilitado.
+
+![](./img/buckts.png)
+![](./img/buckets2_back.png)
 
 ### 7.6 Ejecución de Terraform en GitHub Actions
 
 El log del step `Terraform apply` en el workflow `infra.yml` muestra el plan y la confirmación de recursos creados.
+> terraform init
+![terraform init](./img/terraform_init.png)
 
-> **📸 Captura:** GitHub Actions > infra.yml > paso `Terraform apply` — mostrar el output con `Plan: X to add, 0 to change, 0 to destroy` y `Apply complete!`.
+> terraform plan
+![plan 1](./img/plan1.png)
+![plan 2](./img/plan2.png)
+![plan 3](./img/plan3.png)
+![plan 4](./img/plan4.png)
 
 ### 7.7 Outputs de Terraform
 
 El step `Export Terraform outputs` del workflow muestra las IPs asignadas a las VMs.
 
-> **📸 Captura:** GitHub Actions > infra.yml > paso `Export Terraform outputs` — mostrar las IPs públicas y privadas de las tres VMs y el nombre del clúster GKE.
-
----
+> terraform apply
+![aply](./img/apply1.png)
+![](./img/apply2.png)
 
