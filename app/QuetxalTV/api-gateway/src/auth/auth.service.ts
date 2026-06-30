@@ -48,6 +48,14 @@ interface AuthGrpcService {
   // ── Health ─────────────────────────
   HealthLive(data: unknown): Observable<unknown>;
   HealthReady(data: unknown): Observable<unknown>;
+
+  // admin
+  GetAllUsersWithProfiles(data: unknown): Observable<unknown>;
+  GetAuditEventLogs(data: unknown): Observable<unknown>;
+
+  // ── Control parental ───────────────
+  SetParentalPin(data: unknown): Observable<unknown>;
+  VerifyParentalPin(data: unknown): Observable<unknown>;
 }
 
 @Injectable()
@@ -120,11 +128,11 @@ export class AuthGatewayService implements OnModuleInit {
   //  AUTENTICACIÓN
   // ─────────────────────────────────────────────
 
-  register(data: { email: string; password: string; display_name: string }) {
+  register(data: { email: string; password: string; displayName: string }) {
     const payload = {
       email: data.email,
       password: data.password,
-      display_name: data.display_name,  // ← snake_case, igual que el proto
+      displayName: data.displayName,  // ← snake_case, igual que el proto TODO:
     };
 
     console.log('GRPC PAYLOAD=', payload);
@@ -294,6 +302,48 @@ healthReady() {
   return this.call(this.authSvc.HealthReady({}));
 }
 
+// ─────────────────────────────────────────────
+//  CONTROL PARENTAL
+// ─────────────────────────────────────────────
+
+setParentalPin(userId: string, pin: string) {
+  return this.call(this.authSvc.SetParentalPin({ userId, pin }));
+}
+
+verifyParentalPin(userId: string, pin: string) {
+  return this.call(this.authSvc.VerifyParentalPin({ userId, pin }));
+}
+
+
+// ─────────────────────────────────────────────
+//  ADMIN — CRON MONITORING
+// ─────────────────────────────────────────────
+
+getAllUsersWithProfiles(adminUserId: string) {
+  return this.call(this.authSvc.GetAllUsersWithProfiles({
+    adminUserId: adminUserId,
+  }));
+}
+
+getAuditEventLogs(data: {
+  adminUserId: string;
+  eventType?: string;
+  userId?: string;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  return this.call(this.authSvc.GetAuditEventLogs({
+    adminUserId: data.adminUserId,
+    eventType:   data.eventType   ?? '',
+    userId:      data.userId      ?? '',
+    fromDate:    data.fromDate    ?? '',
+    toDate:      data.toDate      ?? '',
+    page:        data.page        ?? 1,
+    pageSize:    data.pageSize    ?? 20,
+  }));
+}
 
 
 }

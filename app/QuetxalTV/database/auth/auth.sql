@@ -38,6 +38,10 @@ CREATE TABLE auth.users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
+    last_login_at TIMESTAMPTZ NULL,
+    deactivated_at TIMESTAMPTZ NULL,
+    deactivation_reason VARCHAR(100) NULL,
+
     CONSTRAINT ck_users_auth_method
     CHECK (
         (
@@ -75,13 +79,15 @@ CREATE TABLE auth.profiles (
     display_name VARCHAR(100) NOT NULL,
     avatar_url VARCHAR(500),
     preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
-    is_kids_mode BOOLEAN NOT NULL DEFAULT FALSE,
+    is_kids_mode  BOOLEAN NOT NULL DEFAULT FALSE,
+    parental_pin  VARCHAR(255),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 COMMENT ON TABLE auth.profiles IS 'Perfiles del usuario. Máximo 5 por cuenta.';
+COMMENT ON COLUMN auth.profiles.parental_pin IS 'HMAC-SHA256 del PIN de 4 dígitos. NULL si no hay PIN configurado. Solo se usa en el perfil maestro (primer perfil creado).';
 
 
 -- ---------------------------------------------------------
@@ -195,6 +201,10 @@ CREATE INDEX idx_verification_tokens_expires_at ON auth.verification_tokens(expi
 CREATE INDEX idx_audit_log_user_id ON auth.audit_log(user_id);
 CREATE INDEX idx_audit_log_created_at_desc ON auth.audit_log(created_at DESC);
 
+CREATE INDEX idx_users_last_login ON auth.users(last_login_at);
+CREATE INDEX idx_users_deactivated ON auth.users(deactivated_at);
+CREATE INDEX idx_users_active ON auth.users(is_active);
+
 
 
 -- =========================================================
@@ -289,7 +299,31 @@ CREATE OR REPLACE FUNCTION auth.fn_prevent_delete_last_profile()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_is_active  BOOLEAN;
+    v_cron_purge TEXT;
 BEGIN
+    -- El cron setea esta variable antes del DELETE para señalar que está purgando
+    BEGIN
+        v_cron_purge := current_setting('app.cron_purge_active');
+    EXCEPTION
+        WHEN OTHERS THEN
+            v_cron_purge := 'false';
+    END;
+
+    IF v_cron_purge = 'true' THEN
+        RETURN OLD; -- Cron purgando: dejar pasar el CASCADE
+    END IF;
+
+    -- Flujo normal: si la cuenta ya está inactiva, permitir
+    SELECT is_active INTO v_is_active
+    FROM auth.users WHERE user_id = OLD.user_id;
+
+    IF v_is_active = FALSE THEN
+        RETURN OLD;
+    END IF;
+
+    -- Usuario activo intentando borrar su único perfil: bloquear
     IF auth.fn_count_profiles(OLD.user_id) <= 1 THEN
         RAISE EXCEPTION 'No se puede eliminar el único perfil del usuario.';
     END IF;

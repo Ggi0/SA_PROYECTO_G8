@@ -5,7 +5,7 @@
 
 ## Primera Descomposición
 
-![Diagrama Alto Nivel](imgs/Primera_descom.png)
+![Diagrama Alto Nivel](imgs/Primeradescomp.png)
 
 ## Casos de Uso Expandidos
 #### CDU-001: Autenticación y Gestión de Usuarios
@@ -729,3 +729,364 @@ Sus expandidos son:
 | **Reglas de Negocio** | - Readiness controla recepción de tráfico. <br> - Liveness controla reinicio del contenedor. |
 | **Flujo de Excepción** | **FE1: Fallo de despliegue persistente** <br> FE1.1 El Pod entra en ciclo de error. <br> FE1.2 El pipeline debe activar rollback automático según la estrategia de despliegue. |
 | **Reglas de Calidad** | - La recuperación no debe requerir intervención manual en condiciones esperadas. |
+
+---
+
+#### CDU-012: Descarga de Contenido Offline (download-service)
+
+Sus expandidos son:
+- CDU012.1: Solicitar descarga de contenido
+- CDU012.2: Validar plan Premium
+- CDU012.3: Generar URL firmada en GCS
+- CDU012.4: Listar descargas activas
+- CDU012.5: Eliminar descarga local
+- CDU012.6: Expirar descargas vencidas (30 días)
+
+![Diagrama CDU-012](imgs/CDU-012.png)
+
+### CDU012.1: Solicitar Descarga de Contenido
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Solicitar descarga de contenido |
+| **Código** | CDU012.1 |
+| **Actores** | Usuario |
+| **Descripción** | Permite al usuario solicitar la descarga offline de una película, serie o episodio disponible dentro de Quetxal TV mediante el microservicio `download-service`. Este caso incluye la validación del plan Premium antes de autorizar la generación del recurso descargable. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - El usuario debe tener un perfil seleccionado. <br> - El contenido debe existir y estar disponible para reproducción. <br> - El servicio `download-service` debe estar disponible. |
+| **Post Condiciones** | - La solicitud de descarga queda registrada. <br> - Si el usuario cumple las condiciones, se genera un enlace temporal para descargar el contenido. <br> - Si el usuario no cumple las condiciones, la descarga no se autoriza. |
+| **Flujo Principal** | 1. El usuario ingresa al detalle de un contenido disponible. <br> 2. El sistema muestra la opción de descarga offline. <br> 3. El usuario selecciona "Descargar". <br> 4. El sistema envía la solicitud al `download-service`. <br> 5. El `download-service` identifica al usuario, perfil y contenido solicitado. <br> 6. El sistema ejecuta la validación del plan Premium mediante el caso incluido CDU012.2. <br> 7. Si la validación es correcta, el sistema continúa con la generación de URL firmada mediante CDU012.3. <br> 8. El sistema registra la descarga como activa. <br> 9. El sistema retorna al usuario la información necesaria para iniciar la descarga. |
+| **Flujos Alternos** | **FA1: Contenido no descargable** <br> FA1.1 El contenido seleccionado no permite descarga offline. <br> FA1.2 El sistema oculta o deshabilita la opción de descarga. <br> FA1.3 El sistema notifica que el contenido solo está disponible para reproducción en línea. |
+| **Reglas de Negocio** | - Solo los usuarios con plan Premium pueden descargar contenido offline. <br> - La descarga debe asociarse al usuario, perfil y contenido solicitado. <br> - La descarga debe tener una vigencia controlada. <br> - El contenido descargable debe obtenerse mediante un enlace temporal y no mediante rutas públicas permanentes. |
+| **Flujo de Excepción** | **FE1: Error al procesar la solicitud** <br> FE1.1 El `download-service` no responde o genera un error interno. <br> FE1.2 El sistema notifica al usuario que la descarga no pudo iniciarse. <br> FE1.3 El sistema registra el error para trazabilidad técnica. |
+| **Reglas de Calidad** | - La solicitud de descarga debe responder en ≤ 2 segundos, excluyendo el tiempo real de transferencia del archivo. <br> - La operación debe mantener trazabilidad mediante logs. <br> - La URL generada no debe exponer credenciales ni rutas internas sensibles. |
+
+---
+
+### CDU012.2: Validar Plan Premium
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Validar plan Premium |
+| **Código** | CDU012.2 |
+| **Actores** | Usuario |
+| **Descripción** | Permite verificar si el usuario cuenta con una suscripción Premium activa antes de permitir la descarga offline de contenido. Este caso de uso es incluido por CDU012.1. |
+| **Precondiciones** | - El usuario debe estar autenticado. <br> - Debe existir una suscripción asociada a la cuenta del usuario. <br> - El sistema debe poder consultar el estado de la suscripción. |
+| **Post Condiciones** | - Se determina si el usuario está autorizado para descargar contenido. <br> - Si el plan es Premium y está activo, el flujo continúa hacia CDU012.3. <br> - Si el plan no cumple, se rechaza la solicitud de descarga. |
+| **Flujo Principal** | 1. El `download-service` recibe la solicitud de descarga desde CDU012.1. <br> 2. El sistema consulta la suscripción asociada a la cuenta del usuario. <br> 3. El sistema verifica que la suscripción esté activa. <br> 4. El sistema valida que el tipo de plan sea Premium. <br> 5. El sistema autoriza la descarga offline. <br> 6. El sistema continúa con la generación de URL firmada en CDU012.3. |
+| **Flujos Alternos** | **FA1: Usuario con plan no Premium** <br> FA1.1 El sistema detecta que el usuario tiene plan Básico o Estándar. <br> FA1.2 El sistema rechaza la descarga offline. <br> FA1.3 El sistema muestra un mensaje indicando que la funcionalidad requiere plan Premium. |
+| **Reglas de Negocio** | - La descarga offline es un beneficio exclusivo del plan Premium. <br> - La suscripción debe estar activa al momento de solicitar la descarga. <br> - Una suscripción cancelada o vencida no debe autorizar nuevas descargas. |
+| **Flujo de Excepción** | **FE1: No se puede validar la suscripción** <br> FE1.1 El sistema no logra consultar el estado del plan. <br> FE1.2 La descarga no se autoriza por seguridad. <br> FE1.3 El sistema registra el incidente. |
+| **Reglas de Calidad** | - La validación debe realizarse antes de generar cualquier URL de descarga. <br> - La consulta del plan debe ejecutarse con timeout controlado. <br> - La respuesta debe evitar exponer detalles internos de la suscripción. |
+
+---
+
+### CDU012.3: Generar URL Firmada en GCS
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Generar URL firmada en GCS |
+| **Código** | CDU012.3 |
+| **Actores** | Usuario |
+| **Descripción** | Permite generar una URL firmada temporal para que el usuario autorizado pueda descargar el recurso multimedia desde Google Cloud Storage sin exponer credenciales ni hacer público el archivo. Este caso de uso es incluido por CDU012.2. |
+| **Precondiciones** | - El usuario debe haber sido autorizado mediante la validación de plan Premium. <br> - El contenido debe tener un archivo asociado en Google Cloud Storage. <br> - El sistema debe contar con configuración válida para generar URLs firmadas. |
+| **Post Condiciones** | - Se genera una URL firmada temporal. <br> - La URL queda asociada a una descarga activa. <br> - El usuario puede iniciar la descarga del contenido dentro del período de vigencia. |
+| **Flujo Principal** | 1. El sistema recibe la autorización de descarga desde CDU012.2. <br> 2. El sistema obtiene la referencia del archivo multimedia en Google Cloud Storage. <br> 3. El sistema valida que el archivo exista y esté disponible. <br> 4. El sistema genera una URL firmada con tiempo de expiración. <br> 5. El sistema registra la fecha de creación y expiración de la descarga. <br> 6. El sistema retorna la URL firmada al cliente. |
+| **Flujos Alternos** | **FA1: Archivo no disponible** <br> FA1.1 El archivo asociado al contenido no existe o no está disponible. <br> FA1.2 El sistema rechaza la descarga. <br> FA1.3 El usuario recibe un mensaje indicando que el recurso no está disponible temporalmente. |
+| **Reglas de Negocio** | - La URL firmada debe ser temporal. <br> - La URL debe generarse únicamente después de validar el plan Premium. <br> - El archivo no debe exponerse mediante enlaces públicos permanentes. <br> - La descarga debe conservar una vigencia máxima definida por la plataforma. |
+| **Flujo de Excepción** | **FE1: Error al generar la URL** <br> FE1.1 El sistema no puede comunicarse con Google Cloud Storage o no puede firmar el recurso. <br> FE1.2 El sistema cancela la operación de descarga. <br> FE1.3 El sistema registra el error técnico. |
+| **Reglas de Calidad** | - La generación de la URL debe completarse en ≤ 1 segundo bajo condiciones normales. <br> - La URL firmada debe proteger el acceso directo al archivo. <br> - El proceso no debe almacenar credenciales sensibles en el cliente. |
+
+---
+
+### CDU012.4: Listar Descargas Activas
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Listar descargas activas |
+| **Código** | CDU012.4 |
+| **Actores** | Usuario |
+| **Descripción** | Permite al usuario consultar las descargas offline activas asociadas a su cuenta o perfil, incluyendo contenido descargado, fecha de creación y estado de vigencia. Este caso puede extenderse con CDU012.6 cuando existan descargas vencidas. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - El usuario debe tener un perfil seleccionado. <br> - Pueden existir descargas activas o vencidas asociadas al perfil. |
+| **Post Condiciones** | - El usuario visualiza el listado actualizado de descargas activas. <br> - Las descargas vencidas pueden ser identificadas y expiradas mediante CDU012.6. |
+| **Flujo Principal** | 1. El usuario ingresa a la sección de descargas. <br> 2. El sistema solicita al `download-service` las descargas asociadas al usuario y perfil. <br> 3. El sistema consulta los registros de descarga. <br> 4. El sistema valida el estado y vigencia de cada descarga. <br> 5. Si existen descargas vencidas, se ejecuta el caso extendido CDU012.6. <br> 6. El sistema retorna únicamente las descargas activas o el estado actualizado de las descargas. <br> 7. El usuario visualiza la lista de descargas disponibles. |
+| **Flujos Alternos** | **FA1: No existen descargas activas** <br> FA1.1 El sistema no encuentra descargas vigentes para el perfil. <br> FA1.2 El sistema muestra el mensaje "No tienes descargas activas". |
+| **Reglas de Negocio** | - El usuario solo puede consultar sus propias descargas. <br> - Las descargas vencidas no deben mostrarse como disponibles. <br> - El listado debe considerar la vigencia máxima de 30 días. |
+| **Flujo de Excepción** | **FE1: Error al consultar descargas** <br> FE1.1 El `download-service` no responde. <br> FE1.2 El sistema muestra un mensaje de error y permite reintentar. |
+| **Reglas de Calidad** | - El listado debe cargar en ≤ 2 segundos. <br> - La información mostrada debe reflejar el estado más reciente de las descargas. |
+
+---
+
+### CDU012.5: Eliminar Descarga Local
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Eliminar descarga local |
+| **Código** | CDU012.5 |
+| **Actores** | Usuario |
+| **Descripción** | Permite al usuario eliminar una descarga offline previamente registrada, retirándola de su listado de descargas disponibles y liberando el recurso local asociado en el dispositivo cuando aplique. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - Debe existir una descarga asociada al usuario o perfil. <br> - La descarga debe aparecer en el listado del usuario. |
+| **Post Condiciones** | - La descarga queda eliminada o marcada como inactiva. <br> - El contenido deja de mostrarse como disponible offline. <br> - El sistema conserva trazabilidad de la operación si aplica. |
+| **Flujo Principal** | 1. El usuario ingresa a la sección de descargas. <br> 2. El sistema muestra las descargas disponibles. <br> 3. El usuario selecciona la opción "Eliminar descarga" sobre un contenido. <br> 4. El sistema solicita confirmación. <br> 5. El usuario confirma la eliminación. <br> 6. El sistema marca la descarga como eliminada o inactiva. <br> 7. El sistema actualiza el listado de descargas. <br> 8. El contenido deja de estar disponible como descarga offline para el usuario. |
+| **Flujos Alternos** | **FA1: Cancelación de eliminación** <br> FA1.1 El usuario decide no eliminar la descarga. <br> FA1.2 El sistema conserva la descarga activa sin cambios. |
+| **Reglas de Negocio** | - Un usuario solo puede eliminar descargas asociadas a su propia cuenta o perfil. <br> - La eliminación no debe borrar el contenido original del catálogo ni de Google Cloud Storage. <br> - La eliminación afecta únicamente la disponibilidad offline del usuario. |
+| **Flujo de Excepción** | **FE1: Error al eliminar descarga** <br> FE1.1 El sistema no puede actualizar el estado de la descarga. <br> FE1.2 El sistema informa el error y permite reintentar. |
+| **Reglas de Calidad** | - La eliminación debe reflejarse inmediatamente en el listado. <br> - La operación debe completarse en ≤ 1 segundo bajo condiciones normales. |
+
+---
+
+### CDU012.6: Expirar Descargas Vencidas
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Expirar descargas vencidas |
+| **Código** | CDU012.6 |
+| **Actores** | Usuario |
+| **Descripción** | Permite marcar como vencidas las descargas offline que superaron el período permitido de 30 días. Según el diagrama, este comportamiento extiende el listado de descargas activas cuando el sistema detecta descargas vencidas durante la consulta. |
+| **Precondiciones** | - Deben existir descargas registradas. <br> - La fecha de creación o expiración de la descarga debe estar almacenada. <br> - El usuario consulta su listado de descargas o el sistema valida la vigencia de las descargas. |
+| **Post Condiciones** | - Las descargas vencidas quedan marcadas como expiradas. <br> - Las descargas vencidas dejan de mostrarse como activas. <br> - El usuario visualiza únicamente descargas vigentes. |
+| **Flujo Principal** | 1. El usuario consulta sus descargas activas mediante CDU012.4. <br> 2. El sistema revisa la fecha de creación o expiración de cada descarga. <br> 3. El sistema identifica descargas con más de 30 días de vigencia o con fecha de expiración alcanzada. <br> 4. El sistema marca dichas descargas como vencidas. <br> 5. El sistema actualiza el listado de descargas. <br> 6. El usuario visualiza únicamente las descargas vigentes. |
+| **Flujos Alternos** | **FA1: No existen descargas vencidas** <br> FA1.1 El sistema no encuentra descargas expiradas. <br> FA1.2 El listado se muestra sin modificaciones. |
+| **Reglas de Negocio** | - La vigencia máxima de una descarga offline es de 30 días. <br> - Una descarga vencida no debe permitir reproducción offline. <br> - La expiración no elimina el contenido original del catálogo ni del almacenamiento principal. |
+| **Flujo de Excepción** | **FE1: Error al actualizar estado de expiración** <br> FE1.1 El sistema detecta descargas vencidas, pero no puede actualizar su estado. <br> FE1.2 El sistema registra el error y evita mostrarlas como disponibles si no puede garantizar su vigencia. |
+| **Reglas de Calidad** | - La validación de expiración debe ejecutarse sin afectar significativamente el tiempo de carga del listado. <br> - El usuario no debe acceder a descargas vencidas. |
+
+---
+
+#### CDU-013: Control Parental
+
+Sus expandidos son:
+- CDU013.1: Configurar PIN parental
+- CDU013.2: Asociar restricción a perfil infantil
+- CDU013.3: Validar clasificación de contenido
+- CDU013.4: Solicitar PIN para contenido restringido
+- CDU013.5: Autorizar reproducción
+- CDU013.6: Bloquear reproducción no autorizada
+
+![Diagrama CDU-013](imgs/CDU-013.png)
+
+### CDU013.1: Configurar PIN Parental
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Configurar PIN parental |
+| **Código** | CDU013.1 |
+| **Actores** | Usuario |
+| **Descripción** | Permite al usuario configurar un PIN parental de 4 dígitos para restringir el acceso a contenido no apto dentro de perfiles específicos de la cuenta. Este caso incluye la asociación de la restricción a un perfil infantil mediante CDU013.2. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - El usuario debe tener permisos sobre la cuenta. <br> - Debe existir al menos un perfil asociado a la cuenta. |
+| **Post Condiciones** | - El PIN parental queda configurado de forma segura. <br> - La restricción queda asociada al perfil seleccionado. <br> - El sistema podrá solicitar el PIN cuando se intente reproducir contenido restringido. |
+| **Flujo Principal** | 1. El usuario ingresa a la sección de configuración de perfiles. <br> 2. El usuario selecciona el perfil sobre el que desea activar control parental. <br> 3. El sistema muestra la opción para crear o actualizar PIN parental. <br> 4. El usuario ingresa un PIN de 4 dígitos. <br> 5. El usuario confirma el PIN. <br> 6. El sistema valida que el PIN cumpla el formato requerido. <br> 7. El sistema cifra o protege el PIN antes de almacenarlo. <br> 8. El sistema ejecuta CDU013.2 para asociar la restricción al perfil infantil. <br> 9. El sistema confirma que el control parental fue configurado correctamente. |
+| **Flujos Alternos** | **FA1: PIN no coincide** <br> FA1.1 El sistema detecta que el PIN y la confirmación son distintos. <br> FA1.2 El sistema muestra el mensaje "Los PIN no coinciden". <br> FA1.3 El usuario ingresa nuevamente el PIN. <br><br> **FA2: Actualización de PIN existente** <br> FA2.1 El usuario ya posee un PIN parental configurado. <br> FA2.2 El sistema solicita confirmación antes de reemplazarlo. <br> FA2.3 El sistema actualiza el PIN de forma segura. |
+| **Reglas de Negocio** | - El PIN parental debe tener exactamente 4 dígitos. <br> - El PIN no debe almacenarse en texto plano. <br> - Solo el usuario dueño de la cuenta o un perfil autorizado puede configurar el PIN. |
+| **Flujo de Excepción** | **FE1: Error al guardar configuración** <br> FE1.1 El sistema no puede guardar el PIN o la restricción. <br> FE1.2 Se informa al usuario que la configuración no pudo completarse. <br> FE1.3 El sistema registra el error para trazabilidad. |
+| **Reglas de Calidad** | - La configuración debe completarse en ≤ 2 segundos. <br> - El PIN debe protegerse mediante mecanismos seguros de almacenamiento. <br> - La interfaz debe evitar mostrar el PIN en texto visible. |
+
+---
+
+### CDU013.2: Asociar Restricción a Perfil Infantil
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Asociar restricción a perfil infantil |
+| **Código** | CDU013.2 |
+| **Actores** | Usuario |
+| **Descripción** | Permite asociar la configuración de control parental a un perfil infantil o restringido, definiendo qué clasificación de contenido estará bloqueada para dicho perfil. Este caso es incluido por CDU013.1. |
+| **Precondiciones** | - Debe existir un PIN parental configurado o en proceso de configuración. <br> - Debe existir un perfil asociado a la cuenta. <br> - El usuario debe tener permisos para modificar la configuración del perfil. |
+| **Post Condiciones** | - El perfil queda marcado como infantil o restringido. <br> - Se establece la clasificación máxima permitida para el perfil. <br> - El sistema aplicará validaciones de clasificación antes de reproducir contenido. |
+| **Flujo Principal** | 1. El sistema recibe la configuración desde CDU013.1. <br> 2. El usuario selecciona el perfil que tendrá restricción parental. <br> 3. El sistema muestra las clasificaciones disponibles, por ejemplo Todo Público, PG-13 o R. <br> 4. El usuario selecciona el nivel máximo permitido. <br> 5. El sistema guarda la restricción asociada al perfil. <br> 6. El sistema confirma la asociación del control parental. |
+| **Flujos Alternos** | **FA1: Perfil no infantil** <br> FA1.1 El usuario decide aplicar control parental a un perfil general. <br> FA1.2 El sistema permite configurar la restricción siempre que el usuario tenga permisos sobre la cuenta. |
+| **Reglas de Negocio** | - La restricción debe asociarse a un perfil específico. <br> - La clasificación máxima permitida define qué contenido requiere PIN. <br> - Un perfil puede tener una sola configuración activa de control parental. |
+| **Flujo de Excepción** | **FE1: Perfil no encontrado** <br> FE1.1 El perfil seleccionado no existe o fue eliminado. <br> FE1.2 El sistema cancela la asociación y solicita seleccionar otro perfil. |
+| **Reglas de Calidad** | - La configuración debe reflejarse inmediatamente en la experiencia del perfil. <br> - El sistema debe evitar inconsistencias entre PIN, perfil y nivel de restricción. |
+
+---
+
+### CDU013.3: Validar Clasificación de Contenido
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Validar clasificación de contenido |
+| **Código** | CDU013.3 |
+| **Actores** | Usuario |
+| **Descripción** | Permite validar la clasificación del contenido seleccionado contra la configuración de control parental del perfil activo antes de permitir o restringir la reproducción. Este caso es incluido por CDU013.4. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - Debe existir un perfil activo. <br> - El contenido debe tener una clasificación registrada. |
+| **Post Condiciones** | - Se determina si el contenido puede reproducirse directamente o si requiere PIN. <br> - Si la clasificación excede el nivel permitido, el sistema solicita PIN mediante CDU013.4. |
+| **Flujo Principal** | 1. El usuario selecciona un contenido para reproducir. <br> 2. El sistema obtiene la clasificación del contenido. <br> 3. El sistema consulta la configuración parental del perfil activo. <br> 4. El sistema compara la clasificación del contenido con el nivel permitido del perfil. <br> 5. Si el contenido es permitido, el sistema autoriza la reproducción. <br> 6. Si el contenido es restringido, el sistema continúa con la solicitud de PIN. |
+| **Flujos Alternos** | **FA1: Perfil sin control parental** <br> FA1.1 El sistema detecta que el perfil no tiene restricciones configuradas. <br> FA1.2 El contenido se reproduce sin solicitar PIN. |
+| **Reglas de Negocio** | - Todo contenido debe tener clasificación registrada. <br> - La validación debe ejecutarse antes de iniciar la reproducción. <br> - Las restricciones dependen del perfil activo y no únicamente de la cuenta. |
+| **Flujo de Excepción** | **FE1: Clasificación no disponible** <br> FE1.1 El contenido no tiene clasificación registrada. <br> FE1.2 El sistema aplica política restrictiva y solicita PIN o bloquea el acceso según configuración. |
+| **Reglas de Calidad** | - La validación debe ser transparente y rápida para el usuario. <br> - La decisión debe completarse en ≤ 500 ms. |
+
+---
+
+### CDU013.4: Solicitar PIN para Contenido Restringido
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Solicitar PIN para contenido restringido |
+| **Código** | CDU013.4 |
+| **Actores** | Usuario |
+| **Descripción** | Permite solicitar el PIN parental cuando el usuario intenta reproducir contenido cuya clasificación excede el nivel permitido para el perfil activo. Este caso incluye la validación de clasificación mediante CDU013.3 y puede extenderse con autorización o bloqueo según el resultado. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - El perfil activo debe tener control parental configurado. <br> - El contenido debe superar la clasificación permitida para el perfil. |
+| **Post Condiciones** | - El sistema recibe el PIN ingresado por el usuario. <br> - Si el PIN es correcto, se ejecuta CDU013.5. <br> - Si el PIN es incorrecto o se cancela la operación, se ejecuta CDU013.6. |
+| **Flujo Principal** | 1. El usuario intenta reproducir contenido restringido. <br> 2. El sistema ejecuta CDU013.3 para validar la clasificación del contenido. <br> 3. El sistema detecta que el contenido requiere PIN. <br> 4. El sistema muestra una ventana de solicitud de PIN. <br> 5. El usuario ingresa el PIN parental. <br> 6. El sistema valida el PIN ingresado. <br> 7. Si el PIN es correcto, el flujo se extiende con CDU013.5. <br> 8. Si el PIN es incorrecto, el flujo se extiende con CDU013.6. |
+| **Flujos Alternos** | **FA1: Usuario cancela la solicitud** <br> FA1.1 El usuario cierra la ventana de PIN. <br> FA1.2 El sistema no inicia la reproducción. <br> FA1.3 El sistema mantiene al usuario en la pantalla previa. |
+| **Reglas de Negocio** | - El PIN debe solicitarse únicamente para contenido restringido. <br> - El PIN debe validarse contra la configuración parental del perfil o cuenta. <br> - No se debe revelar si el PIN almacenado es correcto mediante mensajes técnicos. |
+| **Flujo de Excepción** | **FE1: Error al validar PIN** <br> FE1.1 El sistema no puede validar el PIN por error interno. <br> FE1.2 Por seguridad, la reproducción no se autoriza. <br> FE1.3 El sistema registra el incidente. |
+| **Reglas de Calidad** | - La solicitud debe ser clara y no exponer el PIN. <br> - La validación debe ejecutarse con baja latencia. |
+
+---
+
+### CDU013.5: Autorizar Reproducción
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Autorizar reproducción |
+| **Código** | CDU013.5 |
+| **Actores** | Usuario |
+| **Descripción** | Permite autorizar la reproducción de un contenido restringido cuando el usuario ingresa correctamente el PIN parental. Este caso extiende CDU013.4. |
+| **Precondiciones** | - El sistema solicitó PIN por contenido restringido. <br> - El usuario ingresó un PIN válido. |
+| **Post Condiciones** | - El contenido queda autorizado para reproducirse. <br> - Se inicia la reproducción del contenido restringido. <br> - La autorización puede registrarse para auditoría técnica. |
+| **Flujo Principal** | 1. El sistema recibe el PIN ingresado desde CDU013.4. <br> 2. El sistema verifica que el PIN sea correcto. <br> 3. El sistema autoriza temporalmente la reproducción. <br> 4. El sistema inicia la reproducción del contenido. <br> 5. El sistema registra el evento de autorización si aplica. |
+| **Flujos Alternos** | **FA1: Autorización temporal de sesión** <br> FA1.1 El sistema permite mantener la autorización únicamente durante la sesión actual. <br> FA1.2 Al cambiar de perfil o cerrar sesión, la autorización se invalida. |
+| **Reglas de Negocio** | - La autorización solo aplica al contenido o sesión actual, según política del sistema. <br> - La autorización no debe desactivar permanentemente el control parental. |
+| **Flujo de Excepción** | **FE1: Error al iniciar reproducción** <br> FE1.1 El PIN fue correcto, pero el reproductor no puede iniciar el contenido. <br> FE1.2 El sistema informa que ocurrió un error al reproducir. |
+| **Reglas de Calidad** | - La reproducción debe iniciar inmediatamente después de validar el PIN. <br> - La autorización debe ser segura y no reutilizable de forma indebida. |
+
+---
+
+### CDU013.6: Bloquear Reproducción No Autorizada
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Bloquear reproducción no autorizada |
+| **Código** | CDU013.6 |
+| **Actores** | Usuario |
+| **Descripción** | Permite bloquear la reproducción de contenido restringido cuando el PIN parental ingresado es incorrecto, se cancela la operación o no se puede validar la autorización. Este caso extiende CDU013.4. |
+| **Precondiciones** | - El sistema solicitó PIN por contenido restringido. <br> - El PIN ingresado es incorrecto, la solicitud fue cancelada o no se pudo validar. |
+| **Post Condiciones** | - La reproducción no inicia. <br> - El usuario permanece fuera del contenido restringido. <br> - El evento puede registrarse para trazabilidad. |
+| **Flujo Principal** | 1. El usuario ingresa un PIN incorrecto o cancela la solicitud. <br> 2. El sistema rechaza la autorización. <br> 3. El sistema bloquea la reproducción. <br> 4. El sistema muestra un mensaje indicando que el contenido requiere autorización. <br> 5. El sistema permite reintentar o regresar al catálogo. |
+| **Flujos Alternos** | **FA1: Límite de intentos alcanzado** <br> FA1.1 El usuario ingresa el PIN incorrectamente varias veces. <br> FA1.2 El sistema bloquea temporalmente nuevos intentos. <br> FA1.3 El usuario debe esperar o gestionar el PIN desde la cuenta. |
+| **Reglas de Negocio** | - El contenido restringido no debe reproducirse sin autorización. <br> - Puede existir un límite de intentos fallidos de PIN. <br> - La cancelación de la solicitud se interpreta como no autorización. |
+| **Flujo de Excepción** | **FE1: Error durante el bloqueo** <br> FE1.1 El sistema no puede completar la validación. <br> FE1.2 Por seguridad, mantiene el bloqueo de la reproducción. |
+| **Reglas de Calidad** | - El bloqueo debe ser inmediato. <br> - El mensaje debe ser claro sin exponer detalles internos de seguridad. |
+
+---
+
+#### CDU-014: Watch Party
+
+Sus expandidos son:
+- CDU014.1: Crear sala de Watch Party
+- CDU014.2: Validar plan Premium
+- CDU014.3: Generar enlace/código de invitación
+- CDU014.4: Unirse a sala sincronizada
+- CDU014.5: Sincronizar reproducción por WebSocket
+- CDU014.6: Finalizar sala de Watch Party
+
+![Diagrama CDU-014](imgs/CDU-014.png)
+
+
+### CDU014.1: Crear Sala de Watch Party
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Crear sala de Watch Party |
+| **Código** | CDU014.1 |
+| **Actores** | Usuario Premium |
+| **Descripción** | Permite a un usuario con plan Premium crear una sala de Watch Party para reproducir contenido de manera sincronizada con otros usuarios invitados. Este caso incluye la validación del plan Premium y la generación del enlace o código de invitación. |
+| **Precondiciones** | - El usuario debe tener sesión activa. <br> - El usuario debe tener plan Premium activo. <br> - El contenido seleccionado debe estar disponible para reproducción. <br> - El servicio de Watch Party debe estar disponible. |
+| **Post Condiciones** | - Se crea una sala de Watch Party. <br> - Se genera un enlace o código de invitación. <br> - La sala queda lista para que otros usuarios puedan unirse. |
+| **Flujo Principal** | 1. El usuario Premium selecciona un contenido. <br> 2. El usuario elige la opción "Crear Watch Party". <br> 3. El sistema solicita al servicio de Watch Party crear una sala. <br> 4. El sistema ejecuta CDU014.2 para validar el plan Premium. <br> 5. Si la validación es correcta, el sistema crea la sala. <br> 6. El sistema ejecuta CDU014.3 para generar el enlace o código de invitación. <br> 7. El sistema muestra al usuario el enlace/código para compartir. |
+| **Flujos Alternos** | **FA1: Usuario no posee plan Premium** <br> FA1.1 El sistema detecta que el usuario no tiene plan Premium. <br> FA1.2 El sistema rechaza la creación de la sala. <br> FA1.3 El sistema informa que la funcionalidad es exclusiva del plan Premium. |
+| **Reglas de Negocio** | - Solo usuarios Premium pueden crear una Watch Party. <br> - El contenido debe estar disponible para el usuario que crea la sala. <br> - La sala debe tener un identificador único. |
+| **Flujo de Excepción** | **FE1: Error al crear sala** <br> FE1.1 El servicio de Watch Party no responde o genera error interno. <br> FE1.2 El sistema informa que no se pudo crear la sala. <br> FE1.3 El error queda registrado para trazabilidad. |
+| **Reglas de Calidad** | - La creación de la sala debe completarse en ≤ 2 segundos. <br> - El identificador de sala debe ser único y difícil de predecir. |
+
+---
+
+### CDU014.2: Validar Plan Premium
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Validar plan Premium |
+| **Código** | CDU014.2 |
+| **Actores** | Usuario Premium |
+| **Descripción** | Permite validar que el usuario que intenta crear una Watch Party tenga una suscripción Premium activa. Este caso es incluido por CDU014.1. |
+| **Precondiciones** | - El usuario debe estar autenticado. <br> - Debe existir una suscripción asociada a la cuenta. |
+| **Post Condiciones** | - Se determina si el usuario está autorizado para crear la sala. <br> - Si el plan es Premium y está activo, el flujo continúa con la creación de sala. <br> - Si el plan no cumple, la creación se rechaza. |
+| **Flujo Principal** | 1. El sistema recibe la solicitud desde CDU014.1. <br> 2. El sistema consulta la suscripción del usuario. <br> 3. El sistema verifica que la suscripción esté activa. <br> 4. El sistema valida que el tipo de plan sea Premium. <br> 5. El sistema autoriza la creación de la Watch Party. |
+| **Flujos Alternos** | **FA1: Plan no Premium** <br> FA1.1 El sistema detecta plan Básico o Estándar. <br> FA1.2 El sistema niega la creación de la sala. |
+| **Reglas de Negocio** | - Solo el usuario con plan Premium puede iniciar la sala. <br> - Los invitados pueden pertenecer a otros planes, siempre que accedan mediante enlace o código válido. |
+| **Flujo de Excepción** | **FE1: No se puede validar la suscripción** <br> FE1.1 El sistema no logra consultar el estado del plan. <br> FE1.2 La creación de la sala no se autoriza por seguridad. |
+| **Reglas de Calidad** | - La validación debe realizarse antes de crear la sala. <br> - La consulta debe ejecutarse con timeout controlado. |
+
+---
+
+### CDU014.3: Generar Enlace/Código de Invitación
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Generar enlace/código de invitación |
+| **Código** | CDU014.3 |
+| **Actores** | Usuario Premium |
+| **Descripción** | Permite generar un enlace o código único que el usuario Premium puede compartir con otros usuarios para que se unan a la Watch Party. Este caso es incluido por CDU014.1. |
+| **Precondiciones** | - La sala de Watch Party debe haber sido creada correctamente. <br> - El usuario creador debe estar autorizado. |
+| **Post Condiciones** | - Se genera un enlace o código único. <br> - El enlace queda asociado a la sala. <br> - Los usuarios invitados pueden usarlo para unirse. |
+| **Flujo Principal** | 1. El sistema crea la sala de Watch Party. <br> 2. El sistema genera un código único o token de invitación. <br> 3. El sistema asocia el código a la sala creada. <br> 4. El sistema define una vigencia o política de uso del código. <br> 5. El sistema muestra el enlace/código al usuario Premium. |
+| **Flujos Alternos** | **FA1: Regenerar invitación** <br> FA1.1 El usuario solicita generar un nuevo enlace. <br> FA1.2 El sistema invalida el enlace anterior si aplica. <br> FA1.3 El sistema genera un nuevo código. |
+| **Reglas de Negocio** | - El enlace debe estar asociado a una sala existente. <br> - El código debe ser único y no predecible. <br> - La sala debe controlar quiénes se unen mediante el enlace/código válido. |
+| **Flujo de Excepción** | **FE1: Error al generar enlace** <br> FE1.1 El sistema no puede generar un código único. <br> FE1.2 La sala se mantiene creada, pero no se permite compartir hasta generar la invitación. |
+| **Reglas de Calidad** | - La generación del enlace debe ser inmediata. <br> - El código no debe exponer información sensible de la sala o del usuario. |
+
+---
+
+### CDU014.4: Unirse a Sala Sincronizada
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Unirse a sala sincronizada |
+| **Código** | CDU014.4 |
+| **Actores** | Usuario Invitado |
+| **Descripción** | Permite que un usuario invitado se una a una sala de Watch Party utilizando un enlace o código de invitación válido. Este caso incluye la sincronización de reproducción por WebSocket mediante CDU014.5. |
+| **Precondiciones** | - El usuario invitado debe tener sesión activa. <br> - Debe contar con un enlace o código válido. <br> - La sala debe estar activa. |
+| **Post Condiciones** | - El usuario queda conectado a la sala. <br> - El usuario recibe el estado actual de reproducción. <br> - La reproducción queda sincronizada con el anfitrión o sala. |
+| **Flujo Principal** | 1. El usuario invitado abre el enlace o ingresa el código de invitación. <br> 2. El sistema valida que la sala exista y esté activa. <br> 3. El sistema agrega al usuario a la sala. <br> 4. El sistema establece conexión WebSocket. <br> 5. El sistema ejecuta CDU014.5 para sincronizar reproducción. <br> 6. El usuario visualiza el contenido en el estado actual de la sala. |
+| **Flujos Alternos** | **FA1: Invitado con plan no Premium** <br> FA1.1 El usuario invitado no posee plan Premium. <br> FA1.2 El sistema permite unirse porque la restricción Premium aplica solo al creador de la sala. |
+| **Reglas de Negocio** | - El usuario Premium crea la sala, pero puede invitar usuarios Básico o Estándar. <br> - Solo se permite unirse a salas activas. <br> - El código de invitación debe ser válido. |
+| **Flujo de Excepción** | **FE1: Código inválido o sala no disponible** <br> FE1.1 El enlace/código no existe, expiró o la sala finalizó. <br> FE1.2 El sistema informa que no es posible unirse. |
+| **Reglas de Calidad** | - La unión a sala debe completarse en ≤ 2 segundos. <br> - La sincronización inicial debe percibirse como inmediata para el usuario. |
+
+---
+
+### CDU014.5: Sincronizar Reproducción por WebSocket
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Sincronizar reproducción por WebSocket |
+| **Código** | CDU014.5 |
+| **Actores** | Usuario Premium, Usuario Invitado |
+| **Descripción** | Permite sincronizar acciones de reproducción dentro de la Watch Party, como reproducir, pausar, avanzar o actualizar el minuto actual mediante comunicación en tiempo real por WebSocket. Este caso es incluido por CDU014.4. |
+| **Precondiciones** | - La sala debe estar activa. <br> - Debe existir conexión WebSocket entre los participantes y el servidor. <br> - El contenido debe estar disponible para reproducción. |
+| **Post Condiciones** | - Todos los participantes reciben el estado actualizado de reproducción. <br> - La sala mantiene sincronizado el tiempo de reproducción. |
+| **Flujo Principal** | 1. El usuario Premium inicia o controla la reproducción. <br> 2. El sistema captura el evento de reproducción. <br> 3. El servidor de Watch Party emite el evento por WebSocket a los participantes. <br> 4. Los clientes reciben el evento. <br> 5. Los reproductores actualizan su estado de reproducción. <br> 6. El sistema mantiene el tiempo sincronizado entre participantes. |
+| **Flujos Alternos** | **FA1: Reconexión de usuario** <br> FA1.1 Un usuario pierde temporalmente la conexión. <br> FA1.2 Al reconectarse, el sistema envía el estado actual de la sala. <br> FA1.3 El usuario continúa en el minuto sincronizado. |
+| **Reglas de Negocio** | - La sala debe mantener un estado único de reproducción. <br> - El anfitrión o reglas de sala determinan quién puede controlar la reproducción. <br> - Los eventos deben aplicarse únicamente a participantes de la sala correspondiente. |
+| **Flujo de Excepción** | **FE1: Error de WebSocket** <br> FE1.1 La conexión en tiempo real falla. <br> FE1.2 El sistema intenta reconectar. <br> FE1.3 Si no es posible, informa al usuario que perdió sincronización. |
+| **Reglas de Calidad** | - La sincronización debe tener baja latencia. <br> - Los eventos deben propagarse de forma confiable. <br> - El sistema debe soportar reconexión sin perder el estado de sala. |
+
+---
+
+### CDU014.6: Finalizar Sala de Watch Party
+
+| Campo | Detalle |
+|-------|---------|
+| **Nombre** | Finalizar sala de Watch Party |
+| **Código** | CDU014.6 |
+| **Actores** | Usuario Premium |
+| **Descripción** | Permite finalizar una sala de Watch Party cuando el usuario anfitrión decide cerrarla o cuando el sistema detecta que la sesión terminó. Este caso extiende la sincronización de reproducción por WebSocket mediante CDU014.5. |
+| **Precondiciones** | - La sala debe estar activa. <br> - El usuario debe ser anfitrión o tener permisos para finalizar la sala. |
+| **Post Condiciones** | - La sala queda finalizada. <br> - Los participantes son notificados. <br> - El enlace/código deja de permitir nuevos accesos. |
+| **Flujo Principal** | 1. El usuario Premium selecciona "Finalizar Watch Party". <br> 2. El sistema solicita confirmación. <br> 3. El usuario confirma la acción. <br> 4. El sistema cambia el estado de la sala a finalizada. <br> 5. El sistema notifica a los participantes mediante WebSocket. <br> 6. El sistema invalida el enlace/código de invitación. <br> 7. Los usuarios salen de la sala o son redirigidos al contenido. |
+| **Flujos Alternos** | **FA1: Finalización automática** <br> FA1.1 El sistema detecta que no hay participantes activos o que el contenido terminó. <br> FA1.2 El sistema finaliza la sala automáticamente según la política configurada. |
+| **Reglas de Negocio** | - Solo el anfitrión o el sistema pueden finalizar la sala. <br> - Una sala finalizada no debe aceptar nuevos usuarios. <br> - Los eventos posteriores deben rechazarse si la sala ya terminó. |
+| **Flujo de Excepción** | **FE1: Error al finalizar sala** <br> FE1.1 El sistema no puede actualizar el estado de la sala. <br> FE1.2 El sistema registra el error y mantiene la sala en estado consistente. |
+| **Reglas de Calidad** | - Los participantes deben ser notificados de forma inmediata. <br> - La finalización no debe dejar conexiones WebSocket huérfanas. |

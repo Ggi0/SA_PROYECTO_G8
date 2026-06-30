@@ -6,6 +6,7 @@ import RegisterPage from '@/pages/RegisterPage'
 import ProfilesPage from '@/pages/ProfilesPage'
 import HomePage from '@/pages/HomePage'
 import MovieDetailPage from '@/pages/MovieDetailPage'
+import WatchPartyPage from '@/pages/WatchPartyPage'
 import PlansPage from '@/pages/PlansPage'
 import AccountPage from '@/pages/AccountPage'
 import CheckoutPage from '@/pages/CheckoutPage'
@@ -13,6 +14,7 @@ import AuditPage from '@/pages/admin/AuditPage'
 import LayoutAdmin from '@/pages/admin/layoutAdmin'
 import MainPage from '@/pages/admin/mainPage'
 import CatalogAdminPage from '@/pages/admin/CatalogAdminPage'
+import UserAdminPage from '@/pages/admin/userAdminPage'
 
 
 export default function AppRoutes() {
@@ -38,6 +40,9 @@ export default function AppRoutes() {
       <Route path="/movie/:id" element={
         <ProtectedRoute><MovieDetailPage /></ProtectedRoute>
       } />
+      <Route path="/watch-party/:code" element={
+        <ProtectedRoute><WatchPartyPage /></ProtectedRoute>
+      } />
       <Route path="/account" element={
         <ProtectedRoute><AccountPage /></ProtectedRoute>
       } />
@@ -55,6 +60,8 @@ export default function AppRoutes() {
         <Route path="audit" element={<AuditPage />} />
         <Route index element={<MainPage />} />
         <Route path="catalog" element={<CatalogAdminPage />} />
+        <Route path="users" element={<UserAdminPage/>}/>
+
       </Route>
 
     </Routes>

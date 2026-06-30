@@ -3,6 +3,10 @@ package payments
 import (
 	"context"
 	"testing"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	pb "subscription-service/proto/subscription"
 )
 
 type fakePaymentRepo struct {
@@ -29,5 +33,29 @@ func TestGetPaymentHistoryDelegatesPagination(t *testing.T) {
 	}
 	if repo.limit != 20 || repo.offset != 5 {
 		t.Fatalf("pagination not delegated: limit=%d offset=%d", repo.limit, repo.offset)
+	}
+}
+
+func TestGetPaymentHistoryHandlerMapsPayments(t *testing.T) {
+	repo := &fakePaymentRepo{}
+	handler := NewHandler(NewService(repo))
+
+	resp, err := handler.GetPaymentHistory(context.Background(), &pb.GetPaymentHistoryRequest{UserId: "user-1", Limit: 10, Offset: 2})
+	if err != nil {
+		t.Fatalf("GetPaymentHistory returned error: %v", err)
+	}
+	if resp.Total != 1 || len(resp.Payments) != 1 || resp.Payments[0].Id != "payment-1" {
+		t.Fatalf("unexpected response: %#v", resp)
+	}
+	if repo.limit != 10 || repo.offset != 2 {
+		t.Fatalf("pagination not delegated: limit=%d offset=%d", repo.limit, repo.offset)
+	}
+}
+
+func TestGetPaymentHistoryHandlerRejectsMissingUser(t *testing.T) {
+	handler := NewHandler(NewService(&fakePaymentRepo{}))
+	_, err := handler.GetPaymentHistory(context.Background(), &pb.GetPaymentHistoryRequest{})
+	if status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("expected InvalidArgument, got %v", err)
 	}
 }

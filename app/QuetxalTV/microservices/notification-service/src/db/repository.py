@@ -9,20 +9,21 @@ class NotificationRepository:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    """
-                    INSERT INTO notification.notification_types(
-                        type_code, description, template_file, subject_template, is_active
-                    )
-                    VALUES
-                        ('WELCOME', 'Correo de bienvenida', 'welcome.html', 'Bienvenido a Quetxal TV, {{name}}', TRUE),
-                        ('PURCHASE_RECEIPT', 'Recibo de compra', 'purchase.html', 'Recibo de compra - {{plan_name}}', TRUE)
-                    ON CONFLICT (type_code) DO UPDATE SET
-                        description = EXCLUDED.description,
-                        template_file = EXCLUDED.template_file,
-                        subject_template = EXCLUDED.subject_template,
-                        is_active = TRUE
-                    """
+                """
+                INSERT INTO notification.notification_types(
+                    type_code, description, template_file, subject_template, is_active
                 )
+                VALUES
+                    ('WELCOME', 'Correo de bienvenida', 'welcome.html', 'Bienvenido a Quetxal TV, {{name}}', TRUE),
+                    ('PURCHASE_RECEIPT', 'Recibo de compra', 'purchase.html', 'Recibo de compra - {{plan_name}}', TRUE),
+                    ('NEW_CONTENT', 'Alerta de nuevo contenido', 'new_content.html', '¡Nuevo en QuetxalTV: {{content_title}}!', TRUE)
+                ON CONFLICT (type_code) DO UPDATE SET
+                    description = EXCLUDED.description,
+                    template_file = EXCLUDED.template_file,
+                    subject_template = EXCLUDED.subject_template,
+                    is_active = TRUE
+                """
+            )
 
     def queue_notification(self, user_id: str, recipient_email: str,
                        recipient_name: str, type_code: str,
@@ -81,3 +82,22 @@ class NotificationRepository:
                     "CALL notification.sp_mark_failed(%s, %s)",
                     (notification_id, error_message)
                 )
+    def get_subscriber_emails(self) -> list:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT DISTINCT ON (recipient_email)
+                        recipient_email, recipient_name, user_id
+                    FROM notification.notifications
+                    WHERE type_code IN ('PURCHASE_RECEIPT', 'WELCOME')
+                    AND status = 'SENT'
+                    ORDER BY recipient_email,
+                             CASE WHEN type_code = 'PURCHASE_RECEIPT' THEN 0 ELSE 1 END,
+                             created_at DESC
+                    """
+                )
+                return [
+                    {"email": row[0], "name": row[1], "user_id": str(row[2]) if row[2] else None}
+                    for row in cur.fetchall()
+                ]

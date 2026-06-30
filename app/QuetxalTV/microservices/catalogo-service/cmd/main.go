@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -64,6 +65,7 @@ func main() {
 	audit.NewHandler(svc).RegisterRoutes(mux)
 	storage.RegisterRoutes(mux, store, signer)
 	registerHealthRoutes(mux, db)
+	registerRecommendationsRoute(mux, repo)
 
 	go func() {
 		log.Printf("HTTP server escuchando en :%s (audit + health + upload)", httpPort)
@@ -92,6 +94,62 @@ func main() {
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Error en servidor gRPC: %v", err)
 	}
+}
+
+// registerRecommendationsRoute agrega /recommendations al mux HTTP.
+func registerRecommendationsRoute(mux *http.ServeMux, repo *catalog.Repository) {
+	mux.HandleFunc("/recommendations", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		profileID := r.URL.Query().Get("profile_id")
+		maxRating := r.URL.Query().Get("max_rating")
+		if maxRating == "" {
+			maxRating = "NC-17"
+		}
+		limitStr := r.URL.Query().Get("limit")
+		limit := 20
+		if limitStr != "" {
+			fmt.Sscanf(limitStr, "%d", &limit)
+		}
+
+		rows, err := repo.GetRecommendations(profileID, maxRating, limit)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		type recItem struct {
+			ContentID         string  `json:"contentId"`
+			ContentType       string  `json:"contentType"`
+			Title             string  `json:"title"`
+			ReleaseYear       int     `json:"releaseYear"`
+			DurationMin       int     `json:"durationMin"`
+			RatingClass       string  `json:"ratingClass"`
+			PosterURL         string  `json:"posterUrl"`
+			RecommendationPct float64 `json:"recommendationPct"`
+			Score             float64 `json:"score"`
+		}
+		items := make([]recItem, 0, len(rows))
+		for _, row := range rows {
+			items = append(items, recItem{
+				ContentID:         row.ContentID,
+				ContentType:       row.ContentType,
+				Title:             row.Title,
+				ReleaseYear:       row.ReleaseYear,
+				DurationMin:       row.DurationMin,
+				RatingClass:       row.RatingClass,
+				PosterURL:         row.PosterURL,
+				RecommendationPct: row.RecommendationPct,
+				Score:             row.Score,
+			})
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"recommendations": items})
+	})
 }
 
 // registerHealthRoutes agrega /healthz y /readyz al mux.
