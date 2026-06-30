@@ -2,6 +2,13 @@
 
 > Documento de arquitectura del sistema QuetxalTV basado en el modelo de vistas 4+1 de Philippe Kruchten.
 
+---
+
+## Visión General
+
+El modelo 4+1 organiza la arquitectura del sistema en cinco vistas complementarias: Escenarios, Lógica, Procesos, Componentes y Despliegue. La siguiente imagen muestra la relación entre todas las vistas para la Fase 3 del proyecto.
+
+![Vista 4+1 — Fase 3](<Imagenes/Vista 4+1 Fase3.png>)
 
 ---
 
@@ -122,6 +129,7 @@
 
 4. **Token expirado:** el Gateway detecta `TokenExpiredError` al llamar `gRPC ValidateToken()`. Si hay refresh token válido en sesiones, firma nuevo JWT y renueva cookie. Si no, responde `401` y redirige a `/login`.
 
+![Vista Lógica](<Imagenes/Vista Logica Fase3 Final.png>)
 
 ---
 
@@ -151,6 +159,7 @@ El precio se multiplica y se muestra en GTQ al usuario.
 **Flujo 3 — Continuar viendo una serie (History Service):**
 El usuario selecciona una serie con un perfil activo. El Gateway enruta mediante `gRPC history.proto` al `history-service` con `GetProgress(profile_id, content_id)`. Si existe progreso, el reproductor reanuda en `season · episode · minute`; si no, inicia desde E01 S01. El progreso se actualiza cada 30 s con `SaveProgress()` → `UPDATE history_db`. Al pausar o cerrar, el progreso queda persistido por perfil.
 
+![Vista de Procesos](<Imagenes/Vista de Procesos Fase3.png>)
 
 ---
 
@@ -192,7 +201,7 @@ Cada microservicio expone una interfaz provista (○—) y el API Gateway consum
 
 ![Vista de Componentes — Diagrama de Paquetes](<Imagenes/Diagrama_Paquetes_Fase3 (3)-Diagrama de Paquetes.drawio.png>)
 
-![Vista de Componentes — Diagrama de Componentes UML](<Imagenes/Diagrama_Paquetes_Fase3 (3)-Página-2.drawio (2).png>)
+![Vista de Componentes — Diagrama de Componentes UML](<Imagenes/diagrama_componentes.png>)
 
 ---
 
@@ -232,4 +241,6 @@ Cada microservicio expone una interfaz provista (○—) y el API Gateway consum
 - **FX Service → ExchangeRate API:** HTTPS en caso de cache miss
 - **Notification Service → SMTP Gmail:** Puerto :587
 
-![Vista de Despliegue](<Imagenes/Vista de Despliegue(Física).jpeg>)
+![Vista de Despliegue — Física](<Imagenes/Vista Despliegue Fisica.png>)
+
+![Vista de Despliegue — Fase 3](<Imagenes/Vista despliege Fase3.png>)

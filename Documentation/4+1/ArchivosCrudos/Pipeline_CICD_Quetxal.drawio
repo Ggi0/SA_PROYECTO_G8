@@ -1,0 +1,566 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Pipeline CI-CD Quetxal" id="pipelineQuetxalTV">
+    <mxGraphModel dx="4782" dy="1651" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1640" pageHeight="2560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="3" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="-730" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="Push o Pull Request (feature/**, develop, release) - workflow_call" vertex="1">
+          <mxGeometry height="38" width="340" x="-810" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="Checkout del codigo (actions/checkout)" vertex="1">
+          <mxGeometry height="34" width="340" x="-810" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="6" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="4" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-640" y="70" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7" edge="1" parent="1" source="4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#eeeeee;strokeColor=#9e9e9e;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontStyle=2;fontColor=#555555;" value="Job: ci-tests - 3 jobs en paralelo - fail-fast (umbral 75%)" vertex="1">
+          <mxGeometry height="214" width="760" x="-930" y="202" as="geometry" />
+        </mxCell>
+        <mxCell id="9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="test-go (Go 1.25)" vertex="1">
+          <mxGeometry height="24" width="235" x="-915" y="238" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=10;fontColor=#333333;align=left;spacingLeft=8;" value="subscription-service&#xa;catalogo-service&#xa;go build ./... + go test&#xa;cobertura &gt;= 75% (sin repository.go)" vertex="1">
+          <mxGeometry height="96" width="235" x="-915" y="266" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="test-ts (Node 24)" vertex="1">
+          <mxGeometry height="24" width="235" x="-668" y="238" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=10;fontColor=#333333;align=left;spacingLeft=8;" value="api-gateway&lt;br&gt;auth-service&lt;div&gt;Frontend&lt;br&gt;npm ci + jest --coverage / test:cov&lt;br&gt;lines &amp;gt;= 75%&lt;/div&gt;" vertex="1">
+          <mxGeometry height="96" width="235" x="-675" y="262" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="test-python (Python 3.11)" vertex="1">
+          <mxGeometry height="24" width="235" x="-421" y="238" as="geometry" />
+        </mxCell>
+        <mxCell id="14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=10;fontColor=#333333;align=left;spacingLeft=8;" value="fx-service&#xa;notification-service&#xa;historial-service&#xa;pytest --cov &gt;= 75%&#xa;download-service: compileall (solo compila)" vertex="1">
+          <mxGeometry height="112" width="235" x="-421" y="266" as="geometry" />
+        </mxCell>
+        <mxCell id="15" parent="1" style="text;html=1;align=center;fontSize=10;fontStyle=1;fontColor=#b85450;fillColor=none;strokeColor=none;" value="Si la cobertura &lt; 75% o un test falla -&gt; el pipeline MUERE (fail-fast cancela la matriz)" vertex="1">
+          <mxGeometry height="18" width="730" x="-915" y="382" as="geometry" />
+        </mxCell>
+        <mxCell id="16" edge="1" parent="1" source="5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17" edge="1" parent="1" source="5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="11" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="18" edge="1" parent="1" source="5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="13" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="19" edge="1" parent="1" source="9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="10" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="20" edge="1" parent="1" source="11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="12" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="21" edge="1" parent="1" source="13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="14" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="ci-tests OK? (cobertura &gt;= 75%)" vertex="1">
+          <mxGeometry height="76" width="200" x="-740" y="436" as="geometry" />
+        </mxCell>
+        <mxCell id="23" edge="1" parent="1" source="10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="22" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="24" edge="1" parent="1" source="12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="22" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="25" edge="1" parent="1" source="14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="22" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-440" y="322" />
+              <mxPoint x="-440" y="406" />
+              <mxPoint x="-640" y="406" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="26" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - CORTOCIRCUITO (cobertura &lt; 75% o test rojo)" vertex="1">
+          <mxGeometry height="56" width="250" x="-100" y="448" as="geometry" />
+        </mxCell>
+        <mxCell id="27" edge="1" parent="1" source="22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="26" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="28" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="13" y="516" as="geometry" />
+        </mxCell>
+        <mxCell id="29" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="19" y="522" as="geometry" />
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" source="26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="28" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="31" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="Evento = push a develop / release ?" vertex="1">
+          <mxGeometry height="76" width="200" x="-740" y="552" as="geometry" />
+        </mxCell>
+        <mxCell id="32" edge="1" parent="1" source="22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="31" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="33" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="Pull Request: solo CI, sin despliegue" vertex="1">
+          <mxGeometry height="44" width="250" x="-100" y="568" as="geometry" />
+        </mxCell>
+        <mxCell id="34" edge="1" parent="1" source="31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="33" value="No (PR)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="35" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="13" y="632" as="geometry" />
+        </mxCell>
+        <mxCell id="36" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="19" y="638" as="geometry" />
+        </mxCell>
+        <mxCell id="37" edge="1" parent="1" source="33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="35" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="38" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#eeeeee;strokeColor=#9e9e9e;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontStyle=2;fontColor=#555555;" value="Job: provision-infra (Terraform -&gt; Ansible) - needs: ci-tests" vertex="1">
+          <mxGeometry height="346" width="400" x="-840" y="678" as="geometry" />
+        </mxCell>
+        <mxCell id="39" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="setup-terraform + Workload Identity (llaves SSH)" vertex="1">
+          <mxGeometry height="30" width="360" x="-820" y="714" as="geometry" />
+        </mxCell>
+        <mxCell id="40" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="terraform init" vertex="1">
+          <mxGeometry height="26" width="360" x="-820" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="41" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="terraform plan (-detailed-exitcode)" vertex="1">
+          <mxGeometry height="26" width="360" x="-820" y="782" as="geometry" />
+        </mxCell>
+        <mxCell id="42" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="Cambios en infra?" vertex="1">
+          <mxGeometry height="54" width="150" x="-715" y="816" as="geometry" />
+        </mxCell>
+        <mxCell id="43" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="terraform apply" vertex="1">
+          <mxGeometry height="30" width="92" x="-820" y="828" as="geometry" />
+        </mxCell>
+        <mxCell id="44" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="omitir apply" vertex="1">
+          <mxGeometry height="30" width="92" x="-552" y="828" as="geometry" />
+        </mxCell>
+        <mxCell id="45" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="Ansible: monitor.yml + dev.yml + db.yml&#xa;(PostgreSQL / Redis en VMs)" vertex="1">
+          <mxGeometry height="36" width="360" x="-820" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="46" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="Outputs TF: dev_host, db_public_ip, db_private_ip,&#xa;gcs_video_bucket, credenciales GKE" vertex="1">
+          <mxGeometry height="36" width="360" x="-820" y="922" as="geometry" />
+        </mxCell>
+        <mxCell id="47" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="configurar kubeconfig (artifact para GKE)" vertex="1">
+          <mxGeometry height="30" width="360" x="-820" y="964" as="geometry" />
+        </mxCell>
+        <mxCell id="48" edge="1" parent="1" source="31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="39" value="Si (push)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="49" edge="1" parent="1" source="39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="40" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="50" edge="1" parent="1" source="40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="41" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="51" edge="1" parent="1" source="41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="42" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="52" edge="1" parent="1" source="42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="43" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="53" edge="1" parent="1" source="42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="44" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="54" edge="1" parent="1" source="43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="45" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="55" edge="1" parent="1" source="44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="45" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="56" edge="1" parent="1" source="45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="46" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="57" edge="1" parent="1" source="46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="47" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="58" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="provision-infra OK?" vertex="1">
+          <mxGeometry height="74" width="200" x="-740" y="1052" as="geometry" />
+        </mxCell>
+        <mxCell id="59" edge="1" parent="1" source="47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="58" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="60" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - fallo en Terraform / Ansible" vertex="1">
+          <mxGeometry height="50" width="250" x="-100" y="1064" as="geometry" />
+        </mxCell>
+        <mxCell id="61" edge="1" parent="1" source="58" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="60" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="62" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="13" y="1126" as="geometry" />
+        </mxCell>
+        <mxCell id="63" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="19" y="1132" as="geometry" />
+        </mxCell>
+        <mxCell id="64" edge="1" parent="1" source="60" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="62" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="65" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="Rama impactada?" vertex="1">
+          <mxGeometry height="74" width="200" x="-740" y="1162" as="geometry" />
+        </mxCell>
+        <mxCell id="66" edge="1" parent="1" source="58" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="65" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="67" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8e8e8;strokeColor=#757575;fontSize=12;fontStyle=1;fontColor=#333333;" value="cd-develop -&gt; Compute Engine (Docker Compose)" vertex="1">
+          <mxGeometry height="34" width="300" x="-1180" y="1296" as="geometry" />
+        </mxCell>
+        <mxCell id="68" edge="1" parent="1" source="65" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="67" value="develop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="69" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="Job: build (Workload Identity Federation)" vertex="1">
+          <mxGeometry height="26" width="300" x="-1180" y="1342" as="geometry" />
+        </mxCell>
+        <mxCell id="70" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="docker build &amp; push 9 imagenes -&gt;&#xa;Artifact Registry (:develop + :latest)" vertex="1">
+          <mxGeometry height="42" width="300" x="-1180" y="1374" as="geometry" />
+        </mxCell>
+        <mxCell id="71" edge="1" parent="1" source="67" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="70" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="72" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="frontend build-arg VITE_API_URL = dev_host:3000" vertex="1">
+          <mxGeometry height="34" width="300" x="-1180" y="1422" as="geometry" />
+        </mxCell>
+        <mxCell id="73" edge="1" parent="1" source="70" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="72" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="74" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="build OK?" vertex="1">
+          <mxGeometry height="54" width="160" x="-1110" y="1462" as="geometry" />
+        </mxCell>
+        <mxCell id="75" edge="1" parent="1" source="72" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="74" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="76" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - fallo en build (develop)" vertex="1">
+          <mxGeometry height="44" width="220" x="-1510" y="1466" as="geometry" />
+        </mxCell>
+        <mxCell id="77" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="-1412" y="1526" as="geometry" />
+        </mxCell>
+        <mxCell id="78" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="-1406" y="1532" as="geometry" />
+        </mxCell>
+        <mxCell id="79" edge="1" parent="1" source="76" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="77" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="80" edge="1" parent="1" source="74" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="76" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="81" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="Job: db-migrations (SSH -&gt; DB VM)" vertex="1">
+          <mxGeometry height="26" width="300" x="-1180" y="1536" as="geometry" />
+        </mxCell>
+        <mxCell id="82" edge="1" parent="1" source="74" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="81" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="83" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="tar migrations + apply-migrations.sh (SQL)" vertex="1">
+          <mxGeometry height="34" width="300" x="-1180" y="1568" as="geometry" />
+        </mxCell>
+        <mxCell id="84" edge="1" parent="1" source="81" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="83" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="85" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="migracion OK?" vertex="1">
+          <mxGeometry height="54" width="160" x="-1110" y="1608" as="geometry" />
+        </mxCell>
+        <mxCell id="86" edge="1" parent="1" source="83" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="85" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="87" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - fallo en db-migrations" vertex="1">
+          <mxGeometry height="44" width="220" x="-1510" y="1612" as="geometry" />
+        </mxCell>
+        <mxCell id="88" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="-1412" y="1672" as="geometry" />
+        </mxCell>
+        <mxCell id="89" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="-1406" y="1678" as="geometry" />
+        </mxCell>
+        <mxCell id="90" edge="1" parent="1" source="87" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="88" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="91" edge="1" parent="1" source="85" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="87" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="92" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="Job: deploy-develop (SSH -&gt; dev VM)" vertex="1">
+          <mxGeometry height="26" width="300" x="-1180" y="1682" as="geometry" />
+        </mxCell>
+        <mxCell id="93" edge="1" parent="1" source="85" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="92" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="94" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="git pull origin develop + set_env .env (idempotente)" vertex="1">
+          <mxGeometry height="34" width="300" x="-1180" y="1714" as="geometry" />
+        </mxCell>
+        <mxCell id="95" edge="1" parent="1" source="92" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="94" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="96" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="docker compose pull + up -d --remove-orphans + prune" vertex="1">
+          <mxGeometry height="40" width="300" x="-1180" y="1754" as="geometry" />
+        </mxCell>
+        <mxCell id="97" edge="1" parent="1" source="94" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="96" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="98" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="deploy OK?" vertex="1">
+          <mxGeometry height="54" width="160" x="-1110" y="1800" as="geometry" />
+        </mxCell>
+        <mxCell id="99" edge="1" parent="1" source="96" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="98" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="100" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - fallo en deploy-develop" vertex="1">
+          <mxGeometry height="44" width="220" x="-1510" y="1804" as="geometry" />
+        </mxCell>
+        <mxCell id="101" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="-1412" y="1864" as="geometry" />
+        </mxCell>
+        <mxCell id="102" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="-1406" y="1870" as="geometry" />
+        </mxCell>
+        <mxCell id="103" edge="1" parent="1" source="100" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="101" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="104" edge="1" parent="1" source="98" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="100" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="105" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="Smoke tests: curl /health (Gateway :3000)&#xa;curl / (Frontend :8080)" vertex="1">
+          <mxGeometry height="40" width="300" x="-1180" y="1874" as="geometry" />
+        </mxCell>
+        <mxCell id="106" edge="1" parent="1" source="98" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="105" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="107" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="smoke OK?" vertex="1">
+          <mxGeometry height="54" width="160" x="-1110" y="1924" as="geometry" />
+        </mxCell>
+        <mxCell id="108" edge="1" parent="1" source="105" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="107" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="109" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - smoke tests fallidos" vertex="1">
+          <mxGeometry height="44" width="220" x="-1510" y="1928" as="geometry" />
+        </mxCell>
+        <mxCell id="110" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="-1412" y="1988" as="geometry" />
+        </mxCell>
+        <mxCell id="111" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="-1406" y="1994" as="geometry" />
+        </mxCell>
+        <mxCell id="112" edge="1" parent="1" source="109" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="110" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="113" edge="1" parent="1" source="107" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="109" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-176" edge="1" parent="1" source="114" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="MTff0oxDQBiNpWsXjzrN-172">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="114" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="backup-after-deploy: pg_dump (6 BD) -&gt; GCS&#xa;(Redis excluido)" vertex="1">
+          <mxGeometry height="44" width="300" x="-1180" y="1998" as="geometry" />
+        </mxCell>
+        <mxCell id="115" edge="1" parent="1" source="107" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="114" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="116" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;fontColor=#2d4d22;" value="Despliegue develop completado" vertex="1">
+          <mxGeometry height="34" width="300" x="-1180" y="2052" as="geometry" />
+        </mxCell>
+        <mxCell id="117" edge="1" parent="1" source="114" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="116" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="118" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="-1042" y="2098" as="geometry" />
+        </mxCell>
+        <mxCell id="119" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="-1036" y="2104" as="geometry" />
+        </mxCell>
+        <mxCell id="120" edge="1" parent="1" source="116" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="118" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="121" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8e8e8;strokeColor=#757575;fontSize=12;fontStyle=1;fontColor=#333333;" value="cd-release -&gt; GKE (Kubernetes)" vertex="1">
+          <mxGeometry height="34" width="300" x="-200" y="1296" as="geometry" />
+        </mxCell>
+        <mxCell id="122" edge="1" parent="1" source="65" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="121" value="release">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="123" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="Job: versioning" vertex="1">
+          <mxGeometry height="26" width="300" x="-200" y="1342" as="geometry" />
+        </mxCell>
+        <mxCell id="124" edge="1" parent="1" source="121" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="123" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="125" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="git tag --sort -&gt; v2.(X+1).0 -&gt; push tag automatico" vertex="1">
+          <mxGeometry height="40" width="300" x="-200" y="1374" as="geometry" />
+        </mxCell>
+        <mxCell id="126" edge="1" parent="1" source="123" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="125" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="127" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="Job: build (Workload Identity Federation)" vertex="1">
+          <mxGeometry height="26" width="300" x="-200" y="1420" as="geometry" />
+        </mxCell>
+        <mxCell id="128" edge="1" parent="1" source="125" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="127" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="129" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="docker build &amp; push 9 imagenes -&gt; Artifact Registry&#xa;(:v2.X.0 inmutable + :latest)" vertex="1">
+          <mxGeometry height="44" width="300" x="-200" y="1452" as="geometry" />
+        </mxCell>
+        <mxCell id="130" edge="1" parent="1" source="127" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="129" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="131" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="build OK?" vertex="1">
+          <mxGeometry height="54" width="160" x="-130" y="1502" as="geometry" />
+        </mxCell>
+        <mxCell id="132" edge="1" parent="1" source="129" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="131" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="133" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - fallo en build (release)" vertex="1">
+          <mxGeometry height="44" width="220" x="80" y="1506" as="geometry" />
+        </mxCell>
+        <mxCell id="134" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="178" y="1566" as="geometry" />
+        </mxCell>
+        <mxCell id="135" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="184" y="1572" as="geometry" />
+        </mxCell>
+        <mxCell id="136" edge="1" parent="1" source="133" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="134" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="137" edge="1" parent="1" source="131" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="133" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="138" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6d6d6;strokeColor=#757575;fontSize=11;fontStyle=1;fontColor=#222222;" value="Job: deploy-gke" vertex="1">
+          <mxGeometry height="26" width="300" x="-200" y="1576" as="geometry" />
+        </mxCell>
+        <mxCell id="139" edge="1" parent="1" source="131" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="138" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="140" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="gcloud auth (WIF) + gcloud get-credentials" vertex="1">
+          <mxGeometry height="32" width="300" x="-200" y="1608" as="geometry" />
+        </mxCell>
+        <mxCell id="141" edge="1" parent="1" source="138" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="140" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="142" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="kubectl create secret (dry-run+apply) + ConfigMaps&#xa;envsubst IMAGE_TAG=v2.X.0" vertex="1">
+          <mxGeometry height="44" width="300" x="-200" y="1644" as="geometry" />
+        </mxCell>
+        <mxCell id="143" edge="1" parent="1" source="140" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="142" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="144" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="kubectl apply -f k8s/*.yml" vertex="1">
+          <mxGeometry height="28" width="300" x="-200" y="1692" as="geometry" />
+        </mxCell>
+        <mxCell id="145" edge="1" parent="1" source="142" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="144" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="146" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="job-migration: kubectl delete+apply +&#xa;kubectl wait --for=complete (5 min)" vertex="1">
+          <mxGeometry height="42" width="300" x="-200" y="1724" as="geometry" />
+        </mxCell>
+        <mxCell id="147" edge="1" parent="1" source="144" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="146" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="148" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="migracion OK?" vertex="1">
+          <mxGeometry height="54" width="160" x="-130" y="1772" as="geometry" />
+        </mxCell>
+        <mxCell id="149" edge="1" parent="1" source="146" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="148" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="150" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="exit 1 - pipeline detenido (migracion K8s)" vertex="1">
+          <mxGeometry height="44" width="220" x="80" y="1776" as="geometry" />
+        </mxCell>
+        <mxCell id="151" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="178" y="1836" as="geometry" />
+        </mxCell>
+        <mxCell id="152" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="184" y="1842" as="geometry" />
+        </mxCell>
+        <mxCell id="153" edge="1" parent="1" source="150" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="151" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="154" edge="1" parent="1" source="148" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="150" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="155" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="kubectl rollout status&#xa;(15 deployments, 10 min c/u)" vertex="1">
+          <mxGeometry height="40" width="300" x="-200" y="1846" as="geometry" />
+        </mxCell>
+        <mxCell id="156" edge="1" parent="1" source="148" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="155" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="157" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#9e9e9e;fontSize=10;fontColor=#333333;" value="Rollout OK?" vertex="1">
+          <mxGeometry height="60" width="160" x="-130" y="1896" as="geometry" />
+        </mxCell>
+        <mxCell id="158" edge="1" parent="1" source="155" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="157" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="159" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="kubectl rollout undo (ROLLBACK automatico&#xa;a la ultima version estable)" vertex="1">
+          <mxGeometry height="52" width="230" x="80" y="1898" as="geometry" />
+        </mxCell>
+        <mxCell id="160" edge="1" parent="1" source="157" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="159" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="161" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="183" y="1964" as="geometry" />
+        </mxCell>
+        <mxCell id="162" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="189" y="1970" as="geometry" />
+        </mxCell>
+        <mxCell id="163" edge="1" parent="1" source="159" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="161" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="164" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="Probes Readiness / Liveness OK" vertex="1">
+          <mxGeometry height="30" width="300" x="-200" y="1976" as="geometry" />
+        </mxCell>
+        <mxCell id="165" edge="1" parent="1" source="157" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="164" value="Si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-181" edge="1" parent="1" source="166" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="MTff0oxDQBiNpWsXjzrN-177">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="166" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="backup-after-deploy: pg_dump -&gt; GCS" vertex="1">
+          <mxGeometry height="32" width="300" x="-200" y="2014" as="geometry" />
+        </mxCell>
+        <mxCell id="167" edge="1" parent="1" source="164" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="166" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="168" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;fontColor=#2d4d22;" value="Release estable - namespace quetxal-tv-prod" vertex="1">
+          <mxGeometry height="34" width="300" x="-200" y="2116" as="geometry" />
+        </mxCell>
+        <mxCell id="169" edge="1" parent="1" source="166" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-50" y="2066" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="170" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="-62" y="2170" as="geometry" />
+        </mxCell>
+        <mxCell id="171" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="-56" y="2176" as="geometry" />
+        </mxCell>
+        <mxCell id="172" edge="1" parent="1" source="168" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="170" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l-MLunka3HCE6ZRqjeFK-174" edge="1" parent="1" source="l-MLunka3HCE6ZRqjeFK-173" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="168">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l-MLunka3HCE6ZRqjeFK-173" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=30;fillColor=#ffffff;strokeColor=#bdbdbd;fontSize=11;fontColor=#333333;" value="Inyección de Locust (Pruebas de carga hacia el Ingress)" vertex="1">
+          <mxGeometry height="32" width="300" x="-200" y="2066" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-172" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - Backups fallidos" vertex="1">
+          <mxGeometry height="44" width="220" x="-1510" y="2032" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-173" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="-1412" y="2092" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-174" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="-1406" y="2098" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-175" edge="1" parent="1" source="MTff0oxDQBiNpWsXjzrN-172" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="MTff0oxDQBiNpWsXjzrN-173" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-177" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontColor=#7a1f1a;" value="Pipeline detenido - backups fallidos" vertex="1">
+          <mxGeometry height="44" width="220" x="178" y="2008" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-178" parent="1" style="ellipse;html=1;fillColor=none;strokeColor=#3d3d3d;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="276" y="2068" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-179" parent="1" style="ellipse;html=1;fillColor=#3d3d3d;strokeColor=#3d3d3d;" value="" vertex="1">
+          <mxGeometry height="12" width="12" x="282" y="2074" as="geometry" />
+        </mxCell>
+        <mxCell id="MTff0oxDQBiNpWsXjzrN-180" edge="1" parent="1" source="MTff0oxDQBiNpWsXjzrN-177" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#6b7280;fontSize=10;fontColor=#444;" target="MTff0oxDQBiNpWsXjzrN-178" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
