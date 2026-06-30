@@ -29,11 +29,14 @@ services:
       DOWNLOAD_SERVICE_URL: ${DOWNLOAD_SERVICE_URL:-download-service:50057}
       DOWNLOAD_SERVICE_HOST: ${DOWNLOAD_SERVICE_HOST:-download-service:50057}
       SUBSCRIPTION_HTTP_URL: ${SUBSCRIPTION_HTTP_URL:-http://subscription-service:8083}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-notification-service:50056}
+      NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST:-notification-service:50056}
       NOTIFICATION_HTTP_URL: ${NOTIFICATION_HTTP_URL:-http://notification-service:8084}
       FX_HTTP_URL: ${FX_HTTP_URL:-http://fx-service:8085}
     depends_on:
       - auth-service
       - subscription-service
+      - notification-service
       - fx-service
       - catalogo-service
       - download-service
