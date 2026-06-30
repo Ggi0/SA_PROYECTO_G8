@@ -35,6 +35,20 @@ resource "google_compute_firewall" "allow_ssh" {
   target_tags   = ["ssh"]
 }
 
+# IAP SSH fallback para CI/CD cuando GitHub Actions no puede alcanzar el puerto
+# 22 publico de la VM. Requiere roles/iap.tunnelResourceAccessor en la SA.
+resource "google_compute_firewall" "allow_iap_ssh" {
+  name      = "quetxal-allow-iap-ssh"
+  network   = google_compute_network.vpc.name
+  direction = "INGRESS"
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+  source_ranges = ["35.235.240.0/20"]
+  target_tags   = ["ssh"]
+}
+
 # Tráfico interno libre dentro de la VPC (GKE <-> VMs)
 resource "google_compute_firewall" "allow_internal" {
   name      = "quetxal-allow-internal"
