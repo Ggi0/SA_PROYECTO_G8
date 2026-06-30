@@ -2,7 +2,7 @@ name: DB Backup - Quetxal TV
 
 on:
   schedule:
-    - cron: '40 7 * * *'
+    - cron: '0 8 * * *'
   workflow_dispatch:
     inputs:
       target:
