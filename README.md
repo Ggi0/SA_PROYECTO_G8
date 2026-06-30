@@ -23,7 +23,7 @@ Durante la segunda fase del proyecto se incorporó una infraestructura completa 
 El resultado es una plataforma distribuida preparada para evolucionar de forma independiente, facilitar el mantenimiento y garantizar la continuidad operativa de los servicios.
 
 
-![alt text](Documentation/ci_cd_docu/image/Diagrama_bloques.png)
+![diagrama de alto nivle](./Documentation/4+1/Imagenes/despliegue/altoNivel.png)
 ---
 
 # Documentación del Proyecto
