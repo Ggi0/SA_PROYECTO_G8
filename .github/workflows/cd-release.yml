@@ -356,6 +356,21 @@ jobs:
           BASE_URL: ${{ steps.ingress.outputs.base_url }}
         run: |
           set -euo pipefail
+          for i in $(seq 1 30); do
+            if curl -fsS "$BASE_URL/api/health" >/dev/null; then
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              kubectl get ingress quetxal-tv-ingress -n quetxal-tv-prod -o wide || true
+              kubectl describe ingress quetxal-tv-ingress -n quetxal-tv-prod || true
+              kubectl get service api-gateway -n quetxal-tv-prod -o wide || true
+              kubectl get endpoints api-gateway -n quetxal-tv-prod || true
+              kubectl get pods -n quetxal-tv-prod -l app=api-gateway -o wide || true
+              kubectl logs -n quetxal-tv-prod -l app=api-gateway --all-containers --tail=200 || true
+              exit 1
+            fi
+            sleep 10
+          done
           pip install -r tests/smoke/requirements.txt -q
           python tests/smoke/smoke_test.py
 
