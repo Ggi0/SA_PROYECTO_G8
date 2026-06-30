@@ -1,8 +1,7 @@
 # Documentación del Stack ELK - Quetxal TV
 
-## 1. Introducción
 
-En esta sección se documenta la implementación del **Stack ELK** dentro del proyecto **Quetxal TV**, como parte de la Fase 3 del curso de Software Avanzado.
+En esta sección se documenta la implementación del Stack ELK dentro del proyecto Quetxal TV, como parte de la Fase 3 del curso de Software Avanzado.
 
 El objetivo de esta implementación es centralizar los logs generados por los contenedores del sistema, procesarlos, almacenarlos y visualizarlos desde una interfaz gráfica. Esto permite analizar errores, revisar eventos importantes, detectar fallos, validar trazabilidad y tener evidencia operativa del comportamiento del sistema.
 
@@ -17,7 +16,7 @@ Esta solución fue agregada en una carpeta separada de observabilidad para no mo
 
 ---
 
-## 2. Relación con el requerimiento de la Fase 3
+## Relación con el requerimiento de la Fase 3
 
 El proyecto solicita implementar un **Stack de Observabilidad de Logs con ELK Stack**, con el objetivo de recolectar y centralizar logs de auditoría de contenedores y servidores externos.
 
@@ -32,7 +31,7 @@ Esta documentación cubre esa parte mediante la configuración de Filebeat, Logs
 
 ---
 
-## 3. Ubicación de los archivos
+## Ubicación de los archivos
 
 La configuración del Stack ELK se encuentra dentro de:
 
@@ -71,7 +70,7 @@ filebeat
 
 ---
 
-## 4. Problema que resuelve ELK
+## Problema que resuelve ELK
 
 En una arquitectura basada en microservicios, cada servicio genera sus propios logs. Esto puede dificultar el análisis cuando ocurre un error, porque habría que revisar manualmente los logs de cada contenedor.
 
@@ -105,7 +104,7 @@ Esto facilita la búsqueda de errores, la revisión de auditoría, el análisis 
 
 ---
 
-## 5. Arquitectura de logs implementada
+## Arquitectura de logs implementada
 
 El flujo implementado es el siguiente:
 
@@ -123,7 +122,7 @@ Elasticsearch
 Kibana
 ```
 
-### 5.1 Contenedores Docker
+### Contenedores Docker
 
 Los microservicios del proyecto generan logs por consola mediante `stdout` y `stderr`, que es el mecanismo estándar de logging en contenedores.
 
@@ -138,7 +137,7 @@ Catalog Service respondió con error 500
 Subscription Service no disponible
 ```
 
-### 5.2 Filebeat
+### Filebeat
 
 Filebeat actúa como agente recolector. Su función es leer los logs generados por Docker y enviarlos a Logstash.
 
@@ -148,7 +147,7 @@ Archivo de configuración:
 app/QuetxalTV/observability/filebeat/filebeat.yml
 ```
 
-### 5.3 Logstash
+### Logstash
 
 Logstash recibe los logs enviados por Filebeat, los procesa y los transforma.
 
@@ -160,7 +159,7 @@ app/QuetxalTV/observability/logstash/pipeline/logstash.conf
 
 Logstash permite agregar campos, interpretar JSON y enviar los logs a Elasticsearch.
 
-### 5.4 Elasticsearch
+### Elasticsearch
 
 Elasticsearch almacena los logs procesados por Logstash.
 
@@ -176,7 +175,7 @@ Ejemplo:
 quetxal-tv-logs-2026.06.26
 ```
 
-### 5.5 Kibana
+### Kibana
 
 Kibana permite consultar y visualizar los logs almacenados en Elasticsearch.
 
@@ -190,7 +189,7 @@ Desde Kibana se pueden buscar logs por fecha, servicio, contenedor, mensaje, niv
 
 ---
 
-## 6. Configuración de Filebeat
+## Configuración de Filebeat
 
 Archivo:
 
@@ -232,7 +231,7 @@ output.logstash:
 
 ---
 
-## 7. Configuración de Logstash
+## Configuración de Logstash
 
 Archivo:
 
@@ -298,7 +297,7 @@ output {
 
 ---
 
-## 8. Logs estructurados desde el API Gateway
+## Logs estructurados desde el API Gateway
 
 Además del Stack ELK, se agregó un middleware en el API Gateway para generar logs estructurados en formato JSON.
 
@@ -344,7 +343,7 @@ Esto facilita que Kibana pueda filtrar logs por ruta, método HTTP, estado de re
 
 ---
 
-## 9. Servicios definidos en Docker Compose
+## Servicios definidos en Docker Compose
 
 El archivo:
 
@@ -403,7 +402,7 @@ Recolecta logs de contenedores Docker y los envía a Logstash.
 
 ---
 
-## 10. Validación de configuración
+## Validación de configuración
 
 Antes de levantar el stack, se validó la configuración de Docker Compose con:
 
@@ -416,7 +415,7 @@ Si el comando no muestra errores, significa que la configuración YAML es válid
 
 ---
 
-## 11. Comando para levantar el Stack ELK
+## Comando para levantar el Stack ELK
 
 Desde:
 
@@ -438,7 +437,7 @@ docker compose -f docker-compose.local.yml -f observability/docker-compose.obser
 
 ---
 
-## 12. Verificación de contenedores
+## Verificación de contenedores
 
 Para validar que los contenedores estén activos:
 
@@ -457,7 +456,7 @@ quetxaltv-filebeat
 
 ---
 
-## 13. Verificación de Elasticsearch
+## Verificación de Elasticsearch
 
 Para validar que Elasticsearch esté respondiendo:
 
@@ -473,7 +472,7 @@ http://localhost:9200
 
 ---
 
-## 14. Verificación de Kibana
+## Verificación de Kibana
 
 Para ingresar a Kibana:
 
@@ -491,7 +490,7 @@ docker logs quetxaltv-kibana --tail=50
 
 ---
 
-## 15. Envío de log de prueba a Logstash
+## Envío de log de prueba a Logstash
 
 Para validar que Logstash puede recibir logs JSON por TCP, se puede enviar un log de prueba desde PowerShell:
 
@@ -521,7 +520,7 @@ Invoke-RestMethod "http://localhost:9200/_cat/indices/quetxal-tv-logs-*?v"
 
 ---
 
-## 16. Creación del Data View en Kibana
+## Creación del Data View en Kibana
 
 Para consultar logs en Kibana:
 
@@ -565,7 +564,7 @@ quetxal-tv-logs-*
 
 ---
 
-## 17. Consulta de logs en Kibana Discover
+## Consulta de logs en Kibana Discover
 
 Para visualizar logs:
 
@@ -607,17 +606,9 @@ project: quetxal-tv
 
 ---
 
-# 18. Evidencias con capturas
+# Evidencias con capturas
 
-Las capturas deben guardarse directamente dentro de la carpeta:
-
-```txt
-Documentation/
-```
-
----
-
-## 18.1 Docker Compose levantando ELK
+## Docker Compose levantando ELK
 
 Comando utilizado:
 
@@ -633,7 +624,7 @@ Captura esperada:
 
 Imagen:
 
-![Docker Compose levantando ELK](./elk_01_docker_compose_up.png)
+![Docker Compose levantando ELK](imgs/elk_01_docker_compose_up.png)
 
 Nombre del archivo:
 
@@ -643,7 +634,7 @@ Documentation/elk_01_docker_compose_up.png
 
 ---
 
-## 18.2 Contenedores ELK activos
+## Contenedores ELK activos
 
 Comando utilizado:
 
@@ -660,7 +651,7 @@ Captura esperada:
 
 Imagen:
 
-![Contenedores ELK activos](./elk_02_docker_ps.png)
+![Contenedores ELK activos](imgs/elk_02_docker_ps.png)
 
 Nombre del archivo:
 
@@ -670,7 +661,7 @@ Documentation/elk_02_docker_ps.png
 
 ---
 
-## 18.3 Elasticsearch respondiendo
+## Elasticsearch respondiendo
 
 Comando utilizado:
 
@@ -693,7 +684,7 @@ Captura esperada:
 
 Imagen:
 
-![Elasticsearch activo](./elk_03_elasticsearch.png)
+![Elasticsearch activo](imgs/elk_03_elasticsearch.png)
 
 Nombre del archivo:
 
@@ -703,7 +694,7 @@ Documentation/elk_03_elasticsearch.png
 
 ---
 
-## 18.4 Kibana abierto
+## Kibana abierto
 
 URL:
 
@@ -718,7 +709,7 @@ Captura esperada:
 
 Imagen:
 
-![Kibana activo](./elk_04_kibana_home.png)
+![Kibana activo](imgs/elk_04_kibana_home.png)
 
 Nombre del archivo:
 
@@ -728,7 +719,7 @@ Documentation/elk_04_kibana_home.png
 
 ---
 
-## 18.5 Log de prueba enviado a Logstash
+## Log de prueba enviado a Logstash
 
 Comando utilizado:
 
@@ -763,7 +754,7 @@ Captura esperada:
 
 Imagen:
 
-![Log de prueba enviado a Logstash](./elk_05_logstash_test_log.png)
+![Log de prueba enviado a Logstash](imgs/elk_05_logstash_test_log.png)
 
 Nombre del archivo:
 
@@ -773,7 +764,7 @@ Documentation/elk_05_logstash_test_log.png
 
 ---
 
-## 18.6 Data View en Kibana
+## Data View en Kibana
 
 Ruta:
 
@@ -795,7 +786,7 @@ Captura esperada:
 
 Imagen:
 
-![Data View de logs en Kibana](./elk_06_kibana_dataview.png)
+![Data View de logs en Kibana](imgs/elk_06_kibana_dataview.png)
 
 Nombre del archivo:
 
@@ -805,7 +796,7 @@ Documentation/elk_06_kibana_dataview.png
 
 ---
 
-## 18.7 Logs indexados en Kibana Discover
+## Logs indexados en Kibana Discover
 
 Ruta:
 
@@ -833,7 +824,7 @@ Captura esperada:
 
 Imagen:
 
-![Logs indexados en Kibana](./elk_07_kibana_discover_logs.png)
+![Logs indexados en Kibana](imgs/elk_07_kibana_discover_logs.png)
 
 Nombre del archivo:
 
@@ -843,7 +834,7 @@ Documentation/elk_07_kibana_discover_logs.png
 
 ---
 
-## 19. Interpretación de resultados
+## Interpretación de resultados
 
 Con ELK funcionando, se valida que el sistema cuenta con una solución centralizada de logs.
 
@@ -859,11 +850,11 @@ La evidencia esperada es:
 
 ---
 
-## 20. Relación con observabilidad del sistema
+## Relación con observabilidad del sistema
 
 La observabilidad permite entender qué ocurre dentro del sistema a partir de datos emitidos por sus componentes.
 
-En este caso, el Stack ELK se enfoca en **logs**, permitiendo responder preguntas como:
+En este caso, el Stack ELK se enfoca en logs, permitiendo responder preguntas como:
 
 * ¿Qué servicio generó un error?
 * ¿Cuándo ocurrió el error?
@@ -876,20 +867,7 @@ Esto ayuda a diagnosticar problemas sin entrar manualmente a cada contenedor.
 
 ---
 
-## 21. Consideraciones
-
-* ELK se configuró en una carpeta separada para no modificar los Docker Compose principales.
-* Filebeat recolecta logs de contenedores Docker.
-* Logstash procesa logs y los envía a Elasticsearch.
-* Kibana permite consultar logs.
-* El API Gateway genera logs estructurados en JSON.
-* Los logs se almacenan en índices `quetxal-tv-logs-*`.
-* En ambiente local puede ser necesario generar un log de prueba para visualizar datos en Kibana.
-* En ambiente de nube, el flujo debe apuntar a los contenedores y servidores externos configurados.
-
----
-
-## 22. Conclusión
+## Conclusión
 
 El Stack ELK agregado a Quetxal TV proporciona una base de observabilidad para logs centralizados.
 
@@ -897,4 +875,4 @@ Filebeat recolecta logs desde los contenedores Docker. Logstash recibe y procesa
 
 Además, el API Gateway genera logs estructurados en JSON, lo que facilita la búsqueda de eventos importantes como rutas consultadas, errores HTTP, duración de peticiones y eventos técnicos.
 
-Con esta implementación se cumple la parte de **documentación sobre Stack ELK** solicitada para la Fase 3 del proyecto.
+Con esta implementación se cumple la parte de documentación sobre Stack ELK solicitada para la Fase 3 del proyecto.

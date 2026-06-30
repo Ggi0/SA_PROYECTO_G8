@@ -233,9 +233,44 @@ jobs:
           # Correr smoke tests
           python tests/smoke/smoke_test.py
 
+  locust:
+    name: Locust load injection after VM dev deploy
+    needs: [provision-infra, smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Locust headless
+        env:
+          LOCUST_HOST: "http://${{ needs.provision-infra.outputs.dev_host || secrets.GCE_INSTANCE_IP }}:3000"
+          LOCUST_CATALOG: "0"
+          LOCUST_FRONTEND: "0"
+          LOCUST_LOGIN: "0"
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          pip install locust==2.31.6 -q
+          mkdir -p locust-results
+          locust \
+            -f infra/ansible/files/observability/load/locustfile.py \
+            --headless \
+            --host "$LOCUST_HOST" \
+            --users 10 \
+            --spawn-rate 2 \
+            --run-time 1m \
+            --html locust-results/develop-locust-result.html
+      - name: Upload Locust report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: develop-locust-report
+          path: locust-results/develop-locust-result.html
+
   backup-after-deploy:
     name: Backup after deploy
-    needs: [provision-infra, smoke]
+    needs: [provision-infra, locust]
     uses: ./.github/workflows/backup.yml
     with:
       target: gce

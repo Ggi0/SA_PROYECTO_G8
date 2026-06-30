@@ -2,7 +2,7 @@ name: DB Backup - Quetxal TV
 
 on:
   schedule:
-    - cron: '10 20 * * *'
+    - cron: '0 8 * * *'
   workflow_dispatch:
     inputs:
       target:
@@ -44,6 +44,8 @@ jobs:
       - name: Backup via SSH to Compute Engine DB
         env:
           GCE_DB_PUBLIC_IP: ${{ inputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}
+          GCE_DB_INSTANCE: ${{ secrets.GCE_DB_INSTANCE }}
+          GCE_DB_ZONE: ${{ secrets.GCE_DB_ZONE || secrets.GKE_CLUSTER_ZONE }}
           GCE_SSH_USER: ${{ secrets.GCE_SSH_USER }}
           GCE_SSH_PRIVATE_KEY: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
           GCS_BACKUP_BUCKET_INPUT: ${{ inputs.gcs_backup_bucket }}
@@ -51,7 +53,7 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           set -euo pipefail
-          [ -n "${GCE_DB_PUBLIC_IP:-}" ] || { echo "::error::Missing GCE_DB_PUBLIC_IP. Pass db_public_ip or configure the GCE_DB_PUBLIC_IP secret."; exit 1; }
+          DB_INSTANCE_NAME="${GCE_DB_INSTANCE:-quetxal-db-vm}"
           GCS_BACKUP_BUCKET="${GCS_BACKUP_BUCKET_INPUT:-}"
           if [ -z "$GCS_BACKUP_BUCKET" ] && [ -n "${GCP_PROJECT_ID:-}" ]; then
             GCS_BACKUP_BUCKET="quetxal-tv-${GCP_PROJECT_ID}-backups"
@@ -64,7 +66,7 @@ jobs:
           if [[ "$GCE_SSH_PRIVATE_KEY" == '"'*'"' ]]; then GCE_SSH_PRIVATE_KEY="${GCE_SSH_PRIVATE_KEY:1:${#GCE_SSH_PRIVATE_KEY}-2}"; fi
           printf '%b\n' "$GCE_SSH_PRIVATE_KEY" | sed 's/\r$//' > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
-          ssh-keygen -y -f "$KEY_FILE" >/dev/null || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
+          ssh-keygen -y -f "$KEY_FILE" > "$KEY_FILE.pub" || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
           trap 'rm -f "$KEY_FILE"' EXIT
           SSH_OPTS=(
             -i "$KEY_FILE"
@@ -75,15 +77,31 @@ jobs:
           )
           REMOTE_DUMP='docker exec "$C" sh -c '\''pg_dumpall -U "$POSTGRES_USER"'\'''
           USE_IAP=0
-          if ssh "${SSH_OPTS[@]}" "$GCE_SSH_USER@$GCE_DB_PUBLIC_IP" true 2>/tmp/ssh-check.log; then
+          DB_INSTANCE=""
+          DB_ZONE="${GCE_DB_ZONE:-}"
+          if [ -n "${GCE_DB_PUBLIC_IP:-}" ] && ssh "${SSH_OPTS[@]}" "$GCE_SSH_USER@$GCE_DB_PUBLIC_IP" true 2>/tmp/ssh-check.log; then
             echo "SSH directo disponible en $GCE_DB_PUBLIC_IP:22"
           else
-            echo "::warning::SSH directo a $GCE_DB_PUBLIC_IP:22 no responde; intentando tunnel IAP. Detalle: $(cat /tmp/ssh-check.log)"
-            INSTANCE_INFO=$(gcloud compute instances list \
-              --filter="networkInterfaces.accessConfigs.natIP=$GCE_DB_PUBLIC_IP" \
-              --format='value(name,zone)' | head -n 1 || true)
-            [ -n "$INSTANCE_INFO" ] || { echo "::error::No se encontro una VM con IP publica $GCE_DB_PUBLIC_IP en el proyecto actual."; exit 1; }
-            read -r DB_INSTANCE DB_ZONE <<< "$INSTANCE_INFO"
+            echo "::warning::SSH directo no disponible; intentando tunnel IAP. Detalle: $(cat /tmp/ssh-check.log 2>/dev/null || true)"
+            INSTANCE_INFO=""
+            if [ -n "${GCE_DB_PUBLIC_IP:-}" ]; then
+              INSTANCE_INFO=$(gcloud compute instances list \
+                --filter="networkInterfaces.accessConfigs.natIP=$GCE_DB_PUBLIC_IP" \
+                --format='value(name,zone)' | head -n 1 || true)
+            fi
+            if [ -z "$INSTANCE_INFO" ]; then
+              INSTANCE_INFO=$(gcloud compute instances list \
+                --filter="name=$DB_INSTANCE_NAME" \
+                --format='value(name,zone)' | head -n 1 || true)
+            fi
+            if [ -n "$INSTANCE_INFO" ]; then
+              read -r DB_INSTANCE DB_ZONE_FROM_LOOKUP <<< "$INSTANCE_INFO"
+              DB_ZONE="${DB_ZONE:-$DB_ZONE_FROM_LOOKUP}"
+            else
+              DB_INSTANCE="$DB_INSTANCE_NAME"
+            fi
+            [ -n "$DB_INSTANCE" ] || { echo "::error::No se pudo resolver la VM de base de datos."; exit 1; }
+            [ -n "$DB_ZONE" ] || { echo "::error::No se pudo resolver la zona de $DB_INSTANCE. Configure GCE_DB_ZONE o GKE_CLUSTER_ZONE."; exit 1; }
             USE_IAP=1
             echo "Usando IAP hacia $DB_INSTANCE en $DB_ZONE"
           fi
