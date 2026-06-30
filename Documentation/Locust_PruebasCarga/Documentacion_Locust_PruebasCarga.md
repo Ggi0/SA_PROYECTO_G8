@@ -1,16 +1,14 @@
 # Documentación de Locust - Pruebas de Carga Quetxal TV
 
-## 1. Introducción
+En esta sección se documenta la implementación de Locust para realizar pruebas de carga ligera sobre el proyecto Quetxal TV.
 
-En esta sección se documenta la implementación de **Locust** para realizar pruebas de carga ligera sobre el proyecto **Quetxal TV**.
-
-Locust es una herramienta de pruebas de carga que permite simular usuarios concurrentes realizando peticiones HTTP hacia una aplicación. En este proyecto se utilizó para generar tráfico contra el **API Gateway**, ya que este es el punto de entrada principal del frontend hacia los microservicios internos.
+Locust es una herramienta de pruebas de carga que permite simular usuarios concurrentes realizando peticiones HTTP hacia una aplicación. En este proyecto se utilizó para generar tráfico contra el API Gateway, ya que este es el punto de entrada principal del frontend hacia los microservicios internos.
 
 El objetivo principal es validar el comportamiento del sistema ante múltiples solicitudes concurrentes, observar tiempos de respuesta, identificar errores y generar evidencia mediante un reporte HTML.
 
 ---
 
-## 2. Objetivo de las pruebas de carga
+## Objetivo de las pruebas de carga
 
 El objetivo de estas pruebas es simular usuarios consumiendo rutas reales del sistema para evaluar cómo responde el API Gateway bajo carga.
 
@@ -29,7 +27,7 @@ Estas pruebas no sustituyen pruebas de estrés completas, pero sí permiten tene
 
 ---
 
-## 3. Ubicación de los archivos
+## Ubicación de los archivos
 
 La implementación de Locust se encuentra en:
 
@@ -51,7 +49,7 @@ app/QuetxalTV/load-tests/
 
 ---
 
-## 4. Herramienta utilizada
+## Herramienta utilizada
 
 La herramienta utilizada fue:
 
@@ -74,7 +72,7 @@ En Quetxal TV se simulan usuarios HTTP consumiendo endpoints del API Gateway.
 
 ---
 
-## 5. ¿Por qué se prueba desde el API Gateway?
+## ¿Por qué se prueba desde el API Gateway?
 
 El API Gateway es el punto central de entrada hacia el sistema.
 
@@ -102,7 +100,7 @@ Base de datos / servicios externos
 
 ---
 
-## 6. Endpoints utilizados
+## Endpoints utilizados
 
 Los endpoints configurados en Locust corresponden a rutas reales del API Gateway.
 
@@ -123,7 +121,7 @@ GET /historial/continue-watching/:profileId
 
 ---
 
-## 7. Justificación de endpoints seleccionados
+## Justificación de endpoints seleccionados
 
 ### GET /health/live
 
@@ -189,7 +187,7 @@ Este flujo permite mostrar la sección de “Continuar viendo”, que es una fun
 
 ---
 
-## 8. Archivo requirements.txt
+## Archivo requirements.txt
 
 Ubicación:
 
@@ -213,7 +211,7 @@ pip install -r requirements.txt
 
 ---
 
-## 9. Archivo locustfile.py
+## Archivo locustfile.py
 
 Ubicación:
 
@@ -234,7 +232,7 @@ Esto significa que cada usuario virtual espera entre 1 y 3 segundos entre una pe
 
 ---
 
-## 10. Manejo de autenticación
+## Manejo de autenticación
 
 Dentro del archivo `locustfile.py` se agregó una función para manejar token JWT de forma opcional:
 
@@ -254,7 +252,7 @@ Esto permite que la prueba pueda ejecutarse localmente sin depender obligatoriam
 
 ---
 
-## 11. Distribución de carga
+## Distribución de carga
 
 Cada tarea tiene un peso definido con `@task`.
 
@@ -277,7 +275,7 @@ Las rutas de salud y catálogo tienen mayor peso porque son rutas críticas y co
 
 ---
 
-## 12. Archivo run_local.ps1
+## Archivo run_local.ps1
 
 Ubicación:
 
@@ -301,7 +299,7 @@ locust -f .\locustfile.py --headless -u 25 -r 5 -t 2m --host $HostUrl --html .\r
 
 ---
 
-## 13. Parámetros utilizados
+## Parámetros utilizados
 
 El comando de Locust utiliza los siguientes parámetros:
 
@@ -343,11 +341,11 @@ Genera un reporte HTML con los resultados.
 
 ---
 
-## 14. Ejecución local
+## Ejecución local
 
 Antes de ejecutar Locust, se debe tener levantado el API Gateway.
 
-### 14.1 Levantar API Gateway
+### Levantar API Gateway
 
 Desde la raíz del proyecto:
 
@@ -364,7 +362,7 @@ Nest application successfully started
 
 ---
 
-### 14.2 Validar que API Gateway responde
+### Validar que API Gateway responde
 
 En otra terminal:
 
@@ -382,7 +380,7 @@ ok     api-gateway API Gateway está vivo
 
 ---
 
-### 14.3 Ejecutar Locust
+### Ejecutar Locust
 
 Desde la raíz del proyecto:
 
@@ -400,7 +398,7 @@ powershell -ExecutionPolicy Bypass -File .\run_local.ps1
 
 ---
 
-## 15. Ejecución contra otro entorno
+## Ejecución contra otro entorno
 
 El script permite cambiar el host usando la variable de entorno `LOCUST_HOST`.
 
@@ -415,7 +413,7 @@ Esto permite ejecutar las pruebas contra un entorno en nube, una máquina virtua
 
 ---
 
-## 16. Reporte generado
+## Reporte generado
 
 El reporte de Locust se genera en:
 
@@ -439,7 +437,7 @@ El reporte muestra:
 
 ---
 
-## 17. Interpretación de errores
+## Interpretación de errores
 
 Durante una ejecución local pueden aparecer errores como:
 
@@ -468,7 +466,7 @@ La prueba se considera ejecutada correctamente si:
 
 ---
 
-## 18. Validaciones realizadas
+## Validaciones realizadas
 
 Se validó la instalación de Locust:
 
@@ -496,7 +494,7 @@ app/QuetxalTV/load-tests/results/locust_result.html
 
 ---
 
-# 19. Evidencias con capturas
+# Evidencias con capturas
 
 Las capturas deben guardarse directamente dentro de la carpeta:
 
@@ -506,7 +504,7 @@ Documentation/
 
 ---
 
-## 19.1 API Gateway levantado
+## API Gateway levantado
 
 Comando utilizado:
 
@@ -523,7 +521,7 @@ Captura esperada:
 
 Imagen:
 
-![API Gateway levantado](./locust_01_api_gateway_running.png)
+![API Gateway levantado](imgs/locust_01_api_gateway_running.png)
 
 Nombre del archivo:
 
@@ -533,7 +531,7 @@ Documentation/locust_01_api_gateway_running.png
 
 ---
 
-## 19.2 Health live respondiendo
+## Health live respondiendo
 
 Comando utilizado:
 
@@ -549,7 +547,7 @@ Captura esperada:
 
 Imagen:
 
-![Health live respondiendo](./locust_02_health_live.png)
+![Health live respondiendo](imgs/locust_02_health_live.png)
 
 Nombre del archivo:
 
@@ -559,7 +557,7 @@ Documentation/locust_02_health_live.png
 
 ---
 
-## 19.3 Locust ejecutando prueba de carga
+## Locust ejecutando prueba de carga
 
 Comando utilizado:
 
@@ -579,7 +577,7 @@ Captura esperada:
 
 Imagen:
 
-![Locust ejecutando prueba](./locust_03_ejecucion_terminal.png)
+![Locust ejecutando prueba](imgs/locust_03_ejecucion_terminal.png)
 
 Nombre del archivo:
 
@@ -589,7 +587,7 @@ Documentation/locust_03_ejecucion_terminal.png
 
 ---
 
-## 19.4 Reporte HTML de Locust
+## Reporte HTML de Locust
 
 Archivo generado:
 
@@ -614,7 +612,7 @@ Captura esperada:
 
 Imagen:
 
-![Reporte HTML de Locust](./locust_04_reporte_html.png)
+![Reporte HTML de Locust](imgs/locust_04_reporte_html.png)
 
 Nombre del archivo:
 
@@ -624,7 +622,7 @@ Documentation/locust_04_reporte_html.png
 
 ---
 
-## 19.5 Resultados generados
+## Resultados generados
 
 Comando utilizado:
 
@@ -639,7 +637,7 @@ Captura esperada:
 
 Imagen:
 
-![Resultados generados por Locust](./locust_05_resultados_generados.png)
+![Resultados generados por Locust](imgs/locust_05_resultados_generados.png)
 
 Nombre del archivo:
 
@@ -649,19 +647,7 @@ Documentation/locust_05_resultados_generados.png
 
 ---
 
-## 20. Resumen de capturas requeridas
-
-```txt
-Documentation/locust_01_api_gateway_running.png
-Documentation/locust_02_health_live.png
-Documentation/locust_03_ejecucion_terminal.png
-Documentation/locust_04_reporte_html.png
-Documentation/locust_05_resultados_generados.png
-```
-
----
-
-## 21. Relación con observabilidad
+## Relación con observabilidad
 
 Locust se relaciona con la observabilidad porque genera tráfico controlado hacia el sistema.
 
@@ -676,7 +662,7 @@ Al ejecutar Locust, el API Gateway recibe solicitudes reales y genera informaci�
 
 ---
 
-## 22. Relación con la tabla de pruebas
+## Relación con la tabla de pruebas
 
 Dentro de la tabla de control del grupo, esta implementación corresponde a:
 
@@ -698,22 +684,10 @@ Métricas -> Prometheus + Grafana
 
 ---
 
-## 23. Consideraciones
-
-* No se utiliza Mosquitto.
-* No se crearon endpoints falsos para la prueba.
-* Las rutas probadas son rutas existentes del API Gateway.
-* La carga se maneja mediante usuarios HTTP concurrentes.
-* El reporte HTML generado sirve como evidencia.
-* Los errores 500/503 pueden aparecer si algunos microservicios no están levantados localmente.
-* La prueba puede ejecutarse contra localhost, una VM o un Ingress usando `LOCUST_HOST`.
-
----
-
-## 24. Conclusión
+## Conclusión
 
 Locust fue agregado como herramienta para ejecutar pruebas de carga HTTP sobre Quetxal TV.
 
 La prueba simula usuarios concurrentes consumiendo endpoints reales del API Gateway, genera estadísticas de rendimiento y produce un reporte HTML como evidencia.
 
-Esta implementación permite evaluar de forma inicial el comportamiento del sistema ante tráfico concurrente y cumple con la parte de **pruebas de carga ligera con Locust** requerida para la Fase 3 del proyecto.
+Esta implementación permite evaluar de forma inicial el comportamiento del sistema ante tráfico concurrente y cumple con la parte de pruebas de carga ligera con Locust requerida para la Fase 3 del proyecto.
