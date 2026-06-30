@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram id="69bde069d35b40bba5acb7527eb460a6" name="Vista de Escenarios">
-    <mxGraphModel dx="3065" dy="1803" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+    <mxGraphModel dx="2061" dy="981" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -10,79 +10,7 @@
         <mxCell id="qtx-label-left" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=4;" value="1— Diagrama de casos de uso de alto nivel" vertex="1">
           <mxGeometry height="42" width="390" x="115" y="115" as="geometry" />
         </mxCell>
-        <mxCell id="actor-usuario" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Arial;fontSize=16;" value="Usuario" vertex="1">
-          <mxGeometry height="95" width="70" x="95" y="185" as="geometry" />
-        </mxCell>
-        <mxCell id="actor-pago" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Arial;fontSize=16;" value="Sistema de pago" vertex="1">
-          <mxGeometry height="95" width="70" x="95" y="680" as="geometry" />
-        </mxCell>
-        <mxCell id="actor-correo" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Arial;fontSize=16;" value="Servicio de correo" vertex="1">
-          <mxGeometry height="95" width="70" x="95" y="880" as="geometry" />
-        </mxCell>
-        <mxCell id="actor-admin" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Arial;fontSize=16;" value="Administrador" vertex="1">
-          <mxGeometry height="95" width="70" x="765" y="345" as="geometry" />
-        </mxCell>
-        <mxCell id="actor-api-fx" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Arial;fontSize=16;" value="API de divisas externa" vertex="1">
-          <mxGeometry height="95" width="70" x="765" y="595" as="geometry" />
-        </mxCell>
-        <mxCell id="actor-k8s" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Arial;fontSize=16;" value="Kubernetes / Orquestador" vertex="1">
-          <mxGeometry height="95" width="70" x="765" y="830" as="geometry" />
-        </mxCell>
-        <mxCell id="boundary" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;fontColor=#666666;verticalAlign=top;spacingTop=6;" value="Quetxal TV" vertex="1">
-          <mxGeometry height="895" width="470" x="230" y="185" as="geometry" />
-        </mxCell>
-        <mxCell id="uc003" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#d6b656;fillColor=#fff2cc;" value="CDU 003&lt;br&gt;Gestión de planes&lt;br&gt;y suscripciones" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="245" as="geometry" />
-        </mxCell>
-        <mxCell id="uc004" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#b85450;fillColor=#f8cecc;" value="CDU 004&lt;br&gt;Catálogo, búsqueda&lt;br&gt;y detalle" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="340" as="geometry" />
-        </mxCell>
-        <mxCell id="uc006" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#d6b656;fillColor=#fff2cc;" value="CDU 006&lt;br&gt;FX-Service&lt;br&gt;(conversión de divisas)" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="435" as="geometry" />
-        </mxCell>
-        <mxCell id="uc007" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#666666;fillColor=#f5f5f5;" value="CDU 007&lt;br&gt;Historial de&lt;br&gt;reproducción" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="530" as="geometry" />
-        </mxCell>
-        <mxCell id="uc008" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#9673a6;fillColor=#e1d5e7;" value="CDU 008&lt;br&gt;Notificaciones&lt;br&gt;por correo" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="625" as="geometry" />
-        </mxCell>
-        <mxCell id="uc009" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#6c8ebf;fillColor=#dae8fc;" value="CDU 009&lt;br&gt;Panel administrativo&lt;br&gt;y catálogo dinámico" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="720" as="geometry" />
-        </mxCell>
-        <mxCell id="uc010" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#b85450;fillColor=#f8cecc;" value="CDU 010&lt;br&gt;Auditoría y reportes&lt;br&gt;administrativos" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="815" as="geometry" />
-        </mxCell>
-        <mxCell id="uc011" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#82b366;fillColor=#d5e8d4;" value="CDU 011&lt;br&gt;Monitoreo de salud&lt;br&gt;y disponibilidad" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="910" as="geometry" />
-        </mxCell>
-        <mxCell id="e1" edge="1" parent="1" source="actor-usuario" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc003">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e2" edge="1" parent="1" source="actor-usuario" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc004">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e3" edge="1" parent="1" source="actor-usuario" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc007">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e4" edge="1" parent="1" source="actor-pago" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc003">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e5" edge="1" parent="1" source="actor-correo" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc008">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e6" edge="1" parent="1" source="actor-admin" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc009">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e7" edge="1" parent="1" source="actor-admin" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc010">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e8" edge="1" parent="1" source="actor-api-fx" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc006">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e9" edge="1" parent="1" source="actor-k8s" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" target="uc011">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="right-header" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;spacingLeft=4;" value="Quetxal TV - UML Scenario Views (CDU-003 / CDU-007 / CDU-009 / CDU-010 / CDU-011 / CDU-012)" vertex="1">
+        <mxCell id="right-header" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;spacingLeft=4;" value="Quetxal TV - UML Scenario Views (CDU-003 / CDU-007 / CDU-009 / CDU-010 / CDU-011 / CDU-012 / CDU-013 / CDU-014)" vertex="1">
           <mxGeometry height="55" width="940" x="1010" y="115" as="geometry" />
         </mxCell>
         <mxCell id="s2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontFamily=Arial;fontSize=16;align=left;verticalAlign=top;spacing=10;" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;2 — Escenario crítico CDU-003 · Compra de suscripción exitosa y recibo&lt;/b&gt;&lt;br&gt;• Usuario autenticado → selecciona plan Premium → API Gateway&lt;br&gt;• API Gateway → valida JWT y perfil activo → Subscription Service&lt;br&gt;• Subscription Service → consulta precio local → FX-Service → API de divisas externa / Redis&lt;br&gt;• Usuario confirma pago → Sistema de pago procesa transacción&lt;br&gt;• Subscription Service → registra suscripción y pago en PostgreSQL&lt;br&gt;• Notification Service → envía recibo de compra por correo&lt;br&gt;• Resultado: suscripción activa y recibo enviado al usuario.&lt;/div&gt;" vertex="1">
@@ -103,17 +31,184 @@
         <mxCell id="s7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;align=left;verticalAlign=top;spacing=10;" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;7 — Escenario crítico CDU-009 · Acceso denegado al panel administrativo&lt;/b&gt;&lt;br&gt;• Usuario autenticado sin rol admin intenta ingresar al panel administrativo&lt;br&gt;• API Gateway valida JWT, rol y permisos asociados&lt;br&gt;• Auth Service confirma que el usuario no posee rol de administrador&lt;br&gt;• Sistema rechaza la petición con respuesta 403 Forbidden&lt;br&gt;• Se registra el intento en logs/auditoría cuando aplique&lt;br&gt;• Resultado: se protege la gestión de catálogo y reportes administrativos.&lt;/div&gt;" vertex="1">
           <mxGeometry height="200" width="940" x="1010" y="1430" as="geometry" />
         </mxCell>
-        <mxCell id="uc012" value="CDU 012&lt;br&gt;Descarga de contenido&lt;br&gt;offline (download-service)" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontFamily=Arial;fontSize=16;strokeColor=#6c8ebf;fillColor=#dae8fc;" parent="1" vertex="1">
-          <mxGeometry height="78" width="260" x="325" y="1000" as="geometry" />
-        </mxCell>
-        <mxCell id="e10" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" parent="1" edge="1" source="actor-usuario" target="uc012">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e11" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1;" parent="1" edge="1" source="actor-k8s" target="uc012">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="s8" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;8 — Escenario crítico CDU-012 · Descarga offline con validación Premium y URL firmada&lt;/b&gt;&lt;br&gt;• Usuario autenticado con perfil activo selecciona contenido disponible y solicita descarga offline&lt;br&gt;• API Gateway envía la solicitud al Download Service&lt;br&gt;• Download Service valida la elegibilidad del contenido y consulta Subscription Service para confirmar plan Premium&lt;br&gt;• Si el plan es válido, Download Service genera o solicita una URL firmada en Google Cloud Storage&lt;br&gt;• El sistema registra la descarga activa con fecha de expiración de 30 días&lt;br&gt;• Usuario consulta sus descargas activas o elimina una descarga local&lt;br&gt;• Kubernetes / CronJob ejecuta la expiración de descargas vencidas&lt;br&gt;• Resultado: el contenido queda disponible para descarga offline de forma temporal y controlada.&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;align=left;verticalAlign=top;spacing=10;" parent="1" vertex="1">
+        <mxCell id="s8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;align=left;verticalAlign=top;spacing=10;" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;8 — Escenario crítico CDU-012 · Descarga offline con validación Premium y URL firmada&lt;/b&gt;&lt;br&gt;• Usuario autenticado con perfil activo selecciona contenido disponible y solicita descarga offline&lt;br&gt;• API Gateway envía la solicitud al Download Service&lt;br&gt;• Download Service valida la elegibilidad del contenido y consulta Subscription Service para confirmar plan Premium&lt;br&gt;• Si el plan es válido, Download Service genera o solicita una URL firmada en Google Cloud Storage&lt;br&gt;• El sistema registra la descarga activa con fecha de expiración de 30 días&lt;br&gt;• Usuario consulta sus descargas activas o elimina una descarga local&lt;br&gt;• Kubernetes / CronJob ejecuta la expiración de descargas vencidas&lt;br&gt;• Resultado: el contenido queda disponible para descarga offline de forma temporal y controlada.&lt;/div&gt;" vertex="1">
           <mxGeometry height="265" width="940" x="1010" y="1655" as="geometry" />
+        </mxCell>
+        <mxCell id="s9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;align=left;verticalAlign=top;spacing=10;" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;9 — Escenario crítico CDU-013 · Control parental con PIN y bloqueo de contenido restringido&lt;/b&gt;&lt;br&gt;• Usuario autenticado configura un PIN parental de 4 dígitos para un perfil infantil&lt;br&gt;• El sistema asocia la restricción al perfil y conserva la configuración de seguridad&lt;br&gt;• Usuario intenta reproducir contenido con clasificación restringida&lt;br&gt;• API Gateway / servicio correspondiente valida la clasificación del contenido antes de reproducir&lt;br&gt;• Si el contenido no es apto, el sistema solicita el PIN parental&lt;br&gt;• Si el PIN es correcto, se autoriza la reproducción; si es incorrecto, se bloquea el acceso&lt;br&gt;• Resultado: el perfil infantil queda protegido y solo puede reproducir contenido permitido o autorizado.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="255" width="940" x="1010" y="1945" as="geometry" />
+        </mxCell>
+        <mxCell id="s10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Arial;fontSize=16;align=left;verticalAlign=top;spacing=10;" value="&lt;div style=&quot;text-align:left&quot;&gt;&lt;b&gt;10 — Escenario crítico CDU-014 · Watch Party con validación Premium y sincronización WebSocket&lt;/b&gt;&lt;br&gt;• Usuario Premium autenticado solicita crear una sala de Watch Party&lt;br&gt;• API Gateway valida JWT, perfil activo y plan Premium antes de crear la sala&lt;br&gt;• Watch Party Service genera sala y enlace/código de invitación&lt;br&gt;• Usuario invitado accede mediante el enlace o código de la sala sincronizada&lt;br&gt;• El sistema mantiene la reproducción sincronizada mediante WebSocket&lt;br&gt;• El usuario anfitrión puede finalizar la sala cuando termina la sesión&lt;br&gt;• Resultado: usuarios invitados participan en una reproducción compartida y sincronizada en tiempo real.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="245" width="940" x="1010" y="2225" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-1" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontStyle=1;fontSize=13;" value="Quetxal TV" vertex="1">
+          <mxGeometry height="1366" width="598" x="130" y="200" as="geometry">
+            <mxRectangle height="30" width="110" x="120" y="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-2" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CDU-001&#xa;Autenticación y Gestión de Usuarios" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-3" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="CDU-002&#xa;Gestión de Perfiles" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-4" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="CDU-003&#xa;Gestión de Planes y Suscripciones" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-5" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="CDU-004&#xa;Catálogo, Búsqueda y Detalle" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-6" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="CDU-005&#xa;Sistema de Calificaciones" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-7" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="CDU-006&#xa;FX-Service (Conversión de Divisas)" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-8" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CFCFCF;strokeColor=#666666;fontColor=#333333;" value="CDU-007&#xa;Historial de Reproducción" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-9" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="CDU-008&#xa;Sistema de Notificaciones por Correo" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-10" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CDU-009&#xa;Panel de Administración y Catálogo Dinámico" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-11" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="CDU-010&#xa;Auditoría y Reportes Administrativos" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="896" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-12" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="CDU-011&#xa;Monitoreo de Salud y Disponibilidad" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="1002" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-13" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CDU-012&#xa;Descarga de Contenido Offline&#xa;(download-service)" vertex="1">
+          <mxGeometry height="70" width="260" x="214" y="1091" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-14" edge="1" parent="ZxRg5lVBYmlg5TJdwvRO-1" source="ZxRg5lVBYmlg5TJdwvRO-36" style="entryX=1;entryY=0.5;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="687" y="1103" as="sourcePoint" />
+            <mxPoint x="477" y="1027" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-15" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="CDU-013&lt;br&gt;Control Parental" vertex="1">
+          <mxGeometry height="60" width="260" x="214" y="1195" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-16" parent="ZxRg5lVBYmlg5TJdwvRO-1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="CDU-014&lt;br&gt;Watch Party" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="1289" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-17" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="419.6341463414633" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-18" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="424.0243902439024" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-19" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="428.41463414634154" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-20" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-5">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="432.80487804878044" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-21" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-6">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="437.19512195121956" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-22" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-7">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="441.58536585365846" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-23" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-8">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="445.9756097560976" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-24" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="733.5365853658536" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-25" edge="1" parent="1" target="ZxRg5lVBYmlg5TJdwvRO-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="123" y="742.3170731707319" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-26" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="88" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-27" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Servicio de&lt;br&gt;Correo" vertex="1">
+          <mxGeometry height="60" width="30" x="93" y="697" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-28" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Administrador" vertex="1">
+          <mxGeometry height="60" width="30" x="80" y="1015" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-29" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Sistema de &lt;br&gt;Pago" vertex="1">
+          <mxGeometry height="60" width="30" x="825" y="509" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-30" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="&lt;span style=&quot;white-space: normal;&quot;&gt;API de Divisas&lt;br&gt;&amp;nbsp;(Externa)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="30" x="825" y="766" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-31" edge="1" parent="1" source="ZxRg5lVBYmlg5TJdwvRO-29" style="entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;" target="ZxRg5lVBYmlg5TJdwvRO-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="211" y="955.3170731707319" as="sourcePoint" />
+            <mxPoint x="539" y="702" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-32" edge="1" parent="1" style="entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="ZxRg5lVBYmlg5TJdwvRO-7">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="828" y="806" as="sourcePoint" />
+            <mxPoint x="781" y="1296" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-33" edge="1" parent="1" source="ZxRg5lVBYmlg5TJdwvRO-28" style="entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="ZxRg5lVBYmlg5TJdwvRO-10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="198" y="933.3170731707319" as="sourcePoint" />
+            <mxPoint x="526" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-34" edge="1" parent="1" source="ZxRg5lVBYmlg5TJdwvRO-28" style="entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ZxRg5lVBYmlg5TJdwvRO-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="285" y="1067" as="sourcePoint" />
+            <mxPoint x="548" y="1032" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-35" edge="1" parent="1" source="ZxRg5lVBYmlg5TJdwvRO-27" style="entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ZxRg5lVBYmlg5TJdwvRO-9">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="1066.3170731707319" as="sourcePoint" />
+            <mxPoint x="548" y="813" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-36" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="&lt;span style=&quot;text-wrap-mode: wrap;&quot;&gt;Kubernetes&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;text-wrap-mode: wrap;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="30" x="773" y="1197" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-37" edge="1" parent="1" source="ZxRg5lVBYmlg5TJdwvRO-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ZxRg5lVBYmlg5TJdwvRO-13" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-38" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ZxRg5lVBYmlg5TJdwvRO-15" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="203" y="434" />
+              <mxPoint x="203" y="1422" />
+              <mxPoint x="350" y="1422" />
+              <mxPoint x="350" y="1425" />
+            </Array>
+            <mxPoint x="123" y="434" as="sourcePoint" />
+            <mxPoint x="454" y="1695" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZxRg5lVBYmlg5TJdwvRO-39" edge="1" parent="1" source="ZxRg5lVBYmlg5TJdwvRO-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" target="ZxRg5lVBYmlg5TJdwvRO-16" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="118" y="1519" />
+            </Array>
+            <mxPoint x="378" y="1482" as="sourcePoint" />
+            <mxPoint x="599" y="2473" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
