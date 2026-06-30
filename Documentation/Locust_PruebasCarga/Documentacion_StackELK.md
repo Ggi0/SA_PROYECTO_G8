@@ -624,7 +624,7 @@ Captura esperada:
 
 Imagen:
 
-![Docker Compose levantando ELK](imgs/elk_01_docker_compose_up.png)
+![Docker Compose levantando ELK](imgs/elk_01_docker_compose_up.PNG)
 
 Nombre del archivo:
 
@@ -651,7 +651,7 @@ Captura esperada:
 
 Imagen:
 
-![Contenedores ELK activos](imgs/elk_02_docker_ps.png)
+![Contenedores ELK activos](imgs/elk_02_docker_ps.PNG)
 
 Nombre del archivo:
 
@@ -709,7 +709,7 @@ Captura esperada:
 
 Imagen:
 
-![Kibana activo](imgs/elk_04_kibana_home.png)
+![Kibana activo](imgs/elk_04_kibana_home.PNG)
 
 Nombre del archivo:
 
