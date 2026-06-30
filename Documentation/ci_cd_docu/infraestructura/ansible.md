@@ -63,29 +63,7 @@ Esto simplifica enormemente la gestión inicial: las VMs creadas por Terraform y
 
 ### Flujo de ejecución
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    FLUJO DE ANSIBLE                                  │
-│                                                                      │
-│  1. ansible-playbook db.yml -i inventory.ini                         │
-│       │                                                              │
-│       ▼                                                              │
-│  2. Lee inventario → resuelve IPs del grupo [db]                     │
-│       │                                                              │
-│       ▼                                                              │
-│  3. Conecta por SSH a cada host del grupo                            │
-│       │                                                              │
-│       ▼                                                              │
-│  4. Para cada task:                                                  │
-│       ├── Sube módulo Python temporal al host                        │
-│       ├── Ejecuta el módulo en el host                               │
-│       ├── Recibe resultado (OK / CHANGED / FAILED)                   │
-│       └── Elimina el módulo temporal                                 │
-│       │                                                              │
-│       ▼                                                              │
-│  5. Muestra resumen (PLAY RECAP): ok / changed / failed / skipped   │
-└─────────────────────────────────────────────────────────────────────┘
-```
+![flujo ansible](./img/ansible/flujo_ansible.jpg)
 
 ### Idempotencia
 
@@ -731,7 +709,9 @@ PLAY RECAP *******************************************************************
 quetxal-dev-vm : ok=14  changed=12  unreachable=0  failed=0  skipped=0
 ```
 
-> **📸 Captura:** GitHub Actions > infra.yml > log del playbook `dev.yml` — mostrar especialmente la tarea `Clonar el repo` y el `PLAY RECAP` exitoso.
+> GitHub Actions > infra.yml > log del playbook `dev.yml` —  tarea `Clonar el repo` y el `PLAY RECAP` exitoso.
+
+![clonar repo](./img/ansible/clonarRepo.png)
 
 ### 8.4 Segunda ejecución (idempotencia)
 
@@ -746,7 +726,8 @@ quetxal-dev-vm    : ok=14  changed=0  unreachable=0  failed=0  skipped=0
 
 `changed=0` confirma que Ansible detectó que el estado deseado ya estaba presente y no realizó cambios innecesarios. Esto es la idempotencia en acción.
 
-> **📸 Captura:** Segunda ejecución del job en GitHub Actions mostrando `changed=0` en los tres hosts.
+> Segunda ejecución del job en GitHub Actions mostrando `changed=0` en los tres hosts.
+![](./img/ansible/2da_ejecucion.png)
 
 ### 8.5 Verificación en la VM (estado de contenedores)
 
@@ -765,14 +746,28 @@ a1b2c3d4e5f7   postgres:15      "docker-entrypoint.s…"  Up 2 minutes    0.0.0.
 8a1b2c3d4e5f   filebeat:8.13.4  "filebeat -e -strict…"  Up 2 minutes                             filebeat
 ```
 
-> **📸 Captura:** SSH a `quetxal-db-vm` → `docker ps` mostrando los 9 contenedores activos (7 PostgreSQL + node-exporter + filebeat).
+> SSH a `quetxal-db-vm`, `quetxal-dev-vm` y `quetxal-monitor-vm` → `docker ps` mostrando los 9 contenedores activos (7 PostgreSQL + node-exporter + filebeat).
+
+> `quetxal-dev-vm`
+![dev vm](./img/ansible/vm-dev.png)
+
+> `quetxal-db-vm`
+![db-vm](./img/ansible/vm-db.png)
+
+> `quetxal-monitor-vm`
+![db-monitorin](./img/ansible/vm-mon.png)
 
 ### 8.6 Kibana y Grafana operativos
 
 Tras la ejecución exitosa de `monitor.yml`, las interfaces web de observabilidad están disponibles en los puertos correspondientes de la VM de monitoreo.
 
-> **📸 Captura:** Kibana en `http://{MONITOR_IP}:5601` — pantalla principal con índices `quetxal-*` mostrando logs del sistema.
+> Kibana en `http://{MONITOR_IP}:5601` — pantalla principal con índices `quetxal-*` mostrando logs del sistema.
 
-> **📸 Captura:** Grafana en `http://{MONITOR_IP}:3000` — dashboard de métricas de nodo mostrando CPU y memoria de las VMs de QuetxalTV.
+![kibana](./img/ansible/kibana.png)
+
+
+> Grafana en `http://{MONITOR_IP}:3000` — dashboard de métricas de nodo mostrando CPU y memoria de las VMs de QuetxalTV.
+
+![grafana](./img/ansible/grafana.png)
 
 ---

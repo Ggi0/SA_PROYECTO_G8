@@ -58,38 +58,13 @@ Con Terraform, si el recurso ya existe y su estado coincide con el código, **no
 ## 2. ¿Cómo funciona?
 
 El flujo de trabajo estándar de Terraform sigue tres fases:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      FLUJO DE TERRAFORM                         │
-│                                                                 │
-│   Código HCL          terraform init        Provider Plugin     │
-│  (*.tf files)   ──►  (descarga plugins) ──►  instalado         │
-│                                                                 │
-│   terraform plan      Compara código        Plan de cambios     │
-│   (previsualiza) ──►  vs. state file  ──►  (+/-/~)             │
-│                                                                 │
-│   terraform apply     Llama APIs de GCP     Recursos creados    │
-│   (provisiona)  ──►  (Create/Update)  ──►  State actualizado   │
-└─────────────────────────────────────────────────────────────────┘
-```
+![flujoTerrafor](./img/terraform_flujo.png)
 
 ### Gestión del estado remoto
 
 El estado de Terraform es crítico: si se pierde o corrompe, Terraform pierde rastreo de los recursos existentes. Por eso QuetxalTV usa un **backend remoto en GCS** en lugar del archivo local `terraform.tfstate`:
 
-```
-GitHub Actions Runner
-        │
-        │  terraform plan/apply
-        ▼
-  GCS Bucket: quetxal-tv-tfstate
-  Prefix: infra/state-g8
-        │
-        ▼
-  terraform.tfstate (JSON — estado actual)
-```
-
+![gestion estado remoto](./img/gestion_estado_remoto.jpg)
 Beneficios del backend remoto:
 - **Compartido:** Todos los miembros del equipo y el CI/CD acceden al mismo estado.
 - **Locking:** GCS provee locking automático para evitar applies concurrentes.
