@@ -76,47 +76,7 @@ Beneficios del backend remoto:
 
 QuetxalTV despliega dos entornos sobre una VPC compartida en GCP:
 
-```
-                        ┌────────────────────────────────────────┐
-                        │          GCP: quetxal-vpc              │
-                        │       CIDR: 10.10.0.0/24               │
-                        │                                        │
-                        │  ┌──────────────┐                      │
-                        │  │  quetxal-db-vm (e2-medium)          │
-                        │  │  PostgreSQL ×7 (puertos 5432-5438)  │
-                        │  │  IP privada: 10.10.0.x              │
-                        │  └──────────────┘                      │
-                        │                                        │
-                        │  ┌──────────────┐                      │
-                        │  │  quetxal-dev-vm (e2-standard-2)     │
-                        │  │  Docker Compose (entorno develop)   │
-                        │  │  Puertos: 8080, 3000                │
-                        │  └──────────────┘                      │
-                        │                                        │
-                        │  ┌──────────────┐                      │
-                        │  │ quetxal-monitor-vm (e2-standard-2)  │
-                        │  │ ELK + Prometheus + Grafana + Locust │
-                        │  │ Puertos: 5601, 3000, 9090, 8089     │
-                        │  └──────────────┘                      │
-                        │                                        │
-                        │  ┌──────────────────────────────────┐  │
-                        │  │   GKE: quetxal-tv-cluster        │  │
-                        │  │   (entorno release/producción)   │  │
-                        │  │   Pods CIDR: 10.20.0.0/16        │  │
-                        │  │   Services CIDR: 10.30.0.0/16    │  │
-                        │  └──────────────────────────────────┘  │
-                        │                                        │
-                        │  Cloud NAT ──► Internet (sin IP pub)   │
-                        └────────────────────────────────────────┘
-
-                 GCS Buckets (fuera de la VPC):
-                 ├── quetxal-tv-{project}-videos
-                 └── quetxal-tv-{project}-backups
-
-                 Artifact Registry:
-                 └── quetxal-tv-rp (imágenes Docker)
-```
-
+![](./img/IaC_componets.png)
 ---
 
 ## 4. Estructura de Archivos
