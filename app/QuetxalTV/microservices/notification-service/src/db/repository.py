@@ -87,13 +87,17 @@ class NotificationRepository:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT DISTINCT recipient_email, recipient_name, user_id
+                    SELECT DISTINCT ON (recipient_email)
+                        recipient_email, recipient_name, user_id
                     FROM notification.notifications
-                    WHERE type_code = 'PURCHASE_RECEIPT'
+                    WHERE type_code IN ('PURCHASE_RECEIPT', 'WELCOME')
                     AND status = 'SENT'
+                    ORDER BY recipient_email,
+                             CASE WHEN type_code = 'PURCHASE_RECEIPT' THEN 0 ELSE 1 END,
+                             created_at DESC
                     """
                 )
                 return [
-                    {"email": row[0], "name": row[1], "user_id": str(row[2])}
+                    {"email": row[0], "name": row[1], "user_id": str(row[2]) if row[2] else None}
                     for row in cur.fetchall()
                 ]

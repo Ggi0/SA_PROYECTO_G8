@@ -1,10 +1,11 @@
 import * as http from 'node:http';
-import { ForbiddenException, Inject, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Request, Response } from 'express';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { Metadata } from '@grpc/grpc-js';
+import { NotificationClient } from '../notification/notification.client';
 
 interface CatalogGrpcService {
   // Público
@@ -46,10 +47,14 @@ interface CatalogGrpcService {
 
 @Injectable()
 export class CatalogService implements OnModuleInit {
+  private readonly logger = new Logger(CatalogService.name);
   private grpcClient!: CatalogGrpcService;
   private readonly catalogHttpUrl = process.env.CATALOG_HTTP_URL || 'http://localhost:8082';
 
-  constructor(@Inject('CATALOG_PACKAGE') private readonly client: ClientGrpc) {}
+  constructor(
+    @Inject('CATALOG_PACKAGE') private readonly client: ClientGrpc,
+    private readonly notificationClient?: NotificationClient,
+  ) {}
 
   onModuleInit() {
     this.grpcClient = this.client.getService<CatalogGrpcService>('CatalogService');
@@ -111,7 +116,28 @@ export class CatalogService implements OnModuleInit {
     return this.grpcClient.updateContent(body);
   }
   publishContent(contentId: string) {
-    return this.grpcClient.publishContent({ contentId });
+    return this.grpcClient.publishContent({ contentId }).pipe(
+      tap(() => this.notifyPublishedContent(contentId)),
+    );
+  }
+
+  private notifyPublishedContent(contentId: string): void {
+    if (!this.notificationClient || typeof this.grpcClient.getContentDetail !== 'function') return;
+
+    this.grpcClient.getContentDetail({ contentId }).subscribe({
+      next: (detail: any) => {
+        void this.notificationClient!.sendNewContentAlert({
+          content_title: detail?.title || '',
+          content_type: detail?.contentType || detail?.content_type || '',
+          content_id: contentId,
+        }).catch((err) => {
+          this.logger.error(`No se pudo enviar alerta de nuevo contenido: ${err.message}`);
+        });
+      },
+      error: (err) => {
+        this.logger.error(`No se pudo obtener contenido publicado para notificar: ${err.message}`);
+      },
+    });
   }
   deleteContent(contentId: string, changedBy: string) {
     return this.grpcClient.deleteContent({ contentId, changedBy });

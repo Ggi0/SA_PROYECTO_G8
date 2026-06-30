@@ -13,6 +13,7 @@ data:
   FX_SERVICE_HOST: "fx-service:50054"
   FX_SERVICE_URL: "fx-service:50054"
   NOTIFICATION_SERVICE_URL: "notification-service:50056"
+  NOTIFICATION_SERVICE_HOST: "notification-service:50056"
   HISTORIAL_SERVICE_URL: "historial-service:50054"
   DOWNLOAD_SERVICE_URL: "download-service:50057"
   DOWNLOAD_SERVICE_HOST: "download-service:50057"
