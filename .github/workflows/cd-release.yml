@@ -374,9 +374,67 @@ jobs:
           pip install -r tests/smoke/requirements.txt -q
           python tests/smoke/smoke_test.py
 
+  locust:
+    name: Locust load injection after GKE deploy
+    needs: smoke
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+          location: ${{ secrets.GKE_CLUSTER_ZONE }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Resolve Ingress URL
+        id: ingress
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            IP=$(kubectl get ingress quetxal-tv-ingress -n quetxal-tv-prod -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
+            [ -n "$IP" ] && break
+            sleep 10
+          done
+          [ -n "${IP:-}" ] || { echo "::error::Ingress has no IP"; exit 1; }
+          echo "base_url=http://$IP" >> "$GITHUB_OUTPUT"
+      - name: Run Locust headless
+        env:
+          LOCUST_HOST: ${{ steps.ingress.outputs.base_url }}
+          LOCUST_CATALOG: "0"
+          LOCUST_FRONTEND: "0"
+          LOCUST_LOGIN: "0"
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          pip install locust==2.31.6 -q
+          mkdir -p locust-results
+          locust \
+            -f infra/ansible/files/observability/load/locustfile.py \
+            --headless \
+            --host "$LOCUST_HOST" \
+            --users 10 \
+            --spawn-rate 2 \
+            --run-time 1m \
+            --html locust-results/release-locust-result.html
+      - name: Upload Locust report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-locust-report
+          path: locust-results/release-locust-result.html
+
   backup-after-deploy:
     name: Backup after deploy
-    needs: [provision-infra, smoke]
+    needs: [provision-infra, locust]
     uses: ./.github/workflows/backup.yml
     with:
       target: gce
