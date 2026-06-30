@@ -1022,6 +1022,65 @@ Acceder a `http://<monitor_public_ip>:3000` → iniciar sesión con `admin / adm
 
 ---
 
+### 8.9 Dashboard de Infraestructura — Estado del Clúster GKE y VMs
+
+Dashboard de observabilidad de la infraestructura completa: nodos del clúster GKE (`gke-quetxal-tv-cluster-quetxal-pool-d2787cb2-*`) y las VMs de GCP (`quetxal-db-vm`, `quetxal-dev-vm`, `quetxal-monitor-vm`). Los datos provienen de **node_exporter** (métricas del SO de cada nodo) y **cAdvisor** (métricas de contenedores Docker).
+
+#### Resumen del Estado del Sistema — KPIs y CPU/Memoria
+
+Sección superior del dashboard: cuatro stat panels con los valores máximos del clúster y gráficas de CPU y Memoria en el tiempo.
+
+| Indicador | Valor capturado | Estado |
+|---|---|---|
+| Uptime mínimo del clúster | 56.6 min | Alerta — nodo recién reiniciado |
+| CPU Máxima actual | 12.8% | Normal |
+| Memoria Máxima actual | 57.2% | Normal |
+| Disco Máximo actual | 73.8% | Normal |
+
+El uptime en rojo (56.6 min) refleja que el nodo `gke-...-fknp` fue aprovisionado recientemente. Los nodos GKE llegaron a picos de CPU del 91–98% durante el arranque del clúster (20:35–20:40), estabilizándose en ~12% una vez desplegados todos los pods.
+
+![Resumen del Estado del Sistema — KPIs, CPU Usage y Memory Usage](<Imagenes Grafana/Resumen del estado del sistema.jpeg>)
+
+---
+
+#### Load Average y Red
+
+Sección siguiente del dashboard: carga promedio del sistema (1m / 5m / 15m) y ancho de banda de red (entrada y salida) por nodo.
+
+- **Load Average:** Los nodos GKE mostraron picos de carga de 3–4 entre las 20:35 y 20:55, coincidiendo con el despliegue inicial del clúster (descarga de imágenes, arranque de pods). Se estabilizaron en valores por debajo de 1 una vez completado el despliegue.
+- **Red — Receive:** El nodo `fknp` alcanzó 5.08 MB/s de entrada durante el despliegue; se estabilizó en ~88 kB/s. El nodo `8ftv` mantuvo un promedio de 75.2 kB/s.
+- **Red — Transmit:** Transmisión sostenida de ~100–112 kB/s en el nodo `fknp` correspondiente al tráfico de respuestas del clúster hacia los clientes.
+
+![Load Average, Network Receive y Network Transmit por nodo](<Imagenes Grafana/Load Average y Red.jpeg>)
+
+---
+
+#### Network Errors & Drops y Disco
+
+- **Network Errors & Drops:** 0 p/s en absolutamente todos los nodos y VMs durante todo el período observado. No hubo pérdida de paquetes en ningún momento.
+- **Disk Usage por mountpoint:** Ambos nodos GKE mantienen el disco raíz (`/`) al **73.8%** de forma constante. Este valor se debe principalmente al espacio ocupado por las imágenes Docker almacenadas en el nodo. Es un valor a vigilar: si supera el 85% puede causar problemas de scheduleo de pods en Kubernetes.
+
+![Network Errors & Drops y Disk Usage por mountpoint](<Imagenes Grafana/Networks Errors & Drops y Disco.jpeg>)
+
+---
+
+#### Disk I/O y Uptime por nodo
+
+- **Disk I/O — Lectura y Escritura:** Pico de ~20 MB/s entre las 20:40 y 20:45 en el nodo `8ftv`, consistente con la descarga de imágenes Docker durante el arranque inicial del clúster. Después del despliegue, el I/O cae a valores cercanos a cero.
+- **Uptime por nodo:** Las tres VMs de GCP llevan más de 1.9 días activas (verde), confirmando la estabilidad de la capa de bases de datos y observabilidad. Los nodos GKE tienen uptime bajo porque fueron aprovisionados en esta sesión.
+
+| Nodo | Uptime | Indicador |
+|---|---|---|
+| `gke-...-8ftv` | 2.94 h | Amarillo — aprovisionado recientemente |
+| `gke-...-fknp` | 59.6 min | Rojo — aprovisionado muy recientemente |
+| `quetxal-db-vm` | 2.15 días | Verde — estable |
+| `quetxal-dev-vm` | 1.96 días | Verde — estable |
+| `quetxal-monitor-vm` | 2.15 días | Verde — estable |
+
+![Disk I/O Lectura y Escritura, y Uptime por nodo](<Imagenes Grafana/Uptime por nodo.jpeg>)
+
+---
+
 ## Resumen de URLs y puertos
 
 | Servicio | URL | Puerto |
