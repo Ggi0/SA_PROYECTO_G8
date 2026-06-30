@@ -66,15 +66,42 @@ jobs:
           chmod 600 "$KEY_FILE"
           ssh-keygen -y -f "$KEY_FILE" >/dev/null || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
           trap 'rm -f "$KEY_FILE"' EXIT
+          SSH_OPTS=(
+            -i "$KEY_FILE"
+            -o StrictHostKeyChecking=no
+            -o UserKnownHostsFile=/dev/null
+            -o BatchMode=yes
+            -o ConnectTimeout=15
+          )
+          REMOTE_DUMP='docker exec "$C" sh -c '\''pg_dumpall -U "$POSTGRES_USER"'\'''
+          USE_IAP=0
+          if ssh "${SSH_OPTS[@]}" "$GCE_SSH_USER@$GCE_DB_PUBLIC_IP" true 2>/tmp/ssh-check.log; then
+            echo "SSH directo disponible en $GCE_DB_PUBLIC_IP:22"
+          else
+            echo "::warning::SSH directo a $GCE_DB_PUBLIC_IP:22 no responde; intentando tunnel IAP. Detalle: $(cat /tmp/ssh-check.log)"
+            INSTANCE_INFO=$(gcloud compute instances list \
+              --filter="networkInterfaces.accessConfigs.natIP=$GCE_DB_PUBLIC_IP" \
+              --format='value(name,zone)' | head -n 1 || true)
+            [ -n "$INSTANCE_INFO" ] || { echo "::error::No se encontro una VM con IP publica $GCE_DB_PUBLIC_IP en el proyecto actual."; exit 1; }
+            read -r DB_INSTANCE DB_ZONE <<< "$INSTANCE_INFO"
+            USE_IAP=1
+            echo "Usando IAP hacia $DB_INSTANCE en $DB_ZONE"
+          fi
           backup() {
             C=$1
             FILE="${C}_${TS}.sql.gz"
             echo "Backing up $C"
-            ssh -i "$KEY_FILE" \
-              -o StrictHostKeyChecking=no \
-              -o UserKnownHostsFile=/dev/null \
-              "$GCE_SSH_USER@$GCE_DB_PUBLIC_IP" \
-              "docker exec $C sh -c 'pg_dumpall -U \"\$POSTGRES_USER\"'" | gzip > "$FILE"
+            if [ "$USE_IAP" -eq 1 ]; then
+              gcloud compute ssh "$GCE_SSH_USER@$DB_INSTANCE" \
+                --zone "$DB_ZONE" \
+                --tunnel-through-iap \
+                --ssh-key-file "$KEY_FILE" \
+                --quiet \
+                --command "C=$C; $REMOTE_DUMP" | gzip > "$FILE"
+            else
+              ssh "${SSH_OPTS[@]}" "$GCE_SSH_USER@$GCE_DB_PUBLIC_IP" \
+                "C=$C; $REMOTE_DUMP" | gzip > "$FILE"
+            fi
             gcloud storage cp "$FILE" "$BUCKET/$C/$FILE"
             rm -f "$FILE"
           }

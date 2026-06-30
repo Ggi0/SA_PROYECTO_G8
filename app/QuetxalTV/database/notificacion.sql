@@ -33,7 +33,8 @@ CREATE TABLE notification_types (
 INSERT INTO notification_types(type_code, description, template_file, subject_template, is_active)
 VALUES
     ('WELCOME', 'Correo de bienvenida', 'welcome.html', 'Bienvenido a Quetxal TV, {{name}}', TRUE),
-    ('PURCHASE_RECEIPT', 'Recibo de compra', 'purchase.html', 'Recibo de compra - {{plan_name}}', TRUE);
+    ('PURCHASE_RECEIPT', 'Recibo de compra', 'purchase.html', 'Recibo de compra - {{plan_name}}', TRUE),
+    ('NEW_CONTENT', 'Alerta de nuevo contenido', 'new_content.html', '¡Nuevo en QuetxalTV: {{content_title}}!', TRUE);
 
 
 -- TABLA: notifications
