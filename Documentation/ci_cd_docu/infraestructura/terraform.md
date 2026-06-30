@@ -675,3 +675,8 @@ El step `Export Terraform outputs` del workflow muestra las IPs asignadas a las 
 ![aply](./img/apply1.png)
 ![](./img/apply2.png)
 
+
+
+
+#### crudo
+https://drive.google.com/file/d/1towGZz00lGXB02oczV24j0nvB5-FU6IM/view?usp=sharing
