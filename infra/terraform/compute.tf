@@ -23,7 +23,7 @@ resource "google_compute_address" "dev" {
 resource "google_compute_instance" "db" {
   name         = "quetxal-db-vm"
   machine_type = "e2-medium"
-  zone         = var.zone
+  zone         = var.db_zone
   tags         = ["ssh", "db"]
 
   boot_disk {
@@ -49,7 +49,7 @@ resource "google_compute_instance" "db" {
 resource "google_compute_instance" "monitor" {
   name         = "quetxal-monitor-vm"
   machine_type = "e2-standard-2"
-  zone         = var.zone
+  zone         = var.monitor_zone
   tags         = ["ssh", "monitor"]
 
   boot_disk {
@@ -82,7 +82,7 @@ resource "google_compute_instance" "monitor" {
 resource "google_compute_instance" "dev" {
   name                      = "quetxal-dev-vm"
   machine_type              = "e2-standard-2"
-  zone                      = var.zone
+  zone                      = var.dev_zone
   tags                      = ["ssh", "dev-app"] # dev-app abre los puertos públicos de develop
   allow_stopping_for_update = true
 

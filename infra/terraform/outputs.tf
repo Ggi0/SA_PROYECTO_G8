@@ -19,6 +19,15 @@ output "dev_private_ip" {
 output "gke_cluster_name" {
   value = google_container_cluster.primary.name
 }
+output "db_zone" {
+  value = google_compute_instance.db.zone
+}
+output "monitor_zone" {
+  value = google_compute_instance.monitor.zone
+}
+output "dev_zone" {
+  value = google_compute_instance.dev.zone
+}
 output "workload_identity_provider" {
   description = "Valor para el GitHub Secret WORKLOAD_IDENTITY_PROVIDER"
   value       = "projects/${data.google_project.current.number}/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
@@ -56,6 +65,18 @@ output "GCS_BACKUP_BUCKET" {
 output "GCS_VIDEO_BUCKET" {
   description = "Bucket GCS para videos"
   value       = google_storage_bucket.videos.name
+}
+output "DB_ZONE" {
+  description = "Zona de la VM de BD"
+  value       = google_compute_instance.db.zone
+}
+output "MONITOR_ZONE" {
+  description = "Zona de la VM de observabilidad"
+  value       = google_compute_instance.monitor.zone
+}
+output "DEV_ZONE" {
+  description = "Zona de la VM develop"
+  value       = google_compute_instance.dev.zone
 }
 
 # ---------- Inventario de Ansible generado desde Terraform ----------

@@ -45,7 +45,7 @@ jobs:
         env:
           GCE_DB_PUBLIC_IP: ${{ inputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}
           GCE_DB_INSTANCE: ${{ secrets.GCE_DB_INSTANCE }}
-          GCE_DB_ZONE: ${{ secrets.GCE_DB_ZONE || secrets.GKE_CLUSTER_ZONE }}
+          GCE_DB_ZONE: ${{ secrets.GCE_DB_ZONE }}
           GCE_SSH_USER: ${{ secrets.GCE_SSH_USER }}
           GCE_SSH_PRIVATE_KEY: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
           GCS_BACKUP_BUCKET_INPUT: ${{ inputs.gcs_backup_bucket }}
@@ -101,7 +101,7 @@ jobs:
               DB_INSTANCE="$DB_INSTANCE_NAME"
             fi
             [ -n "$DB_INSTANCE" ] || { echo "::error::No se pudo resolver la VM de base de datos."; exit 1; }
-            [ -n "$DB_ZONE" ] || { echo "::error::No se pudo resolver la zona de $DB_INSTANCE. Configure GCE_DB_ZONE o GKE_CLUSTER_ZONE."; exit 1; }
+            [ -n "$DB_ZONE" ] || { echo "::error::No se pudo resolver la zona de $DB_INSTANCE. Configure GCE_DB_ZONE o permita listar instancias con gcloud."; exit 1; }
             USE_IAP=1
             echo "Usando IAP hacia $DB_INSTANCE en $DB_ZONE"
           fi

@@ -20,12 +20,21 @@ on:
       db_private_ip:
         description: "IP privada de la VM de BD (para los servicios)"
         value: ${{ jobs.provision.outputs.db_private_ip }}
+      db_zone:
+        description: "Zona de la VM de BD"
+        value: ${{ jobs.provision.outputs.db_zone }}
       monitor_host:
         description: "IP pública de la VM de observabilidad"
         value: ${{ jobs.provision.outputs.monitor_host }}
       monitor_private_ip:
         description: "IP privada del monitor (Logstash, Prometheus)"
         value: ${{ jobs.provision.outputs.monitor_private_ip }}
+      monitor_zone:
+        description: "Zona de la VM de observabilidad"
+        value: ${{ jobs.provision.outputs.monitor_zone }}
+      dev_zone:
+        description: "Zona de la VM develop"
+        value: ${{ jobs.provision.outputs.dev_zone }}
       gcs_video_bucket:
         description: "Bucket GCS para videos"
         value: ${{ jobs.provision.outputs.gcs_video_bucket }}
@@ -51,8 +60,11 @@ jobs:
       dev_host: ${{ steps.tfout.outputs.dev_host }}
       db_public_ip: ${{ steps.tfout.outputs.db_public_ip }}
       db_private_ip: ${{ steps.tfout.outputs.db_private_ip }}
+      db_zone: ${{ steps.tfout.outputs.db_zone }}
       monitor_host: ${{ steps.tfout.outputs.monitor_host }}
       monitor_private_ip: ${{ steps.tfout.outputs.monitor_private_ip }}
+      monitor_zone: ${{ steps.tfout.outputs.monitor_zone }}
+      dev_zone: ${{ steps.tfout.outputs.dev_zone }}
       gcs_video_bucket: ${{ steps.tfout.outputs.gcs_video_bucket }}
       gcs_backup_bucket: ${{ steps.tfout.outputs.gcs_backup_bucket }}
     steps:
@@ -112,7 +124,15 @@ jobs:
         if: >-
           steps.tfplan.outputs.changes == 'true' &&
           (github.event_name != 'workflow_dispatch' || inputs.action == 'apply')
-        run: terraform -chdir=terraform apply -input=false tfplan
+        run: |
+          set -euo pipefail
+          if terraform -chdir=terraform apply -input=false tfplan; then
+            exit 0
+          fi
+          echo "::warning::Terraform apply fallo; reintentando una vez con un plan actualizado."
+          sleep 60
+          terraform -chdir=terraform plan -input=false -out=tfplan-retry
+          terraform -chdir=terraform apply -input=false tfplan-retry
 
       - name: Skip apply (sin cambios)
         if: steps.tfplan.outputs.changes == 'false'
@@ -126,9 +146,13 @@ jobs:
 
       - name: Wait for VMs to be ready
         run: |
-          ZONE="${{ secrets.GKE_CLUSTER_ZONE }}"
-          ZONE="${ZONE:-us-central1-a}"
+          declare -A VM_ZONES=(
+            [quetxal-db-vm]="$(terraform -chdir=terraform output -raw DB_ZONE)"
+            [quetxal-monitor-vm]="$(terraform -chdir=terraform output -raw MONITOR_ZONE)"
+            [quetxal-dev-vm]="$(terraform -chdir=terraform output -raw DEV_ZONE)"
+          )
           for vm in quetxal-db-vm quetxal-monitor-vm quetxal-dev-vm; do
+            ZONE="${VM_ZONES[$vm]}"
             echo "Waiting for $vm..."
             for i in $(seq 1 30); do
               STATUS=$(gcloud compute instances describe "$vm" --zone="$ZONE" --format='value(status)' 2>/dev/null || echo "UNKNOWN")
@@ -180,7 +204,10 @@ jobs:
           echo "dev_host=$(terraform -chdir=terraform output -raw DEV_HOST)" >> "$GITHUB_OUTPUT"
           echo "db_public_ip=$(terraform -chdir=terraform output -raw DB_HOST)" >> "$GITHUB_OUTPUT"
           echo "db_private_ip=$(terraform -chdir=terraform output -raw DB_PRIVATE_IP)" >> "$GITHUB_OUTPUT"
+          echo "db_zone=$(terraform -chdir=terraform output -raw DB_ZONE)" >> "$GITHUB_OUTPUT"
           echo "monitor_host=$(terraform -chdir=terraform output -raw MONITOR_HOST)" >> "$GITHUB_OUTPUT"
           echo "monitor_private_ip=$(terraform -chdir=terraform output -raw MONITOR_PRIVATE_IP)" >> "$GITHUB_OUTPUT"
+          echo "monitor_zone=$(terraform -chdir=terraform output -raw MONITOR_ZONE)" >> "$GITHUB_OUTPUT"
+          echo "dev_zone=$(terraform -chdir=terraform output -raw DEV_ZONE)" >> "$GITHUB_OUTPUT"
           echo "gcs_video_bucket=$(terraform -chdir=terraform output -raw GCS_VIDEO_BUCKET)" >> "$GITHUB_OUTPUT"
           echo "gcs_backup_bucket=$(terraform -chdir=terraform output -raw GCS_BACKUP_BUCKET)" >> "$GITHUB_OUTPUT"
