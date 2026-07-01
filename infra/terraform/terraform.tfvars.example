@@ -11,3 +11,6 @@ ssh_user         = "deployer"
 ssh_pub_key_path = "~/.ssh/quetxal_deploy.pub"
 gke_node_count   = 2
 gke_machine_type = "e2-standard-2"
+db_machine_type      = "e2-medium"
+monitor_machine_type = "e2-medium"
+dev_machine_type     = "e2-medium"

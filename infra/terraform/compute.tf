@@ -21,10 +21,11 @@ resource "google_compute_address" "dev" {
 
 # ---------- VM de Bases de Datos (persistencia aislada) ----------
 resource "google_compute_instance" "db" {
-  name         = "quetxal-db-vm"
-  machine_type = "e2-medium"
-  zone         = var.db_zone
-  tags         = ["ssh", "db"]
+  name                      = "quetxal-db-vm"
+  machine_type              = var.db_machine_type
+  zone                      = var.db_zone
+  tags                      = ["ssh", "db"]
+  allow_stopping_for_update = true
 
   boot_disk {
     initialize_params {
@@ -47,10 +48,11 @@ resource "google_compute_instance" "db" {
 
 # ---------- VM de Observabilidad (ELK + Prometheus + Grafana + Locust) ----------
 resource "google_compute_instance" "monitor" {
-  name         = "quetxal-monitor-vm"
-  machine_type = "e2-standard-2"
-  zone         = var.monitor_zone
-  tags         = ["ssh", "monitor"]
+  name                      = "quetxal-monitor-vm"
+  machine_type              = var.monitor_machine_type
+  zone                      = var.monitor_zone
+  tags                      = ["ssh", "monitor"]
+  allow_stopping_for_update = true
 
   boot_disk {
     initialize_params {
@@ -81,7 +83,7 @@ resource "google_compute_instance" "monitor" {
 # ---------- VM de Desarrollo (entorno develop) ----------
 resource "google_compute_instance" "dev" {
   name                      = "quetxal-dev-vm"
-  machine_type              = "e2-standard-2"
+  machine_type              = var.dev_machine_type
   zone                      = var.dev_zone
   tags                      = ["ssh", "dev-app"] # dev-app abre los puertos públicos de develop
   allow_stopping_for_update = true

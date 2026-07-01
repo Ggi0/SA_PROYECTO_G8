@@ -96,6 +96,13 @@ jobs:
           cat > terraform/ci.auto.tfvars <<EOF
           project_id       = "${{ secrets.GCP_PROJECT_ID }}"
           github_repo      = "${{ github.repository }}"
+          zone             = "us-central1-a"
+          db_zone          = "us-central1-b"
+          monitor_zone     = "us-central1-c"
+          dev_zone         = "us-central1-f"
+          db_machine_type      = "e2-medium"
+          monitor_machine_type = "e2-medium"
+          dev_machine_type     = "e2-medium"
           ssh_admin_cidr   = "${{ secrets.SSH_ADMIN_CIDR || '10.0.0.1/32' }}"
           admin_cidr       = "0.0.0.0/0"
           ssh_user         = "${{ secrets.GCE_SSH_USER }}"

@@ -54,6 +54,24 @@ variable "gke_machine_type" {
   default = "e2-standard-2"
 }
 
+variable "db_machine_type" {
+  type        = string
+  description = "Tipo de maquina para la VM de base de datos"
+  default     = "e2-medium"
+}
+
+variable "monitor_machine_type" {
+  type        = string
+  description = "Tipo de maquina para la VM de observabilidad"
+  default     = "e2-medium"
+}
+
+variable "dev_machine_type" {
+  type        = string
+  description = "Tipo de maquina para la VM de desarrollo"
+  default     = "e2-medium"
+}
+
 variable "github_repo" {
   type        = string
   description = "owner/repo de GitHub, p. ej. TU_USUARIO_GITHUB/SA_PROYECTO_G8"
