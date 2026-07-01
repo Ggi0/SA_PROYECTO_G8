@@ -1,27 +1,36 @@
 name: DB Backup - Quetxal TV
+
 on:
   schedule:
-    - cron: '10 20 * * *'
+    - cron: '0 8 * * *'
   workflow_dispatch:
     inputs:
       target:
-        description: "Target a respaldar: all, gce o gke"
+        description: "Target a respaldar: all o gce"
         required: false
         default: all
         type: choice
         options:
           - all
           - gce
-          - gke
   workflow_call:
     inputs:
       target:
         required: false
         default: all
         type: string
+      db_public_ip:
+        required: false
+        default: ''
+        type: string
+      gcs_backup_bucket:
+        required: false
+        default: ''
+        type: string
+
 jobs:
   backup:
-    name: Backup PostgreSQL → GCS
+    name: Backup PostgreSQL externo -> GCS
     if: ${{ inputs.target == '' || inputs.target == 'all' || inputs.target == 'gce' }}
     runs-on: ubuntu-latest
     permissions:
@@ -32,64 +41,88 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SA_EMAIL }}
-      - name: Backup via SSH
+      - name: Backup via SSH to Compute Engine DB
         env:
-          GCE_DB_PUBLIC_IP: ${{ secrets.GCE_DB_PUBLIC_IP }}
-          GCE_DB_SSH_USER: ${{ secrets.GCE_DB_SSH_USER }}
-          GCE_DB_SSH_PRIVATE_KEY: ${{ secrets.GCE_DB_SSH_PRIVATE_KEY }}
-          BUCKET: gs://${{ secrets.GCS_BACKUP_BUCKET }}
+          GCE_DB_PUBLIC_IP: ${{ inputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}
+          GCE_DB_INSTANCE: ${{ secrets.GCE_DB_INSTANCE }}
+          GCE_DB_ZONE: ${{ secrets.GCE_DB_ZONE || secrets.GKE_CLUSTER_ZONE }}
+          GCE_SSH_USER: ${{ secrets.GCE_SSH_USER }}
+          GCE_SSH_PRIVATE_KEY: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
+          GCS_BACKUP_BUCKET_INPUT: ${{ inputs.gcs_backup_bucket }}
+          GCS_BACKUP_BUCKET_SECRET: ${{ secrets.GCS_BACKUP_BUCKET }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           set -euo pipefail
+          DB_INSTANCE_NAME="${GCE_DB_INSTANCE:-quetxal-db-vm}"
+          GCS_BACKUP_BUCKET="${GCS_BACKUP_BUCKET_INPUT:-}"
+          if [ -z "$GCS_BACKUP_BUCKET" ] && [ -n "${GCP_PROJECT_ID:-}" ]; then
+            GCS_BACKUP_BUCKET="quetxal-tv-${GCP_PROJECT_ID}-backups"
+          fi
+          GCS_BACKUP_BUCKET="${GCS_BACKUP_BUCKET:-${GCS_BACKUP_BUCKET_SECRET:-}}"
+          [ -n "$GCS_BACKUP_BUCKET" ] || { echo "::error::Missing backup bucket. Pass gcs_backup_bucket, configure GCP_PROJECT_ID, or configure GCS_BACKUP_BUCKET."; exit 1; }
+          BUCKET="gs://$GCS_BACKUP_BUCKET"
           TS=$(date +%Y%m%d_%H%M%S)
           KEY_FILE="$RUNNER_TEMP/gce-db-ssh-key"
-          printf '%s\n' "$GCE_DB_SSH_PRIVATE_KEY" > "$KEY_FILE"
+          if [[ "$GCE_SSH_PRIVATE_KEY" == '"'*'"' ]]; then GCE_SSH_PRIVATE_KEY="${GCE_SSH_PRIVATE_KEY:1:${#GCE_SSH_PRIVATE_KEY}-2}"; fi
+          printf '%b\n' "$GCE_SSH_PRIVATE_KEY" | sed 's/\r$//' > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
+          ssh-keygen -y -f "$KEY_FILE" > "$KEY_FILE.pub" || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
           trap 'rm -f "$KEY_FILE"' EXIT
+          SSH_OPTS=(
+            -i "$KEY_FILE"
+            -o StrictHostKeyChecking=no
+            -o UserKnownHostsFile=/dev/null
+            -o BatchMode=yes
+            -o ConnectTimeout=15
+          )
+          REMOTE_DUMP='docker exec "$C" sh -c '\''pg_dumpall -U "$POSTGRES_USER"'\'''
+          USE_IAP=0
+          DB_INSTANCE=""
+          DB_ZONE="${GCE_DB_ZONE:-}"
+          if [ -n "${GCE_DB_PUBLIC_IP:-}" ] && ssh "${SSH_OPTS[@]}" "$GCE_SSH_USER@$GCE_DB_PUBLIC_IP" true 2>/tmp/ssh-check.log; then
+            echo "SSH directo disponible en $GCE_DB_PUBLIC_IP:22"
+          else
+            echo "::warning::SSH directo no disponible; intentando tunnel IAP. Detalle: $(cat /tmp/ssh-check.log 2>/dev/null || true)"
+            INSTANCE_INFO=""
+            if [ -n "${GCE_DB_PUBLIC_IP:-}" ]; then
+              INSTANCE_INFO=$(gcloud compute instances list \
+                --filter="networkInterfaces.accessConfigs.natIP=$GCE_DB_PUBLIC_IP" \
+                --format='value(name,zone)' | head -n 1 || true)
+            fi
+            if [ -z "$INSTANCE_INFO" ]; then
+              INSTANCE_INFO=$(gcloud compute instances list \
+                --filter="name=$DB_INSTANCE_NAME" \
+                --format='value(name,zone)' | head -n 1 || true)
+            fi
+            if [ -n "$INSTANCE_INFO" ]; then
+              read -r DB_INSTANCE DB_ZONE_FROM_LOOKUP <<< "$INSTANCE_INFO"
+              DB_ZONE="${DB_ZONE:-$DB_ZONE_FROM_LOOKUP}"
+            else
+              DB_INSTANCE="$DB_INSTANCE_NAME"
+            fi
+            [ -n "$DB_INSTANCE" ] || { echo "::error::No se pudo resolver la VM de base de datos."; exit 1; }
+            [ -n "$DB_ZONE" ] || { echo "::error::No se pudo resolver la zona de $DB_INSTANCE. Configure GCE_DB_ZONE o GKE_CLUSTER_ZONE."; exit 1; }
+            USE_IAP=1
+            echo "Usando IAP hacia $DB_INSTANCE en $DB_ZONE"
+          fi
           backup() {
             C=$1
             FILE="${C}_${TS}.sql.gz"
-            echo "🔄 $C..."
-            ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no "$GCE_DB_SSH_USER@$GCE_DB_PUBLIC_IP" \
-              "docker exec $C sh -c 'pg_dumpall -U \"\$POSTGRES_USER\"'" | gzip > "$FILE"
+            echo "Backing up $C"
+            if [ "$USE_IAP" -eq 1 ]; then
+              gcloud compute ssh "$GCE_SSH_USER@$DB_INSTANCE" \
+                --zone "$DB_ZONE" \
+                --tunnel-through-iap \
+                --ssh-key-file "$KEY_FILE" \
+                --quiet \
+                --command "C=$C; $REMOTE_DUMP" | gzip > "$FILE"
+            else
+              ssh "${SSH_OPTS[@]}" "$GCE_SSH_USER@$GCE_DB_PUBLIC_IP" \
+                "C=$C; $REMOTE_DUMP" | gzip > "$FILE"
+            fi
             gcloud storage cp "$FILE" "$BUCKET/$C/$FILE"
             rm -f "$FILE"
-            echo "✅ $C"
           }
-          backup auth-db
-          backup subscription-db
-          backup catalogo-db
-          backup fx-db
-          backup notification-db
-          backup historial-db
-          echo " Backups completados: $TS"
-  backup-gke:
-      name: Backup PostgreSQL GKE -> GCS
-      if: ${{ inputs.target == '' || inputs.target == 'all' || inputs.target == 'gke' }}
-      runs-on: ubuntu-latest
-      permissions:
-        id-token: write
-        contents: read
-      env:
-        NAMESPACE: quetxal-tv-prod
-      steps:
-        - uses: actions/checkout@v4
-        - uses: google-github-actions/auth@v2
-          with:
-            workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-            service_account: ${{ secrets.GCP_SA_EMAIL }}
-        - uses: google-github-actions/get-gke-credentials@v2
-          with:
-            project_id: ${{ secrets.GCP_PROJECT_ID }}
-            cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
-            location: ${{ secrets.GKE_CLUSTER_ZONE }}
-        - name: Backup DBs in GKE
-          run: |
-            set -e
-            TS=$(date +%Y%m%d_%H%M%S)
-            BUCKET="gs://${{ secrets.GCS_BACKUP_BUCKET }}"
-            for DB in auth-db subscription-db catalogo-db fx-db notification-db historial-db; do
-              POD=$(kubectl get pod -n "$NAMESPACE" -l app=$DB -o jsonpath='{.items[0].metadata.name}')
-              kubectl exec -n "$NAMESPACE" "$POD" -- sh -c 'pg_dumpall -U "$POSTGRES_USER"' > ${DB}_${TS}.sql
-              gzip ${DB}_${TS}.sql
-              gcloud storage cp ${DB}_${TS}.sql.gz $BUCKET/gke/$DB/${DB}_${TS}.sql.gz
-            done
+          for C in auth-db subscription-db catalogo-db fx-db notification-db historial-db download-db; do
+            backup "$C"
+          done

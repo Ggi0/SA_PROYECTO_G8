@@ -1,0 +1,28 @@
+---
+- name: Aplicar migraciones SQL a la VM de BD (sin borrar datos)
+  hosts: db
+  become: true
+  vars:
+    repo_migrations_dir: "../../app/QuetxalTV/database/migrations"   # desde infra/ansible
+  tasks:
+    - name: Crear carpeta de migraciones
+      file: { path: /opt/quetxal/migrations, state: directory, mode: "0755" }
+
+    - name: Sincronizar migraciones del repo a la VM
+      copy:
+        src: "{{ repo_migrations_dir }}/"
+        dest: /opt/quetxal/migrations/
+
+    - name: Copiar el script aplicador
+      copy:
+        src: files/apply-migrations.sh
+        dest: /opt/quetxal/apply-migrations.sh
+        mode: "0755"
+
+    - name: Ejecutar migraciones pendientes
+      command: bash /opt/quetxal/apply-migrations.sh
+      register: mig
+      changed_when: "'aplicando' in mig.stdout"
+
+    - name: Mostrar salida
+      debug: { var: mig.stdout_lines }

@@ -101,6 +101,9 @@ console.log('display_name=', (req as any).display_name);
       );
     }
 
+    // Registrar el último inicio de sesión exitoso
+    await this.authRepository.updateLastLogin(user.userId);
+
     // 3. Obtener resumen de perfiles desde la vista
     const summary = await this.authRepository.getUserProfilesSummary(user.userId);
 

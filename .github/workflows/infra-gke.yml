@@ -19,5 +19,5 @@ jobs:
           location: ${{ secrets.GKE_CLUSTER_ZONE }}
       - name: Check GKE managed Ingress resources
         run: |
-          kubectl get ingress -A || true
-          kubectl get backendconfig -A || true
+          kubectl get ingress -n quetxal-tv-prod || true
+          kubectl get backendconfig -n quetxal-tv-prod || true

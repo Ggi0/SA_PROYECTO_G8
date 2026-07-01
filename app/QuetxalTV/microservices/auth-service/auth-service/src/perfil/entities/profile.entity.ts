@@ -44,7 +44,10 @@ avatarUrl: string | null;
   
     @Column({ name: 'is_kids_mode', default: false })
     isKidsMode: boolean;
-  
+
+    @Column({ name: 'parental_pin', type: 'varchar', length: 255, nullable: true })
+    parentalPin: string | null;
+
     @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
     createdAt: Date;
   

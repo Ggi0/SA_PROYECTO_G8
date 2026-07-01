@@ -28,3 +28,7 @@
 | Componentes (Desarrollo) | [quetxaltv_vista_componentes_v3.drawio](quetxaltv_vista_componentes_v3.drawio) |
 | Lógica / Secuencia | [quetxaltv_vista_logica_secuencia.drawio](quetxaltv_vista_logica_secuencia.drawio) |
 | Procesos | [Vista de Procesos.drawio](<Vista de Procesos.drawio>) |
+---
+
+## Diagramas de actividad (.drawio)
+https://drive.google.com/drive/folders/1lX1jLm-xNKFPNKV5L0q1aLk-ZMKN8iD7?usp=drive_link

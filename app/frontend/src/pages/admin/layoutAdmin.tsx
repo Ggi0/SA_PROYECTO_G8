@@ -7,6 +7,7 @@ const NAV_ITEMS = [
     { label: 'Dashboard',   href: '/admin',          icon: Film         },
     { label: 'Catálogo',    href: '/admin/catalog',  icon: Film         },
     { label: 'Auditoría',   href: '/admin/audit',    icon: ScrollText   },
+    { label: 'Periles',   href: '/admin/users',    icon: ScrollText   },
 ]
 
 export default function LayoutAdmin() {
@@ -26,7 +27,7 @@ export default function LayoutAdmin() {
                 <div className="p-6 flex-1">
 
                     <h2 className="font-display text-2xl font-bold text-spotlight tracking-widest mb-8">
-                        QUETXAL TV
+                        Calificacion
                     </h2>
 
                     <nav className="space-y-2">

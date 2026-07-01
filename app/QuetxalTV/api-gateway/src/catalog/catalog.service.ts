@@ -1,14 +1,17 @@
 import * as http from 'node:http';
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Request, Response } from 'express';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { Metadata } from '@grpc/grpc-js';
+import { NotificationClient } from '../notification/notification.client';
 
 interface CatalogGrpcService {
   // Público
   getCatalog(data: { contentType: string; genreId: number; page: number; pageSize: number }): Observable<unknown>;
-  getContentDetail(data: { contentId: string }): Observable<unknown>;
-  getSeriesStructure(data: { contentId: string }): Observable<unknown>;
+  getContentDetail(data: { contentId: string }, metadata?: Metadata): Observable<unknown>;
+  getSeriesStructure(data: { contentId: string }, metadata?: Metadata): Observable<unknown>;
   searchContent(data: { query: string; contentType: string }): Observable<unknown>;
   listGenres(data: Record<string, never>): Observable<unknown>;
   getPerson(data: { personId: string }): Observable<unknown>;
@@ -44,10 +47,14 @@ interface CatalogGrpcService {
 
 @Injectable()
 export class CatalogService implements OnModuleInit {
+  private readonly logger = new Logger(CatalogService.name);
   private grpcClient!: CatalogGrpcService;
   private readonly catalogHttpUrl = process.env.CATALOG_HTTP_URL || 'http://localhost:8082';
 
-  constructor(@Inject('CATALOG_PACKAGE') private readonly client: ClientGrpc) {}
+  constructor(
+    @Inject('CATALOG_PACKAGE') private readonly client: ClientGrpc,
+    private readonly notificationClient?: NotificationClient,
+  ) {}
 
   onModuleInit() {
     this.grpcClient = this.client.getService<CatalogGrpcService>('CatalogService');
@@ -57,11 +64,27 @@ export class CatalogService implements OnModuleInit {
   getCatalog(contentType = '', genreId = 0, page = 1, pageSize = 24) {
     return this.grpcClient.getCatalog({ contentType, genreId, page, pageSize });
   }
-  getContentDetail(contentId: string) {
-    return this.grpcClient.getContentDetail({ contentId });
+  getContentDetail(contentId: string, maxRating = 'NC-17') {
+    const md = new Metadata();
+    md.add('x-max-rating', maxRating);
+    return this.grpcClient.getContentDetail({ contentId }, md).pipe(
+      catchError((err) => {
+        if (err?.code === 7) return throwError(() => new ForbiddenException('Contenido restringido por control parental'));
+        if (err?.code === 5) return throwError(() => new NotFoundException('Contenido no encontrado'));
+        return throwError(() => err);
+      }),
+    );
   }
-  getSeriesStructure(contentId: string) {
-    return this.grpcClient.getSeriesStructure({ contentId });
+  getSeriesStructure(contentId: string, maxRating = 'NC-17') {
+    const md = new Metadata();
+    md.add('x-max-rating', maxRating);
+    return this.grpcClient.getSeriesStructure({ contentId }, md).pipe(
+      catchError((err) => {
+        if (err?.code === 7) return throwError(() => new ForbiddenException('Contenido restringido por control parental'));
+        if (err?.code === 5) return throwError(() => new NotFoundException('Contenido no encontrado'));
+        return throwError(() => err);
+      }),
+    );
   }
   searchContent(query: string, contentType = '') {
     return this.grpcClient.searchContent({ query, contentType });
@@ -93,7 +116,28 @@ export class CatalogService implements OnModuleInit {
     return this.grpcClient.updateContent(body);
   }
   publishContent(contentId: string) {
-    return this.grpcClient.publishContent({ contentId });
+    return this.grpcClient.publishContent({ contentId }).pipe(
+      tap(() => this.notifyPublishedContent(contentId)),
+    );
+  }
+
+  private notifyPublishedContent(contentId: string): void {
+    if (!this.notificationClient || typeof this.grpcClient.getContentDetail !== 'function') return;
+
+    this.grpcClient.getContentDetail({ contentId }).subscribe({
+      next: (detail: any) => {
+        void this.notificationClient!.sendNewContentAlert({
+          content_title: detail?.title || '',
+          content_type: detail?.contentType || detail?.content_type || '',
+          content_id: contentId,
+        }).catch((err) => {
+          this.logger.error(`No se pudo enviar alerta de nuevo contenido: ${err.message}`);
+        });
+      },
+      error: (err) => {
+        this.logger.error(`No se pudo obtener contenido publicado para notificar: ${err.message}`);
+      },
+    });
   }
   deleteContent(contentId: string, changedBy: string) {
     return this.grpcClient.deleteContent({ contentId, changedBy });

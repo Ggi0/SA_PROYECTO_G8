@@ -1,5 +1,3 @@
-// test/controllers/admin.controller.spec.ts
-
 import { AdminController } from '../../src/admin/admin.controller';
 
 describe('AdminController (ROBUST)', () => {
@@ -8,6 +6,8 @@ describe('AdminController (ROBUST)', () => {
   const mockAuditService = {
     getAuditLogs: jest.fn(),
     exportAuditLogs: jest.fn(),
+    getAllUsersWithProfiles: jest.fn(),
+    getAuditEventLogs: jest.fn(),
   };
 
   beforeEach(() => {
@@ -20,13 +20,7 @@ describe('AdminController (ROBUST)', () => {
   // ─────────────────────────────────────────────
   it('should return audit logs', async () => {
     const mockResponse = {
-      logs: [
-        {
-          auditId: '1',
-          tableName: 'users',
-          operation: 'INSERT',
-        },
-      ],
+      logs: [{ auditId: '1', tableName: 'users', operation: 'INSERT' }],
       totalRecords: 1,
       page: 1,
       pageSize: 10,
@@ -34,11 +28,7 @@ describe('AdminController (ROBUST)', () => {
 
     mockAuditService.getAuditLogs.mockResolvedValue(mockResponse);
 
-    const data = {
-      adminUserId: 'admin',
-      page: 1,
-      pageSize: 10,
-    };
+    const data = { adminUserId: 'admin', page: 1, pageSize: 10 };
 
     const res = await controller.getAuditLogs(data);
 
@@ -58,10 +48,7 @@ describe('AdminController (ROBUST)', () => {
 
     mockAuditService.exportAuditLogs.mockResolvedValue(mockResponse);
 
-    const data = {
-      adminUserId: 'admin',
-      format: 'csv',
-    };
+    const data = { adminUserId: 'admin', format: 'csv' };
 
     const res = await controller.exportAuditLogs(data);
 
@@ -81,15 +68,67 @@ describe('AdminController (ROBUST)', () => {
 
     mockAuditService.exportAuditLogs.mockResolvedValue(mockResponse);
 
-    const data = {
-      adminUserId: 'admin',
-      format: 'json',
-    };
+    const data = { adminUserId: 'admin', format: 'json' };
 
     const res = await controller.exportAuditLogs(data);
 
     expect(res.file_name).toBe('audit_report.json');
     expect(res.file.toString()).toContain('auditId');
+  });
+
+  // ─────────────────────────────────────────────
+  // ✅ NEW: GET USERS WITH PROFILES
+  // ─────────────────────────────────────────────
+  it('should return users with profiles', async () => {
+    const mockResponse = {
+      users: [
+        {
+          userId: 'u1',
+          email: 'test@test.com',
+          role: 'client',
+          isActive: true,
+          profiles: [],
+        },
+      ],
+      total: 1,
+    };
+
+    mockAuditService.getAllUsersWithProfiles.mockResolvedValue(mockResponse);
+
+    const data = { adminUserId: 'admin' };
+
+    const res = await controller.getAllUsersWithProfiles(data);
+
+    expect(res.users.length).toBe(1);
+    expect(res.total).toBe(1);
+    expect(mockAuditService.getAllUsersWithProfiles).toHaveBeenCalledWith(data);
+  });
+
+  // ─────────────────────────────────────────────
+  // ✅ NEW: GET AUDIT EVENT LOGS
+  // ─────────────────────────────────────────────
+  it('should return audit event logs', async () => {
+    const mockResponse = {
+      logs: [
+        {
+          logId: '1',
+          eventType: 'ACCOUNT_PURGED',
+        },
+      ],
+      totalRecords: 1,
+      page: 1,
+      pageSize: 10,
+    };
+
+    mockAuditService.getAuditEventLogs.mockResolvedValue(mockResponse);
+
+    const data = { adminUserId: 'admin', page: 1 };
+
+    const res = await controller.getAuditEventLogs(data);
+
+    expect(res.logs.length).toBe(1);
+    expect(res.totalRecords).toBe(1);
+    expect(mockAuditService.getAuditEventLogs).toHaveBeenCalledWith(data);
   });
 
   // ─────────────────────────────────────────────
@@ -113,5 +152,25 @@ describe('AdminController (ROBUST)', () => {
     await expect(
       controller.exportAuditLogs({ adminUserId: 'x' }),
     ).rejects.toThrow('export failed');
+  });
+
+  it('should propagate errors from getAllUsersWithProfiles', async () => {
+    mockAuditService.getAllUsersWithProfiles.mockRejectedValue(
+      new Error('fail users'),
+    );
+
+    await expect(
+      controller.getAllUsersWithProfiles({ adminUserId: 'x' }),
+    ).rejects.toThrow('fail users');
+  });
+
+  it('should propagate errors from getAuditEventLogs', async () => {
+    mockAuditService.getAuditEventLogs.mockRejectedValue(
+      new Error('fail events'),
+    );
+
+    await expect(
+      controller.getAuditEventLogs({ adminUserId: 'x' }),
+    ).rejects.toThrow('fail events');
   });
 });

@@ -26,14 +26,20 @@ services:
       FX_SERVICE_HOST: ${FX_SERVICE_HOST:-fx-service:50054}
       FX_SERVICE_URL: ${FX_SERVICE_URL:-fx-service:50054}
       HISTORIAL_SERVICE_URL: ${HISTORIAL_SERVICE_URL:-historial-service:50054}
+      DOWNLOAD_SERVICE_URL: ${DOWNLOAD_SERVICE_URL:-download-service:50057}
+      DOWNLOAD_SERVICE_HOST: ${DOWNLOAD_SERVICE_HOST:-download-service:50057}
       SUBSCRIPTION_HTTP_URL: ${SUBSCRIPTION_HTTP_URL:-http://subscription-service:8083}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-notification-service:50056}
+      NOTIFICATION_SERVICE_HOST: ${NOTIFICATION_SERVICE_HOST:-notification-service:50056}
       NOTIFICATION_HTTP_URL: ${NOTIFICATION_HTTP_URL:-http://notification-service:8084}
       FX_HTTP_URL: ${FX_HTTP_URL:-http://fx-service:8085}
     depends_on:
       - auth-service
       - subscription-service
+      - notification-service
       - fx-service
       - catalogo-service
+      - download-service
     restart: unless-stopped
     networks:
       - quetxal-network
@@ -168,6 +174,25 @@ services:
       DB_SCHEMA: ${HISTORIAL_DB_SCHEMA:-playback}
     expose:
       - "50054"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
+  download-service:
+    image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/download-service:${IMAGE_TAG:-latest}
+    environment:
+      GRPC_PORT: 50057
+      DB_HOST: ${DOWNLOAD_DB_HOST}
+      DB_PORT: ${DOWNLOAD_DB_PORT:-5438}
+      DB_USER: ${DOWNLOAD_DB_USER}
+      DB_PASSWORD: ${DOWNLOAD_DB_PASSWORD}
+      DB_NAME: ${DOWNLOAD_DB_NAME:-download_db}
+      DB_SSLMODE: ${DOWNLOAD_DB_SSLMODE:-disable}
+      JWT_SECRET: ${JWT_SECRET}
+      GCS_BUCKET: ${GCS_BUCKET_NAME:-quetxal-tv-videos}
+      DOWNLOAD_EXPIRY_DAYS: ${DOWNLOAD_EXPIRY_DAYS:-30}
+    expose:
+      - "50057"
     restart: unless-stopped
     networks:
       - quetxal-network

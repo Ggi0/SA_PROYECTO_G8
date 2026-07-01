@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: download-service, namespace: quetxal-tv-prod }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: download-service } }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 0, maxUnavailable: 1 }
+  template:
+    metadata: { labels: { app: download-service } }
+    spec:
+      containers:
+        - name: download-service
+          image: ${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/download-service:${IMAGE_TAG}
+          ports: [{ containerPort: 50057 }]
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits: { cpu: "250m", memory: "256Mi" }
+          envFrom: [{ configMapRef: { name: quetxal-tv-config } }]
+          env:
+            - { name: GRPC_PORT, value: "50057" }
+            - name: DB_HOST
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: DOWNLOAD_DB_HOST } }
+            - name: DB_PORT
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: DOWNLOAD_DB_PORT } }
+            - name: DB_USER
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: DOWNLOAD_DB_USER } }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: DOWNLOAD_DB_PASSWORD } }
+            - name: DB_NAME
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: DOWNLOAD_DB_NAME } }
+            - { name: DB_SSLMODE, value: "disable" }
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: JWT_SECRET } }
+            - name: GCS_BUCKET
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: GCS_BUCKET_NAME } }
+          readinessProbe: { tcpSocket: { port: 50057 }, initialDelaySeconds: 30, periodSeconds: 10, failureThreshold: 6 }
+          livenessProbe: { tcpSocket: { port: 50057 }, initialDelaySeconds: 90, periodSeconds: 20, failureThreshold: 3 }
