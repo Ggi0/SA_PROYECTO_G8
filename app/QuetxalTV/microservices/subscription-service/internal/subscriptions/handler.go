@@ -21,7 +21,7 @@ func (h *Handler) Subscribe(ctx context.Context, req *pb.SubscribeRequest) (*pb.
 		return nil, status.Error(codes.InvalidArgument, "user_id and plan_id are required")
 	}
 
-	result, err := h.service.Subscribe(ctx, req.GetUserId(), req.GetPlanId(), req.GetCurrency(), req.GetPaymentMethod())
+	result, err := h.service.Subscribe(ctx, req.GetUserId(), req.GetPlanId(), req.GetCurrency(), req.GetPaymentMethod(), req.GetUserEmail())
 	if err != nil {
 		return &pb.SubscribeResponse{Success: false, Message: err.Error()}, nil
 	}

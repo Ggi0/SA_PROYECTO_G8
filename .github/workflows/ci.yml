@@ -1,0 +1,110 @@
+name: CI Pipeline - Quetxal TV
+on:
+  push:
+    branches: ['feature/**']
+  pull_request:
+    branches: [develop, release, main]
+  workflow_call:
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-go:
+    name: "Go services (build + unit tests)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+          cache: false
+      - name: subscription-service
+        working-directory: app/QuetxalTV/microservices/subscription-service
+        run: |
+          go build ./...
+          go test ./internal/payments ./internal/plans ./internal/subscriptions -coverprofile=coverage.out -covermode=atomic -v
+          grep -v "repository.go" coverage.out > coverage_unit.out
+          COVERAGE=$(go tool cover -func=coverage_unit.out | awk '/total:/ {gsub(/%/, "", $3); print int($3)}')
+          echo "Cobertura subscription-service (handler+service): ${COVERAGE}%"
+          [ "$COVERAGE" -ge 75 ] || { echo "❌ Cobertura ${COVERAGE}% menor al 75%"; exit 1; }
+      - name: catalogo-service
+        working-directory: app/QuetxalTV/microservices/catalogo-service
+        run: |
+          go build ./...
+          go test ./internal/catalog -coverprofile=coverage.out -covermode=atomic -v
+          grep -v "internal/catalog/repository.go" coverage.out > coverage_unit.out
+          COVERAGE=$(go tool cover -func=coverage_unit.out | grep 'total:' | awk '{print $3}' | tr -d '%')
+          echo "Cobertura catalogo-service (handler+service): ${COVERAGE}%"
+          if [ $(echo "$COVERAGE < 75" | bc -l) -eq 1 ]; then echo "❌ Cobertura ${COVERAGE}% menor al 75%"; exit 1; fi
+  test-ts:
+    name: "TypeScript services (≥75%)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: api-gateway
+        working-directory: app/QuetxalTV/api-gateway
+        env:
+          JWT_SECRET: test-secret-ci
+          JWT_ACCESS_SECRET: test-access-ci
+        run: |
+          npm ci --silent
+          npx jest --coverage \
+            --collectCoverageFrom=src/subscription/subscription.service.ts \
+            --collectCoverageFrom=src/catalog/catalog.service.ts \
+            --collectCoverageFrom=src/health.controller.ts \
+            --coverageThreshold='{"global":{"lines":75}}' \
+            --collectCoverageFrom=src/download/download.service.ts \
+            --forceExit
+      - name: auth-service
+        working-directory: app/QuetxalTV/microservices/auth-service/auth-service
+        env:
+          JWT_SECRET: test-secret-ci
+          JWT_ACCESS_SECRET: test-access-ci
+        run: |
+          npm ci --silent
+          npm run test:cov
+  test-python:
+    name: "Python services (>=75%)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: fx-service
+        working-directory: app/QuetxalTV/microservices/fx-service
+        env:
+          PYTHONPATH: .
+        run: |
+          pip install -r requirements.txt pytest pytest-cov pytest-asyncio -q
+          test -d tests && test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "fx-service sin tests"; exit 1; }
+          pytest tests/ --cov=src.services.fx_service --cov-fail-under=75 --cov-report=term-missing -v
+      - name: notification-service
+        working-directory: app/QuetxalTV/microservices/notification-service
+        env:
+          PYTHONPATH: .
+        run: |
+          pip install -r requirements.txt pytest pytest-cov -q
+          test -d tests && test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "notification-service sin tests"; exit 1; }
+          pytest tests/ --cov=src.email --cov=src.db.repository --cov-fail-under=75 --cov-report=term-missing -v
+      - name: historial-service
+        working-directory: app/QuetxalTV/microservices/historial-service
+        env:
+          PYTHONPATH: .
+        run: |
+          pip install -r requirements.txt pytest pytest-cov -q
+          test -d tests && test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "historial-service sin tests"; exit 1; }
+          pytest tests/ --cov=app.history.service --cov-fail-under=75 --cov-report=term-missing -v
+      - name: download-service
+        working-directory: app/QuetxalTV/microservices/download-service
+        env:
+          PYTHONPATH: src
+        run: |
+          pip install -r requirements.txt pytest pytest-cov -q
+          test -d tests && test "$(find tests -name 'test_*.py' | wc -l)" -gt 0 || { echo "download-service sin tests"; exit 1; }
+          pytest tests/ --cov=service --cov=repository --cov-fail-under=75 --cov-report=term-missing -v

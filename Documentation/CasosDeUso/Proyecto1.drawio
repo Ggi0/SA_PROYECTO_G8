@@ -1,0 +1,501 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36" pages="10">
+  <diagram id="DCbjg-Z8032UT1-NK_Gr" name="Alto Nivel">
+    <mxGraphModel dx="1226" dy="687" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2336" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=middle;align=center;" value="&lt;span style=&quot;font-weight: normal;&quot;&gt;&lt;font style=&quot;font-size: 12px;&quot;&gt;Plataforma de Streaming bajo demanda&lt;/font&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="80" width="100" x="208" y="127" as="geometry" />
+        </mxCell>
+        <mxCell id="8" edge="1" parent="1" target="2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="128" y="123.66666666666663" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="10" edge="1" parent="1" target="2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="88" y="267" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="11" edge="1" parent="1" target="2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="418" y="217" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="12" edge="1" parent="1" target="2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="258" y="297" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="LorDX25uxstKlJEC3LuP-12" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="108" y="87" as="geometry" />
+        </mxCell>
+        <mxCell id="LorDX25uxstKlJEC3LuP-14" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Sistema de &lt;br&gt;Pago" vertex="1">
+          <mxGeometry height="60" width="30" x="58" y="237" as="geometry" />
+        </mxCell>
+        <mxCell id="LorDX25uxstKlJEC3LuP-15" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="&lt;span style=&quot;white-space: normal;&quot;&gt;API de Divisas&lt;br&gt;&amp;nbsp;(Externa)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="30" x="243" y="307" as="geometry" />
+        </mxCell>
+        <mxCell id="LorDX25uxstKlJEC3LuP-19" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Servicio de&lt;br&gt;Correo" vertex="1">
+          <mxGeometry height="60" width="30" x="418" y="177" as="geometry" />
+        </mxCell>
+        <mxCell id="2p2Lfb7zQY_6ehI6VM3p-12" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Administrador" vertex="1">
+          <mxGeometry height="60" width="30" x="337" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="2p2Lfb7zQY_6ehI6VM3p-13" edge="1" parent="1" source="2p2Lfb7zQY_6ehI6VM3p-12" style="entryX=0.687;entryY=0.017;entryDx=0;entryDy=0;entryPerimeter=0;" target="2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="454" y="222" as="sourcePoint" />
+            <mxPoint x="341" y="187" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="5u3DBCGeKJY0ChIOAHzg" name="Primera Descomposición">
+    <mxGraphModel dx="1291" dy="723" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="100" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontStyle=1;fontSize=13;" value="Quetxal TV" vertex="1">
+          <mxGeometry height="941" width="700" x="120" y="30" as="geometry">
+            <mxRectangle height="30" width="110" x="120" y="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="101" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CDU-001&#xa;Autenticación y Gestión de Usuarios" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="102" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="CDU-002&#xa;Gestión de Perfiles" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="103" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="CDU-003&#xa;Gestión de Planes y Suscripciones" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="104" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="CDU-004&#xa;Catálogo, Búsqueda y Detalle" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="105" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="CDU-005&#xa;Sistema de Calificaciones" vertex="1">
+          <mxGeometry height="60" width="260" x="225" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="106" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="CDU-006&#xa;FX-Service (Conversión de Divisas)" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="107" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CFCFCF;strokeColor=#666666;fontColor=#333333;" value="CDU-007&#xa;Historial de Reproducción" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="XbDhm0bQSgX33apwolmo-314" parent="100" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="CDU-008&lt;br&gt;Sistema de Calificaciones" vertex="1">
+          <mxGeometry height="60" width="260" x="220" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="300" edge="1" parent="1" target="101">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="224.6341463414634" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="301" edge="1" parent="1" target="102">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="229.02439024390242" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="302" edge="1" parent="1" target="103">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="233.41463414634143" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="303" edge="1" parent="1" target="104">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="237.80487804878044" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="304" edge="1" parent="1" target="105">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="242.19512195121956" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="305" edge="1" parent="1" target="106">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="246.58536585365857" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="306" edge="1" parent="1" target="107">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="250.97560975609758" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="309" edge="1" parent="1" target="103">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="870" y="290.4761904761905" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="310" edge="1" parent="1" target="106">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="870" y="560.4761904761906" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="311" edge="1" parent="1" target="101">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="538.5365853658536" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="312" edge="1" parent="1" target="103">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="80" y="547.3170731707318" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="smFqRWLgyHudIpOk7Mxy-312" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="45" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="G9VLbxpsuxdIp_FSRt_E-312" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Servicio de&lt;br&gt;Correo" vertex="1">
+          <mxGeometry height="60" width="30" x="45" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="wHvI2BXRBXIudw1kaa0Q-312" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="&lt;span style=&quot;white-space: normal;&quot;&gt;API de Divisas&lt;br&gt;&amp;nbsp;(Externa)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="30" x="875" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="xa6-zgbDcnXZjGx1uSgj-312" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Sistema de &lt;br&gt;Pago" vertex="1">
+          <mxGeometry height="60" width="30" x="870" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="XbDhm0bQSgX33apwolmo-312" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Administrador" vertex="1">
+          <mxGeometry height="60" width="30" x="45" y="703" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="Niqt_pGBq69CUfyxgMUt" name="CDU-001">
+    <mxGraphModel dx="1443" dy="687" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1920" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=12;" value="CDU-001: Autenticación y Gestión de Usuarios" vertex="1">
+          <mxGeometry height="300" width="580" x="100" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CDU001.1&#xa;Registro de usuario" vertex="1">
+          <mxGeometry height="55" width="150" x="100" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CDU001.2&#xa;Inicio de sesión" vertex="1">
+          <mxGeometry height="55" width="150" x="100" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CDU001.3&#xa;Cerrar sesión" vertex="1">
+          <mxGeometry height="55" width="150" x="100" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="17" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="CDU001.8&#xa;Autenticación OAuth" vertex="1">
+          <mxGeometry height="55" width="140" x="420" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="41" edge="1" parent="2" source="17" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;entryX=0.905;entryY=0.255;entryDx=0;entryDy=0;entryPerimeter=0;" target="11" value="&lt;&lt;extend&gt;&gt;">
+          <mxGeometry relative="1" x="-0.3862" y="3" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="410" y="78" />
+              <mxPoint x="410" y="144" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" target="10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70" y="222.99385663815906" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" edge="1" parent="1" target="11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70" y="227.5612922298243" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="32" edge="1" parent="1" target="12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70" y="232.15324788786893" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0s05KH5VIUMmHb7DfeHG-41" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="40" y="200" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="OFXYNV1SaeNSLibENzbr" name="CDU-002">
+    <mxGraphModel dx="1443" dy="687" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=12;" value="CDU-002: Gestión de Perfiles" vertex="1">
+          <mxGeometry height="380" width="520" x="100" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="CDU002.1&#xa;Crear perfil" vertex="1">
+          <mxGeometry height="55" width="150" x="110" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="CDU002.2&#xa;Editar perfil" vertex="1">
+          <mxGeometry height="55" width="150" x="110" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="CDU002.4&#xa;Seleccionar perfil activo" vertex="1">
+          <mxGeometry height="55" width="150" x="113" y="217" as="geometry" />
+        </mxCell>
+        <mxCell id="14" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="CDU002.1A&#xa;Validar límite de perfiles (≤5)" vertex="1">
+          <mxGeometry height="60" width="120" x="370" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="40" edge="1" parent="2" source="10" style="dashed=1;endArrow=open;" target="14" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" target="10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70" y="204.99322323938145" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" edge="1" parent="1" target="11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70" y="209.31440848780153" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="33" edge="1" parent="1" target="13">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70" y="217.97788602391972" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Xf_3nrPppbrKDgcaxyw_-40" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="40" y="180" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="ZLOXaeNFTbpkMQEKq9jx" name="CDU-003">
+    <mxGraphModel dx="2470" dy="1183" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1920" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=12;" value="CDU-003: Gestión de Planes y Suscripciones" vertex="1">
+          <mxGeometry height="400" width="540" x="120" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="14" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="CDU006&#xa;FX-Service (precio en divisa local)" vertex="1">
+          <mxGeometry height="60" width="130" x="390" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="15" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="CDU008.2&#xa;Enviar recibo de compra" vertex="1">
+          <mxGeometry height="55" width="120" x="350" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="40" edge="1" parent="2" source="10" style="dashed=1;endArrow=open;" target="14" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="41" edge="1" parent="2" source="11" style="dashed=1;endArrow=open;" target="15" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="31" edge="1" parent="2" target="11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-50" y="180" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="33" edge="1" parent="2" target="13">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-50" y="180" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="10" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="CDU003.1&#xa;Visualizar planes" vertex="1">
+          <mxGeometry height="55" width="155" x="135" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="CDU003.2&#xa;Seleccionar y comprar plan" vertex="1">
+          <mxGeometry height="60" width="160" x="130" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="CDU003.3&#xa;Modificar plan" vertex="1">
+          <mxGeometry height="55" width="166.25" x="123.75" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="CDU003.4&#xa;Cancelar suscripción" vertex="1">
+          <mxGeometry height="55" width="176.25" x="123.75" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="34" edge="1" parent="1" target="11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="200" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Tz-Whgx7MGms-v6grnqc-41" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="40" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="LO4kIu5Ayic6w0B-IiC9-41" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Sistema de &lt;br&gt;Pago" vertex="1">
+          <mxGeometry height="60" width="30" x="690" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="32" edge="1" parent="1" source="Tz-Whgx7MGms-v6grnqc-41" style="exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;" target="12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="223.3412332704993" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" source="Tz-Whgx7MGms-v6grnqc-41" style="exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;" target="10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70" y="200" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="08J7eASJY-n6KjVWOsi9" name="CDU-004">
+    <mxGraphModel dx="1443" dy="687" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=12;" value="CDU-004: Catálogo, Búsqueda y Detalle de Contenido" vertex="1">
+          <mxGeometry height="293" width="530" x="90" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="14" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="CDU005&#xa;Sistema de Calificaciones" vertex="1">
+          <mxGeometry height="55" width="125" x="370" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="40" edge="1" parent="2" source="12" style="dashed=1;endArrow=open;" target="14" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" edge="1" parent="2" target="10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-50" y="140" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" edge="1" parent="2" target="11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-50" y="155" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="32" edge="1" parent="2" target="12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-50" y="170" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="10" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="CDU004.1&#xa;Buscar contenido" vertex="1">
+          <mxGeometry height="55" width="145" x="145" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="CDU004.2&#xa;Filtrar contenido" vertex="1">
+          <mxGeometry height="55" width="145" x="145" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="CDU004.3&#xa;Ver detalle de contenido" vertex="1">
+          <mxGeometry height="55" width="145" x="145" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="1QSDqdby_jupYXwc6V_P-40" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="10" y="180" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="tr65tloDFXuyuN5hppiX" name="CDU-005">
+    <mxGraphModel dx="1976" dy="946" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="636" pageHeight="354" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=12;" value="CDU-005: Sistema de Calificaciones" vertex="1">
+          <mxGeometry height="200" width="480" x="83" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="CDU005.1&#xa;Calificar contenido&#xa;(pulgar arriba/abajo)" vertex="1">
+          <mxGeometry height="65" width="140" x="50" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="CDU005.2&#xa;Calcular % global&#xa;de recomendación" vertex="1">
+          <mxGeometry height="65" width="150" x="310" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="40" edge="1" parent="2" source="10" style="dashed=1;endArrow=open;" target="11" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" target="10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="48" y="215.96323174673182" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mqDRrpJY0y0DhUotiR_6-40" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="28" y="183" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="MQUBL4VwomwVpaQ69xtv" name="CDU-006">
+    <mxGraphModel dx="1796" dy="860" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="706" pageHeight="354" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=12;" value="CDU-006: FX-Service (Conversión de Divisas)" vertex="1">
+          <mxGeometry height="300" width="500" x="100" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="CDU006.1&#xa;Consultar tipo de cambio" vertex="1">
+          <mxGeometry height="60" width="150" x="80" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="CDU006.2&#xa;Cachear tipo de cambio&#xa;en Redis (TTL 30 min)" vertex="1">
+          <mxGeometry height="65" width="160" x="320" y="117.5" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="CDU006.3&#xa;Mostrar precio en&#xa;moneda local del usuario" vertex="1">
+          <mxGeometry height="70" width="170" x="70" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="40" edge="1" parent="2" source="10" style="dashed=1;endArrow=open;" target="11" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="41" edge="1" parent="2" source="12" style="dashed=1;endArrow=open;" target="10" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" source="UfUYFjm58E_-eSfdXcPF-41" target="12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="65" y="250.56338028169012" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" edge="1" parent="1" target="10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="630" y="120" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UfUYFjm58E_-eSfdXcPF-41" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="MYbloyMovwUnMSXy34tJ-41" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="&lt;span style=&quot;white-space: normal;&quot;&gt;API de Divisas&lt;br&gt;&amp;nbsp;(Externa)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="30" x="630" y="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="OaDMYr32o1gKKDNeY9gn" name="CDU-007">
+    <mxGraphModel dx="1796" dy="860" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="736" pageHeight="400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=12;" value="CDU-007: Historial de Reproducción" vertex="1">
+          <mxGeometry height="340" width="550" x="120" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCCCCC;strokeColor=#666666;fontColor=#333333;" value="CDU007.1&#xa;Registrar progreso de&#xa;visualización" vertex="1">
+          <mxGeometry height="65" width="150" x="110" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCCCCC;strokeColor=#d6b656;" value="CDU007.2&#xa;Reanudar contenido desde&#xa;donde se detuvo" vertex="1">
+          <mxGeometry height="65" width="150" x="110" y="157.5" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CCCCCC;strokeColor=#d6b656;" value="CDU007.3&#xa;Ver historial del perfil" vertex="1">
+          <mxGeometry height="55" width="150" x="110" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;fontColor=#333333;" value="CDU007.1A&#xa;Almacenar temporada,&#xa;capítulo y minuto (series)" vertex="1">
+          <mxGeometry height="70" width="160" x="370" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="40" edge="1" parent="2" source="10" style="dashed=1;endArrow=open;" target="13" value="&lt;&lt;extend&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" target="10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="65" y="204.02643829595297" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" edge="1" parent="1" target="11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="65" y="211.53846153846155" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="32" edge="1" parent="1" target="12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="65" y="219.04703126239895" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XVVJV_usqosQiOotwN6O-40" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Usuario" vertex="1">
+          <mxGeometry height="60" width="30" x="30" y="180" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="z55p5h39gX20tE31OH_O" name="CDU-008">
+    <mxGraphModel dx="1443" dy="687" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2339" pageHeight="3300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=12;" value="CDU-008: Sistema de Notificaciones por Correo" vertex="1">
+          <mxGeometry height="175" width="330" x="130" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="CDU008.1&#xa;Enviar correo de&#xa;confirmación de registro" vertex="1">
+          <mxGeometry height="65" width="170" x="80" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" target="10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="75" y="194.52517169493262" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s5E5N9MR09OZHNDJVH0s-33" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Servicio de&lt;br&gt;Correo" vertex="1">
+          <mxGeometry height="60" width="30" x="40" y="170" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

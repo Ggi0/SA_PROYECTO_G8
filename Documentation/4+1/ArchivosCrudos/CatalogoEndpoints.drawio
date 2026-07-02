@@ -1,0 +1,121 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Catalogo Endpoints" id="CatalogoEndpoints">
+    <mxGraphModel dx="1654" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="2200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" value="Vista Logica - Catalogo: Endpoints Usuario y Admin" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontStyle=1;" vertex="1">
+          <mxGeometry x="0" y="10" width="1600" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="sub" parent="1" value="API Gateway :8080  |  Catalog gRPC :50052 (negocio)  |  Catalog HTTP :8082 (auditoria, GCS, health)  |  catalog_db PostgreSQL  |  GCS quetxal-tv-videos" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=9;" vertex="1">
+          <mxGeometry x="0" y="44" width="1600" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_u" parent="1" value="Usuario" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=0;outlineConnect=0;fillColor=#1A2C4A;strokeColor=#1A2C4A;fontColor=#1A2C4A;fontSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="70" y="74" width="26" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_a" parent="1" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=0;outlineConnect=0;fillColor=#8B2500;strokeColor=#8B2500;fontColor=#8B2500;fontSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="1090" y="74" width="26" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="gw" parent="1" value="API Gateway&#xa;NestJS :8080" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#5B8DEF;strokeColor=#3A6FD8;fontColor=#FFFFFF;fontSize=11;arcSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="510" y="80" width="160" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="grpc" parent="1" value="Catalog gRPC :50052" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1A2C4A;strokeColor=#0A1A3A;fontColor=#FFFFFF;fontSize=10;arcSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="240" y="190" width="170" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="http" parent="1" value="Catalog HTTP :8082" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#1A2C4A;strokeColor=#0A1A3A;fontColor=#FFFFFF;fontSize=10;arcSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="760" y="190" width="170" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" parent="1" value="/api/catalog/..." style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1A2C4A;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="96" y="100" as="sourcePoint" />
+            <mxPoint x="510" y="102" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" parent="1" value="/api/catalog/admin/..." style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#8B2500;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="102" as="sourcePoint" />
+            <mxPoint x="670" y="102" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" parent="1" value="gRPC protobuf" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3A6FD8;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="510" y="116" as="sourcePoint" />
+            <mxPoint x="325" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" parent="1" value="HTTP proxy" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3A6FD8;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="670" y="116" as="sourcePoint" />
+            <mxPoint x="845" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="h_user" parent="1" value="ENDPOINTS USUARIO - Publicos (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#1A2C4A;strokeColor=#0A1A3A;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="20" y="256" width="390" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="b_user" parent="1" value="GET  /api/catalog?type=MOVIE|SERIES, genre_id, page&#xa;     resp: { items: ContentCard[], total, page }&#xa;&#xa;GET  /api/catalog/search?q, type&#xa;     resp: { results: [{ content_id, title, poster_url }] }&#xa;&#xa;GET  /api/catalog/genres&#xa;     resp: { genres: [{ genre_id, name, slug }] }&#xa;&#xa;GET  /api/catalog/content/:id&#xa;     resp: ContentDetail { title, synopsis, cast[], genres[], is_published }&#xa;&#xa;GET  /api/catalog/series/:id/structure&#xa;     resp: { seasons: [{ episodes: [{ episode_id, title, duration_min }] }] }&#xa;&#xa;GET  /api/catalog/person/:id&#xa;     resp: PersonDetail { full_name, bio, filmography[] }&#xa;&#xa;GET  /api/catalog/content/:id/rating?profile_id&#xa;     resp: { thumb: UP|DOWN, stars: 1-5 }&#xa;&#xa;POST /api/catalog/content/:id/rate&#xa;     body: { profile_id, thumb: UP|DOWN, stars: 1-5 }&#xa;     resp: { success, like_pct, avg_stars }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#EBF3FF;strokeColor=#1A2C4A;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="20" y="284" width="390" height="474" as="geometry" />
+        </mxCell>
+        <mxCell id="h_adm_c" parent="1" value="ADMIN - Contenido (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E07000;strokeColor=#A05000;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="430" y="256" width="400" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="b_adm_c" parent="1" value="POST   /api/catalog/admin/content&#xa;       body: { content_type: MOVIE|SERIES, title, synopsis,&#xa;               release_year, duration_min, genre_ids: int[] }&#xa;       resp: { content_id: uuid }&#xa;&#xa;PUT    /api/catalog/admin/content/:id&#xa;       body: { title?, synopsis?, release_year?, duration_min?, genre_ids? }&#xa;       resp: ContentDetail actualizado&#xa;&#xa;POST   /api/catalog/admin/content/:id/publish&#xa;       body: {}  -  sets is_published=TRUE&#xa;       resp: { success: true, published_at: ISO8601 }&#xa;&#xa;DELETE /api/catalog/admin/content/:id&#xa;       body: { changed_by? }  -  elimina permanentemente&#xa;       resp: { success: true }&#xa;&#xa;POST   /api/catalog/admin/content/:id/schedule&#xa;       body: { premiere_date: ISO8601, changed_by? }&#xa;       resp: { success: true, premiere_date: ISO8601 }&#xa;&#xa;GET    /api/catalog/admin/content/all?type, genre_id, page&#xa;       [ListAllContent] retorna publicados Y no publicados&#xa;       resp: { items: ContentCard[], total, page }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#FFF3E0;strokeColor=#E07000;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="430" y="284" width="400" height="474" as="geometry" />
+        </mxCell>
+        <mxCell id="h_adm_g" parent="1" value="ADMIN - Generos (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E07000;strokeColor=#A05000;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="850" y="256" width="380" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="b_adm_g" parent="1" value="POST   /api/catalog/admin/genres&#xa;       body: { name: string, slug: string }&#xa;       resp: { genre_id: int, name, slug }&#xa;&#xa;PUT    /api/catalog/admin/genres/:id&#xa;       body: { name: string, slug: string }&#xa;       resp: { genre_id, name, slug } actualizado&#xa;&#xa;DELETE /api/catalog/admin/genres/:id&#xa;       body: { changed_by? }&#xa;       resp: { success: true }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#FFF3E0;strokeColor=#E07000;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="850" y="284" width="380" height="184" as="geometry" />
+        </mxCell>
+        <mxCell id="h_adm_p" parent="1" value="ADMIN - Personas y Cast (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E07000;strokeColor=#A05000;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="850" y="488" width="380" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="b_adm_p" parent="1" value="POST   /api/catalog/admin/people&#xa;       body: { full_name, bio?, birth_date?: ISO8601, nationality? }&#xa;       resp: { person_id: uuid, full_name }&#xa;&#xa;PUT    /api/catalog/admin/people/:id&#xa;       body: { full_name?, bio?, birth_date?, nationality? }&#xa;       resp: PersonDetail actualizado&#xa;&#xa;DELETE /api/catalog/admin/people/:id&#xa;       body: { changed_by? }  resp: { success: true }&#xa;&#xa;POST   /api/catalog/admin/content/:id/cast&#xa;       body: { person_id: uuid,&#xa;               role_type: ACTOR|DIRECTOR|PRODUCER|WRITER,&#xa;               character_name?, order?: int }&#xa;       resp: { success: true }&#xa;&#xa;DELETE /api/catalog/admin/content/:cId/cast/:pId?role_type=ACTOR&#xa;       resp: { success: true }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#FFF3E0;strokeColor=#E07000;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="850" y="516" width="380" height="284" as="geometry" />
+        </mxCell>
+        <mxCell id="h_adm_se" parent="1" value="ADMIN - Temporadas y Episodios (gRPC)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E07000;strokeColor=#A05000;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="20" y="778" width="400" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="b_adm_se" parent="1" value="POST   /api/catalog/admin/content/:id/seasons&#xa;       body: { season_num: int, title?: string }&#xa;       resp: { season_id: uuid, season_num, title }&#xa;&#xa;DELETE /api/catalog/admin/seasons/:id&#xa;       body: { changed_by? }  resp: { success: true }&#xa;&#xa;POST   /api/catalog/admin/seasons/:id/episodes&#xa;       body: { episode_num: int, title, synopsis?, duration_min?: int }&#xa;       resp: { episode_id: uuid, episode_num, title }&#xa;&#xa;PUT    /api/catalog/admin/episodes/:id&#xa;       body: { title?, synopsis?, duration_min?, episode_num? }&#xa;       resp: EpisodeDetail actualizado&#xa;&#xa;DELETE /api/catalog/admin/episodes/:id&#xa;       body: { changed_by? }  resp: { success: true }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#FFF3E0;strokeColor=#E07000;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="20" y="806" width="400" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="h_adm_st" parent="1" value="ADMIN - Storage GCS (HTTP proxy :8082)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#2A7A2A;strokeColor=#1A5A1A;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="440" y="778" width="400" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="b_adm_st" parent="1" value="POST /api/catalog/admin/upload-url&#xa;     body: { filename: video.mp4, content_type: video/mp4 }&#xa;     resp: { upload_url: https://storage.googleapis.com/...?X-Goog-Signature=...,&#xa;             object_name: videos/1748291234-video.mp4 }&#xa;     Cliente hace PUT directo a upload_url con el binario (valida 15 min)&#xa;&#xa;GET  /api/catalog/admin/download-url?object=videos/...mp4&#xa;     resp: { download_url: https://...?X-Goog-Signature=..., object_name }&#xa;     Usar como src del player de video (valida 1 hora)&#xa;&#xa;POST /api/catalog/admin/upload&#xa;     Content-Type: multipart/form-data, campo: file, max: 500 MB&#xa;     resp: { url: https://storage.googleapis.com/..., object_name }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#E8F5E9;strokeColor=#2A7A2A;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="440" y="806" width="400" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="h_adm_au" parent="1" value="ADMIN - Auditoria (HTTP proxy :8082)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#7B1FA2;strokeColor=#5A0070;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="860" y="820" width="380" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="b_adm_au" parent="1" value="GET /api/catalog/admin/audit/logs&#xa;    ?entity=content|genre|person&#xa;    &amp;action=CREATE|UPDATE|DELETE|PUBLISH&#xa;    &amp;from=ISO8601 &amp;to=ISO8601 &amp;page=int&#xa;    resp: { logs: [{ id, entity, entity_id, action,&#xa;                     changed_by, changed_at,&#xa;                     old_values: JSON, new_values: JSON }],&#xa;            total: int }&#xa;&#xa;GET /api/catalog/admin/audit/export&#xa;    ?format=csv|pdf &amp;entity &amp;action &amp;from &amp;to&#xa;    resp: archivo descargable&#xa;    Content-Disposition: attachment; filename=audit_export.csv" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#F3E5F5;strokeColor=#7B1FA2;strokeWidth=2;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="860" y="848" width="380" height="244" as="geometry" />
+        </mxCell>
+        <mxCell id="h_hp" parent="1" value="Health / Status (HTTP :8082)" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#666666;strokeColor=#444444;fontColor=#FFFFFF;fontSize=10;fontStyle=1;align=center;" vertex="1">
+          <mxGeometry x="20" y="1106" width="390" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="b_hp" parent="1" value="GET /healthz  - Liveness probe&#xa;    resp: 200 { status: ok }&#xa;&#xa;GET /readyz   - Readiness probe (hace db.Ping a catalog_db)&#xa;    resp: 200 { status: ready }&#xa;         503 { status: unavailable, error: mensaje }" style="rounded=0;whiteSpace=wrap;html=0;fillColor=#F5F5F5;strokeColor=#999999;strokeWidth=1.5;fontSize=9;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1">
+          <mxGeometry x="20" y="1134" width="390" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="db" parent="1" value="catalog_db&#xa;PostgreSQL" style="shape=cylinder3;whiteSpace=wrap;html=0;fillColor=#DAE8FC;strokeColor=#3A6FD8;fontSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="120" y="1280" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gcs" parent="1" value="GCS quetxal-tv-videos&#xa;Workload Identity KSA" style="shape=cylinder3;whiteSpace=wrap;html=0;fillColor=#D5E8D4;strokeColor=#2A7A2A;fontSize=10;fontStyle=1;" vertex="1">
+          <mxGeometry x="870" y="1280" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_db" parent="1" value="SQL queries" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3A6FD8;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="325" y="226" as="sourcePoint" />
+            <mxPoint x="190" y="1280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_gcs" parent="1" value="Signed URLs V4 / IAM API" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#2A7A2A;strokeWidth=1.2;endArrow=open;endFill=0;dashed=1;dashPattern=5 3;fontSize=9;" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="845" y="226" as="sourcePoint" />
+            <mxPoint x="965" y="1280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

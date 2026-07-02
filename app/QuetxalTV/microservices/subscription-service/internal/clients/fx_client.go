@@ -15,7 +15,7 @@ type FXClient interface {
 }
 
 type fxGRPCClient struct {
-	client fxpb.FXServiceClient
+	client fxpb.FxServiceClient
 }
 
 type fallbackFXClient struct{}
@@ -30,7 +30,7 @@ func NewFXClient() (FXClient, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connect FX service: %w", err)
 	}
-	return &fxGRPCClient{client: fxpb.NewFXServiceClient(conn)}, nil
+	return &fxGRPCClient{client: fxpb.NewFxServiceClient(conn)}, nil
 }
 
 func NewFallbackFXClient() FXClient {
@@ -42,7 +42,10 @@ func (c *fxGRPCClient) GetExchangeRate(ctx context.Context, from, to string) (fl
 		return 1, nil
 	}
 
-	resp, err := c.client.GetExchangeRate(ctx, &fxpb.GetExchangeRateRequest{FromCurrency: from, ToCurrency: to})
+	resp, err := c.client.GetExchangeRate(ctx, &fxpb.ExchangeRateRequest{
+		TargetCurrency: to,
+		RequestedBy:    "subscription-service",
+	})
 	if err != nil {
 		return 1, fmt.Errorf("get exchange rate: %w", err)
 	}
@@ -51,7 +54,6 @@ func (c *fxGRPCClient) GetExchangeRate(ctx context.Context, from, to string) (fl
 	}
 	return resp.GetRate(), nil
 }
-
 func (fallbackFXClient) GetExchangeRate(_ context.Context, from, to string) (float64, error) {
 	return 1, nil
 }

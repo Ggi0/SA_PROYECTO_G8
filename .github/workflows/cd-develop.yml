@@ -1,0 +1,282 @@
+name: CD - develop -> Compute Engine
+
+on:
+  push:
+    branches: [develop]
+
+env:
+  REGISTRY: ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}
+
+jobs:
+  ci-gate:
+    name: CI gate
+    uses: ./.github/workflows/ci.yml
+
+  provision-infra:
+    name: Infra (Terraform + Ansible)
+    needs: ci-gate
+    uses: ./.github/workflows/infra.yml
+    permissions:
+      id-token: write
+      contents: read
+    secrets: inherit
+
+  build:
+    name: Build and push (tag develop)
+    needs: [ci-gate, provision-infra]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker ${{ secrets.ARTIFACT_REGISTRY_LOCATION }}-docker.pkg.dev -q
+      - name: Build application images only
+        run: |
+          set -euo pipefail
+          API_URL="http://${{ needs.provision-infra.outputs.dev_host || secrets.GCE_INSTANCE_IP }}:3000"
+          docker build --build-arg VITE_API_URL="$API_URL" --build-arg VITE_GATEWAY_URL="$API_URL" -t $REGISTRY/frontend:develop -f app/frontend/Dockerfile app/frontend
+          docker push $REGISTRY/frontend:develop
+          for SVC in api-gateway auth-service subscription-service catalogo-service fx-service notification-service historial-service download-service; do
+            DIR="app/QuetxalTV/microservices/$SVC"
+            [ "$SVC" = "api-gateway" ] && DIR="app/QuetxalTV/api-gateway"
+            [ "$SVC" = "auth-service" ] && DIR="app/QuetxalTV/microservices/auth-service/auth-service"
+            docker build -t $REGISTRY/$SVC:develop -f $DIR/Dockerfile $DIR
+            docker push $REGISTRY/$SVC:develop
+          done
+
+  db-migrations:
+    name: DB migrations on external VM
+    needs: [provision-infra, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy and apply migrations directly to DB VM
+        env:
+          SSH_USER: ${{ secrets.GCE_SSH_USER }}
+          SSH_KEY: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          HOST="${{ needs.provision-infra.outputs.db_public_ip || secrets.GCE_DB_PUBLIC_IP }}"
+          for s in HOST SSH_USER SSH_KEY; do
+            [ -n "${!s:-}" ] || { echo "::error::Missing $s"; exit 1; }
+          done
+          KEY_FILE="$RUNNER_TEMP/quetxal_db_key"
+          if [[ "$SSH_KEY" == '"'*'"' ]]; then SSH_KEY="${SSH_KEY:1:${#SSH_KEY}-2}"; fi
+          printf '%b\n' "$SSH_KEY" | sed 's/\r$//' > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          ssh-keygen -y -f "$KEY_FILE" >/dev/null || { echo "::error::Invalid GCE_SSH_PRIVATE_KEY format. Store only the private key contents, without GCE_SSH_PRIVATE_KEY= or wrapping quotes."; exit 1; }
+          trap 'rm -f "$KEY_FILE" mig.tgz' EXIT
+          tar czf mig.tgz app/QuetxalTV/database/migrations infra/ansible/files/apply-migrations.sh
+          scp -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null mig.tgz "$SSH_USER@$HOST:/tmp/mig.tgz"
+          ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$SSH_USER@$HOST" '
+            set -euo pipefail
+            sudo rm -rf /tmp/quetxal-mig /opt/quetxal/migrations
+            sudo mkdir -p /tmp/quetxal-mig /opt/quetxal/migrations
+            sudo tar xzf /tmp/mig.tgz -C /tmp/quetxal-mig
+            sudo cp -a /tmp/quetxal-mig/app/QuetxalTV/database/migrations/. /opt/quetxal/migrations/
+            sudo cp /tmp/quetxal-mig/infra/ansible/files/apply-migrations.sh /opt/quetxal/apply-migrations.sh
+            sudo chmod +x /opt/quetxal/apply-migrations.sh
+            sudo bash /opt/quetxal/apply-migrations.sh
+          '
+
+  deploy:
+    name: Deploy app -> VM dev (external DB)
+    needs: [provision-infra, build, db-migrations]
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ needs.provision-infra.outputs.dev_host || secrets.GCE_INSTANCE_IP }}
+          username: ${{ secrets.GCE_SSH_USER }}
+          key: ${{ secrets.GCE_SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            sudo chown -R "$(id -un):$(id -gn)" /app/SA_PROYECTO_G8
+            git config --global --add safe.directory /app/SA_PROYECTO_G8
+            cd /app/SA_PROYECTO_G8
+            git fetch origin develop
+            git checkout develop
+            git pull origin develop
+            cd app/QuetxalTV
+            touch .env
+            set_env() {
+              key="$1"
+              value="$2"
+              if grep -q "^${key}=" .env; then
+                awk -v key="$key" -v value="$value" 'BEGIN { prefix = key "=" } index($0, prefix) == 1 { $0 = prefix value } { print }' .env > .env.tmp
+                mv .env.tmp .env
+              else
+                printf '%s=%s\n' "$key" "$value" >> .env
+              fi
+            }
+            set_env_if_not_empty() {
+              [ -n "${2:-}" ] || return 0
+              set_env "$1" "$2"
+            }
+            DB_IP="${{ needs.provision-infra.outputs.db_private_ip || secrets.GCE_DB_PRIVATE_IP }}"
+            ARTIFACT_REGISTRY_LOCATION="${{ secrets.ARTIFACT_REGISTRY_LOCATION }}"
+            GCP_PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+            ARTIFACT_REGISTRY_REPOSITORY="${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}"
+            GCS_VIDEO_BUCKET="${{ needs.provision-infra.outputs.gcs_video_bucket }}"
+            JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            JWT_ACCESS_SECRET="${{ secrets.JWT_ACCESS_SECRET }}"
+            JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}"
+            EXTERNAL_DB_PASSWORD="${{ secrets.AUTH_DB_PASSWORD }}"
+            EXCHANGE_API_URL="${{ secrets.EXCHANGE_API_URL }}"
+            [ -n "$EXCHANGE_API_URL" ] || EXCHANGE_API_URL="https://v6.exchangerate-api.com/v6"
+            [ -n "$GCS_VIDEO_BUCKET" ] || GCS_VIDEO_BUCKET="quetxal-tv-${GCP_PROJECT_ID}-videos"
+            for s in DB_IP ARTIFACT_REGISTRY_LOCATION GCP_PROJECT_ID ARTIFACT_REGISTRY_REPOSITORY GCS_VIDEO_BUCKET EXTERNAL_DB_PASSWORD JWT_SECRET JWT_ACCESS_SECRET JWT_REFRESH_SECRET; do
+              [ -n "${!s:-}" ] || { echo "Missing $s"; exit 1; }
+            done
+            DOCKER_CONFIG_DIR="$(mktemp -d)"
+            trap 'rm -rf "$DOCKER_CONFIG_DIR"' EXIT
+            export DOCKER_CONFIG="$DOCKER_CONFIG_DIR"
+            ACCESS_TOKEN="$(curl -fsS -H 'Metadata-Flavor: Google' 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token' | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')"
+            printf '%s' "$ACCESS_TOKEN" | docker login -u oauth2accesstoken --password-stdin "https://${ARTIFACT_REGISTRY_LOCATION}-docker.pkg.dev"
+            set_env ARTIFACT_REGISTRY_LOCATION "$ARTIFACT_REGISTRY_LOCATION"
+            set_env GCP_PROJECT_ID "$GCP_PROJECT_ID"
+            set_env ARTIFACT_REGISTRY_REPOSITORY "$ARTIFACT_REGISTRY_REPOSITORY"
+            set_env IMAGE_TAG develop
+            set_env FRONTEND_PUBLIC_PORT 8080
+            EXTERNAL_DB_USER=quetxal
+            set_env JWT_SECRET "$JWT_SECRET"
+            set_env JWT_ACCESS_SECRET "$JWT_ACCESS_SECRET"
+            set_env JWT_REFRESH_SECRET "$JWT_REFRESH_SECRET"
+            set_env AUTH_DB_HOST "$DB_IP"
+            set_env AUTH_DB_PORT 5432
+            set_env AUTH_DB_USER "$EXTERNAL_DB_USER"
+            set_env AUTH_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
+            set_env AUTH_DB_NAME auth_db
+            set_env AUTH_DB_SCHEMA auth
+            set_env AUTH_DB_SSLMODE disable
+            set_env SUBSCRIPTION_DB_HOST "$DB_IP"
+            set_env SUBSCRIPTION_DB_PORT 5433
+            set_env SUBSCRIPTION_DB_USER "$EXTERNAL_DB_USER"
+            set_env SUBSCRIPTION_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
+            set_env SUBSCRIPTION_DB_NAME subscription_db
+            set_env SUBSCRIPTION_DB_SCHEMA subscription
+            set_env SUBSCRIPTION_DB_SSLMODE disable
+            set_env CATALOGO_DB_HOST "$DB_IP"
+            set_env CATALOGO_DB_PORT 5434
+            set_env CATALOGO_DB_USER "$EXTERNAL_DB_USER"
+            set_env CATALOGO_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
+            set_env CATALOGO_DB_NAME catalogo_db
+            set_env CATALOGO_DB_SCHEMA catalog
+            set_env CATALOGO_DB_SSLMODE disable
+            set_env CATALOG_HTTP_URL http://catalogo-service:8082
+            set_env DOWNLOAD_SERVICE_URL download-service:50057
+            set_env DOWNLOAD_SERVICE_HOST download-service:50057
+            set_env GCS_BUCKET_NAME "$GCS_VIDEO_BUCKET"
+            set_env_if_not_empty GCS_SERVICE_ACCOUNT_EMAIL "${{ secrets.GCP_SA_EMAIL }}"
+            set_env FX_DB_HOST "$DB_IP"
+            set_env FX_DB_PORT 5435
+            set_env FX_DB_USER "$EXTERNAL_DB_USER"
+            set_env FX_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
+            set_env FX_DB_NAME fx_db
+            set_env FX_DB_SCHEMA fx
+            set_env FX_DB_SSLMODE disable
+            set_env EXCHANGE_API_URL "$EXCHANGE_API_URL"
+            set_env NOTIFICATION_DB_HOST "$DB_IP"
+            set_env NOTIFICATION_DB_PORT 5436
+            set_env NOTIFICATION_DB_USER "$EXTERNAL_DB_USER"
+            set_env NOTIFICATION_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
+            set_env NOTIFICATION_DB_NAME notification_db
+            set_env NOTIFICATION_DB_SCHEMA notification
+            set_env NOTIFICATION_DB_SSLMODE disable
+            set_env HISTORIAL_DB_HOST "$DB_IP"
+            set_env HISTORIAL_DB_PORT 5437
+            set_env HISTORIAL_DB_USER "$EXTERNAL_DB_USER"
+            set_env HISTORIAL_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
+            set_env HISTORIAL_DB_NAME historial_db
+            set_env HISTORIAL_DB_SCHEMA playback
+            set_env HISTORIAL_DB_SSLMODE disable
+            set_env DOWNLOAD_DB_HOST "$DB_IP"
+            set_env DOWNLOAD_DB_PORT 5438
+            set_env DOWNLOAD_DB_USER "$EXTERNAL_DB_USER"
+            set_env DOWNLOAD_DB_PASSWORD "$EXTERNAL_DB_PASSWORD"
+            set_env DOWNLOAD_DB_NAME download_db
+            set_env DOWNLOAD_DB_SSLMODE disable
+            set_env DOWNLOAD_EXPIRY_DAYS 30
+            set_env_if_not_empty SMTP_HOST "${{ secrets.SMTP_HOST }}"
+            set_env_if_not_empty SMTP_PORT "${{ secrets.SMTP_PORT }}"
+            set_env_if_not_empty SMTP_USER "${{ secrets.SMTP_USER }}"
+            set_env_if_not_empty SMTP_PASSWORD "${{ secrets.SMTP_PASSWORD }}"
+            set_env_if_not_empty SMTP_FROM "${{ secrets.SMTP_FROM }}"
+            set_env_if_not_empty EXCHANGE_API_KEY "${{ secrets.EXCHANGE_API_KEY }}"
+            docker compose -f docker-compose.cloud.yml config >/dev/null
+            docker compose -f docker-compose.cloud.yml pull
+            docker compose -f docker-compose.cloud.yml up -d --remove-orphans
+            docker system prune -f
+
+  smoke:
+    name: Smoke tests after VM dev deploy
+    needs: [provision-infra, deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install requests -q
+      - name: Run smoke tests
+        env:
+          BASE_URL: "http://${{ needs.provision-infra.outputs.dev_host || secrets.GCE_INSTANCE_IP }}:3000"
+        run: |
+          set -euo pipefail
+          # Esperar que el servicio esté listo
+          curl -fsS --retry 5 --retry-delay 10 "$BASE_URL/api/health" >/dev/null
+          # Correr smoke tests
+          python tests/smoke/smoke_test.py
+
+  locust:
+    name: Locust load injection after VM dev deploy
+    needs: [provision-infra, smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Locust headless
+        env:
+          LOCUST_HOST: "http://${{ needs.provision-infra.outputs.dev_host || secrets.GCE_INSTANCE_IP }}:3000"
+          LOCUST_CATALOG: "0"
+          LOCUST_FRONTEND: "0"
+          LOCUST_LOGIN: "0"
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          pip install locust==2.31.6 -q
+          mkdir -p locust-results
+          locust \
+            -f infra/ansible/files/observability/load/locustfile.py \
+            --headless \
+            --host "$LOCUST_HOST" \
+            --users 10 \
+            --spawn-rate 2 \
+            --run-time 1m \
+            --html locust-results/develop-locust-result.html
+      - name: Upload Locust report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: develop-locust-report
+          path: locust-results/develop-locust-result.html
+
+  backup-after-deploy:
+    name: Backup after deploy
+    needs: [provision-infra, locust]
+    uses: ./.github/workflows/backup.yml
+    with:
+      target: gce
+      db_public_ip: ${{ needs.provision-infra.outputs.db_public_ip }}
+      gcs_backup_bucket: ${{ needs.provision-infra.outputs.gcs_backup_bucket }}
+    permissions:
+      id-token: write
+      contents: read
+    secrets: inherit

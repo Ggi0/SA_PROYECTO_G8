@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package historial;
+
+service HistorialService {
+  rpc UpdateMovieProgress (UpdateMovieProgressRequest) returns (ProgressResponse);
+  rpc UpdateEpisodeProgress (UpdateEpisodeProgressRequest) returns (ProgressResponse);
+  rpc GetContinueWatching (GetContinueWatchingRequest) returns (ContinueWatchingResponse);
+  rpc GetContentProgress (GetContentProgressRequest) returns (ProgressResponse);
+  rpc GetHistoryAuditLogs (GetHistoryAuditLogsRequest) returns (HistoryAuditLogsResponse);
+
+  rpc HealthLive (HealthCheckRequest) returns (HealthCheckResponse);
+  rpc HealthReady (HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message UpdateMovieProgressRequest {
+  string profile_id = 1;
+  string content_id = 2;
+  int32 minute_reached = 3;
+  int32 total_duration_min = 4;
+}
+
+message UpdateEpisodeProgressRequest {
+  string profile_id = 1;
+  string content_id = 2;
+  string season_id = 3;
+  string episode_id = 4;
+  int32 season_num = 5;
+  int32 episode_num = 6;
+  int32 minute_reached = 7;
+  int32 total_duration_min = 8;
+}
+
+message GetContinueWatchingRequest {
+  string profile_id = 1;
+  int32 limit = 2;
+}
+
+message GetContentProgressRequest {
+  string profile_id = 1;
+  string content_id = 2;
+}
+
+message ProgressResponse {
+  bool success = 1;
+  string message = 2;
+  ProgressItem progress = 3;
+}
+
+message ContinueWatchingResponse {
+  repeated ProgressItem items = 1;
+}
+
+message ProgressItem {
+  string progress_id = 1;
+  string profile_id = 2;
+  string content_id = 3;
+  string content_type = 4;
+
+  int32 minute_reached = 5;
+  int32 total_duration_min = 6;
+  double completion_pct = 7;
+  bool is_completed = 8;
+  string last_watched_at = 9;
+
+  string last_episode_id = 10;
+  int32 last_season_num = 11;
+  int32 last_episode_num = 12;
+  int32 last_ep_minute = 13;
+}
+
+message GetHistoryAuditLogsRequest {
+  string table_name = 1;
+  string action = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message HistoryAuditLogsResponse {
+  repeated HistoryAuditLogItem items = 1;
+}
+
+message HistoryAuditLogItem {
+  string audit_id = 1;
+  string responsible_user_id = 2;
+  string responsible_profile_id = 3;
+  string action = 4;
+  string table_name = 5;
+  string record_id = 6;
+  string old_state = 7;
+  string new_state = 8;
+  string created_at = 9;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  bool success = 1;
+  string status = 2;
+  string service = 3;
+  string message = 4;
+}

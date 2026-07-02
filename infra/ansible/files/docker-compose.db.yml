@@ -1,0 +1,100 @@
+services:
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    restart: unless-stopped
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ auth_db_name }}"
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+      - /opt/quetxal/sql/auth.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
+  subscription-db:
+    image: postgres:16-alpine
+    container_name: subscription-db
+    restart: unless-stopped
+    ports: ["5433:5432"]
+    environment:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ subscription_db_name }}"
+    volumes:
+      - subscription_data:/var/lib/postgresql/data
+      - /opt/quetxal/sql/subscription.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
+  catalogo-db:
+    image: postgres:16-alpine
+    container_name: catalogo-db
+    restart: unless-stopped
+    ports: ["5434:5432"]
+    environment:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ catalogo_db_name }}"
+    volumes:
+      - catalogo_data:/var/lib/postgresql/data
+      - /opt/quetxal/sql/catalogo.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
+  fx-db:
+    image: postgres:16-alpine
+    container_name: fx-db
+    restart: unless-stopped
+    ports: ["5435:5432"]
+    environment:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ fx_db_name }}"
+    volumes:
+      - fx_data:/var/lib/postgresql/data
+      - /opt/quetxal/sql/fx.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
+  notification-db:
+    image: postgres:16-alpine
+    container_name: notification-db
+    restart: unless-stopped
+    ports: ["5436:5432"]
+    environment:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ notification_db_name }}"
+    volumes:
+      - notification_data:/var/lib/postgresql/data
+      - /opt/quetxal/sql/notificacion.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
+  historial-db:
+    image: postgres:16-alpine
+    container_name: historial-db
+    restart: unless-stopped
+    ports: ["5437:5432"]
+    environment:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ historial_db_name }}"
+    volumes:
+      - historial_data:/var/lib/postgresql/data
+      - /opt/quetxal/sql/historial.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
+  download-db:
+    image: postgres:16-alpine
+    container_name: download-db
+    restart: unless-stopped
+    ports: ["5438:5432"]
+    environment:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ download_db_name }}"
+    volumes:
+      - download_data:/var/lib/postgresql/data
+      - /opt/quetxal/sql/download.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+
+volumes:
+  auth_data: {}
+  subscription_data: {}
+  catalogo_data: {}
+  fx_data: {}
+  notification_data: {}
+  historial_data: {}
+  download_data: {}

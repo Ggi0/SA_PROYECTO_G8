@@ -1,0 +1,489 @@
+syntax = "proto3";
+
+package auth;
+
+// ─────────────────────────────────────────────
+//  AUTH SERVICE  (expuesto para API Gateway y otros micros)
+// ─────────────────────────────────────────────
+
+service AuthService {
+
+  // ── Autenticación ──────────────────────────
+  rpc Register        (RegisterRequest)       returns (RegisterResponse);
+  rpc Login           (LoginRequest)          returns (LoginResponse);
+  rpc RefreshToken    (RefreshTokenRequest)   returns (RefreshTokenResponse);
+  rpc Logout          (LogoutRequest)         returns (LogoutResponse);
+  rpc LogoutAll       (LogoutAllRequest)      returns (LogoutAllResponse);
+
+  // ── Cuenta ─────────────────────────────────
+  rpc GetMe           (GetMeRequest)          returns (GetMeResponse);
+  rpc ChangePassword  (ChangePasswordRequest) returns (ChangePasswordResponse);
+  rpc ForgotPassword  (ForgotPasswordRequest) returns (ForgotPasswordResponse);
+  rpc ResetPassword   (ResetPasswordRequest)  returns (ResetPasswordResponse);
+
+  // ── Perfiles ───────────────────────────────
+  rpc ListProfiles    (ListProfilesRequest)   returns (ListProfilesResponse);
+  rpc CreateProfile   (CreateProfileRequest)  returns (CreateProfileResponse);
+  rpc UpdateProfile   (UpdateProfileRequest)  returns (UpdateProfileResponse);
+  rpc DeleteProfile   (DeleteProfileRequest)  returns (DeleteProfileResponse);
+  rpc SelectProfile   (SelectProfileRequest)  returns (SelectProfileResponse);
+
+  // ── Validación inter-servicios ─────────────
+  rpc ValidateToken   (ValidateTokenRequest)  returns (ValidateTokenResponse);
+  rpc GetUserById     (GetUserByIdRequest)    returns (GetUserByIdResponse);
+
+  // ── Auditoría ─────────────────────────────
+  rpc GetAuditLogs     (GetAuditLogsRequest) returns (GetAuditLogsResponse);
+  rpc ExportAuditLogs  (ExportAuditLogsRequest) returns (ExportAuditLogsResponse);
+
+  // ── Health checks ─────────────────────────
+  rpc HealthLive  (HealthRequest) returns (HealthResponse);
+  rpc HealthReady (HealthRequest) returns (HealthResponse);
+
+  // ── Admin: usuarios con perfiles (para visualizar el cron) ────
+  rpc GetAllUsersWithProfiles (GetAllUsersWithProfilesRequest) returns (GetAllUsersWithProfilesResponse);
+
+  // ── Admin: audit_log (eventos de seguridad del cron) ──────────
+  rpc GetAuditEventLogs (GetAuditEventLogsRequest) returns (GetAuditEventLogsResponse);
+
+  // ── Control parental ───────────────────────
+  rpc SetParentalPin    (SetParentalPinRequest)    returns (SetParentalPinResponse);
+  rpc VerifyParentalPin (VerifyParentalPinRequest) returns (VerifyParentalPinResponse);
+
+}
+
+
+
+
+
+// ─────────────────────────────────────────────
+//  MENSAJES COMPARTIDOS
+// ─────────────────────────────────────────────
+
+message ProfileMessage {
+  string profile_id   = 1;
+  string display_name = 2;
+  string avatar_url   = 3;
+  bool   is_kids_mode = 4;
+}
+
+// ─────────────────────────────────────────────
+//  AUTENTICACIÓN
+// ─────────────────────────────────────────────
+
+message RegisterRequest {
+  string email        = 1;
+  string password     = 2;
+  string display_name = 3;
+}
+
+message RegisterResponse {
+  string user_id    = 1;
+  string profile_id = 2;
+  string message    = 3;
+}
+
+message LoginRequest {
+  string email       = 1;
+  string password    = 2;
+  string device_info = 3;
+  string ip_address  = 4;
+}
+
+message UserInfo {
+  string user_id = 1;
+  string email   = 2;
+  string role    = 3;
+}
+
+message LoginResponse {
+  string                  access_token      = 1;
+  int32                   expires_in        = 2;
+  string                  refresh_token     = 3;
+  UserInfo                user              = 4;
+  repeated ProfileMessage profiles          = 5;
+  string                  active_profile_id = 6;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token      = 1;
+  int32  expires_in        = 2;
+  string active_profile_id = 3;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message LogoutResponse {
+  string message = 1;
+}
+
+message LogoutAllRequest {
+  string user_id = 1;
+}
+
+message LogoutAllResponse {
+  string message = 1;
+}
+
+// ─────────────────────────────────────────────
+//  CUENTA
+// ─────────────────────────────────────────────
+
+message GetMeRequest {
+  string user_id           = 1;
+  string active_profile_id = 2;
+}
+
+message GetMeResponse {
+  UserInfo user              = 1;
+  string   active_profile_id = 2;
+}
+
+message ChangePasswordRequest {
+  string user_id          = 1;
+  string current_password = 2;
+  string new_password     = 3;
+}
+
+message ChangePasswordResponse {
+  string message = 1;
+}
+
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ForgotPasswordResponse {
+  string message = 1;
+}
+
+message ResetPasswordRequest {
+  string token        = 1;
+  string new_password = 2;
+}
+
+message ResetPasswordResponse {
+  string message = 1;
+}
+
+// ─────────────────────────────────────────────
+//  PERFILES
+// ─────────────────────────────────────────────
+
+message ListProfilesRequest {
+  string user_id = 1;
+}
+
+message ListProfilesResponse {
+  repeated ProfileMessage profiles    = 1;
+  int32                   count       = 2;
+  int32                   max_allowed = 3;
+}
+
+message CreateProfileRequest {
+  string user_id      = 1;
+  string display_name = 2;
+  bool   is_kids_mode = 3;
+  string avatar_url   = 4;
+}
+
+message CreateProfileResponse {
+  ProfileMessage profile = 1;
+}
+
+message UpdateProfileRequest {
+  string user_id      = 1;
+  string profile_id   = 2;
+  string display_name = 3;
+  string avatar_url   = 4;
+  bool   is_kids_mode = 5;
+}
+
+message UpdateProfileResponse {
+  ProfileMessage profile = 1;
+}
+
+message DeleteProfileRequest {
+  string user_id    = 1;
+  string profile_id = 2;
+}
+
+message DeleteProfileResponse {
+  string message = 1;
+}
+
+message SelectProfileRequest {
+  string user_id    = 1;
+  string profile_id = 2;
+}
+
+message SelectProfileResponse {
+  string         access_token   = 1;
+  ProfileMessage active_profile = 2;
+}
+
+// ─────────────────────────────────────────────
+//  VALIDACIÓN INTER-SERVICIOS
+// ─────────────────────────────────────────────
+
+message ValidateTokenRequest {
+  string access_token = 1;
+}
+
+message ValidateTokenResponse {
+  bool   valid             = 1;
+  string user_id           = 2;
+  string email             = 3;
+  string role              = 4;
+  string active_profile_id = 5;
+  int32  token_version     = 6;
+}
+
+message GetUserByIdRequest {
+  string user_id = 1;
+}
+
+message GetUserByIdResponse {
+  string user_id   = 1;
+  string email     = 2;
+  string role      = 3;
+  bool   is_active = 4;
+}
+
+// ─────────────────────────────────────────────
+//  AUDITORÍA
+// ─────────────────────────────────────────────
+
+message GetAuditLogsRequest {
+  string admin_user_id = 1;
+
+  string user_id    = 2;
+  string table_name = 3;
+  string operation  = 4; // INSERT, UPDATE, DELETE
+
+  string from_date  = 5;
+  string to_date    = 6;
+
+  int32 page      = 7;
+  int32 page_size = 8;
+
+  bool include_old_data = 9;
+  bool include_new_data = 10;
+}
+
+message AuditLogMessage {
+  string audit_id = 1;
+
+  string table_name = 2;
+  string operation  = 3;
+
+  string user_id  = 4;
+  string record_id = 5;
+
+  string changed_at = 6;
+
+  string old_data = 7;
+  string new_data = 8;
+}
+
+message GetAuditLogsResponse {
+  repeated AuditLogMessage logs = 1;
+
+  int32 total_records = 2;
+  int32 page          = 3;
+  int32 page_size     = 4;
+}
+
+
+// ─────────────────────────────────────────────
+//  EXPORTACIÓN DE REPORTES
+// ─────────────────────────────────────────────
+
+message ExportAuditLogsRequest {
+  string admin_user_id = 1;
+
+  string format = 2; // "csv" | "pdf"
+
+  string user_id    = 3;
+  string table_name = 4;
+  string operation  = 5;
+
+  string from_date = 6;
+  string to_date   = 7;
+}
+
+message ExportAuditLogsResponse {
+  bytes  file      = 1;
+  string file_name = 2;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  string message = 2;
+}
+
+
+// ─────────────────────────────────────────────
+//  ADMIN — USUARIOS CON PERFILES
+// ─────────────────────────────────────────────
+
+message GetAllUsersWithProfilesRequest {
+  string admin_user_id = 1;
+}
+
+message UserWithProfilesMessage {
+  string user_id             = 1;
+  string email               = 2;
+  string role                = 3;
+  bool   is_active           = 4;
+  string created_at          = 5;
+  string updated_at          = 6;
+  string last_login_at       = 7;  // vacío si nunca logueó
+  string deactivated_at      = 8;  // vacío si no está desactivado
+  string deactivation_reason = 9;  // vacío si no aplica
+  repeated ProfileMessage profiles = 10;
+}
+
+message GetAllUsersWithProfilesResponse {
+  repeated UserWithProfilesMessage users = 1;
+  int32 total = 2;
+}
+
+// ─────────────────────────────────────────────
+//  ADMIN — AUDIT LOG (eventos del cron y seguridad)
+// ─────────────────────────────────────────────
+
+message GetAuditEventLogsRequest {
+  string admin_user_id = 1;
+  string event_type    = 2;  // filtro opcional: ACCOUNT_AUTO_DEACTIVATED, ACCOUNT_PURGED, etc.
+  string user_id       = 3;  // filtro opcional por usuario afectado
+  string from_date     = 4;
+  string to_date       = 5;
+  int32  page          = 6;
+  int32  page_size     = 7;
+}
+
+message AuditEventLogMessage {
+  string log_id      = 1;
+  string user_id     = 2;
+  string event_type  = 3;
+  string description = 4;
+  string metadata    = 5;  // JSON serializado
+  string created_at  = 6;
+}
+
+message GetAuditEventLogsResponse {
+  repeated AuditEventLogMessage logs = 1;
+  int32 total_records = 2;
+  int32 page          = 3;
+  int32 page_size     = 4;
+}
+
+
+
+// ─────────────────────────────────────────────
+//  NOTIFICATION SERVICE  (futuro — cliente gRPC)
+// ─────────────────────────────────────────────
+//
+//  PUNTOS DE INTEGRACIÓN — PERFIL:
+//
+//  perfil.service.ts → createProfile()
+//    BUSCAR: "INTEGRACIÓN FUTURA — Notification Service [createProfile]"
+//    → notificationClient.SendProfileCreated({ userId, email, profileName })
+//
+//  perfil.service.ts → deleteProfile()
+//    BUSCAR: "INTEGRACIÓN FUTURA — Notification Service [deleteProfile]"
+//    → notificationClient.SendSecurityAlert({ userId, email, eventType: 'PROFILE_DELETED' })
+//
+//  PUNTOS DE INTEGRACIÓN — AUTH:
+//
+//  auth.service.ts → register()
+//    BUSCAR: "INTEGRACIÓN FUTURA — Notification Service [register]"
+//    → notificationClient.SendWelcomeEmail({ userId, email, displayName })
+//
+//  auth.service.ts → forgotPassword()
+//    BUSCAR: "INTEGRACIÓN FUTURA — Notification Service [forgotPassword]"
+//    → notificationClient.SendPasswordReset({ userId, email, resetToken, expiresIn })
+//
+//  service NotificationService {
+//    rpc SendWelcomeEmail   (WelcomeEmailRequest)   returns (NotificationAck);
+//    rpc SendPasswordReset  (PasswordResetRequest)  returns (NotificationAck);
+//    rpc SendSecurityAlert  (SecurityAlertRequest)  returns (NotificationAck);
+//    rpc SendProfileCreated (ProfileCreatedRequest) returns (NotificationAck);
+//  }
+//
+//  message WelcomeEmailRequest {
+//    string user_id      = 1;
+//    string email        = 2;
+//    string display_name = 3;
+//  }
+//  message PasswordResetRequest {
+//    string user_id     = 1;
+//    string email       = 2;
+//    string reset_token = 3;
+//    int32  expires_in  = 4;
+//  }
+//  message SecurityAlertRequest {
+//    string user_id    = 1;
+//    string email      = 2;
+//    string event_type = 3;
+//    string ip_address = 4;
+//    string metadata   = 5;
+//  }
+//  message ProfileCreatedRequest {
+//    string user_id      = 1;
+//    string email        = 2;
+//    string profile_name = 3;
+//  }
+//  message NotificationAck {
+//    bool   sent       = 1;
+//    string message_id = 2;
+//  }
+
+// ─────────────────────────────────────────────
+//  CONTROL PARENTAL
+// ─────────────────────────────────────────────
+
+message SetParentalPinRequest {
+  string user_id = 1;
+  string pin     = 2;
+}
+
+message SetParentalPinResponse {
+  bool   success = 1;
+  string message = 2;
+}
+
+message VerifyParentalPinRequest {
+  string user_id = 1;
+  string pin     = 2;
+}
+
+message VerifyParentalPinResponse {
+  bool valid = 1;
+}
+
+// ─────────────────────────────────────────────
+//  SUBSCRIPTION SERVICE  (futuro — cliente gRPC)
+// ─────────────────────────────────────────────
+//
+//  service SubscriptionService {
+//    rpc CreateTrialSubscription (TrialSubscriptionRequest)     returns (SubscriptionAck);
+//    rpc GetSubscriptionStatus   (SubscriptionStatusRequest)    returns (SubscriptionStatusResponse);
+//  }
+//  message TrialSubscriptionRequest {
+//    string user_id = 1;
+//    string email   = 2;
+//  }
+//  message SubscriptionAck {
+//    bool   created         = 1;
+//    string subscription_id = 2;
+//  }

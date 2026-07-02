@@ -1,253 +1,238 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { getApiErrorMessage, subscriptionAPI, SubscriptionPlan, SubscriptionPlanWithRate } from '@/api/subscription'
-import { ArrowLeft, Check, CreditCard, Landmark, ReceiptText, RefreshCw, WalletCards } from 'lucide-react'
-
-const currency = 'GTQ'
-
-const paymentMethods = [
-  { value: 'card', label: 'Tarjeta', icon: CreditCard },
-  { value: 'paypal', label: 'PayPal', icon: WalletCards },
-  { value: 'bank_transfer', label: 'Transferencia', icon: Landmark },
-]
-
-function formatMoney(value: number, code: string) {
-  return new Intl.NumberFormat('es-GT', {
-    style: 'currency',
-    currency: code,
-  }).format(value)
-}
-
-function planFeatures(plan: SubscriptionPlan) {
-  if (plan.description) {
-    try {
-      const parsed = JSON.parse(plan.description)
-      if (Array.isArray(parsed) && parsed.every((item) => typeof item === 'string')) return parsed
-    } catch {
-      return [plan.description]
-    }
-  }
-
-  return [
-    `${plan.maxProfiles} ${plan.maxProfiles === 1 ? 'perfil' : 'perfiles'}`,
-    `${plan.maxStreams} ${plan.maxStreams === 1 ? 'pantalla simultánea' : 'pantallas simultáneas'}`,
-    `Calidad ${plan.videoQuality}`,
-  ]
-}
+import { subscriptionAPI } from '@/services/api/subscriptionService'
+import { fxAPI, RateItem } from '@/services/api/fxService'
+import { Plan } from '@/services/api/subscriptionService'
+import { Loader2, CreditCard, Lock } from 'lucide-react'
+import { useEffect } from 'react'
 
 export default function CheckoutPage() {
-  const { planId } = useParams()
   const navigate = useNavigate()
-  const [plan, setPlan] = useState<SubscriptionPlan | null>(null)
-  const [ratedPlan, setRatedPlan] = useState<SubscriptionPlanWithRate | null>(null)
-  const [paymentMethod, setPaymentMethod] = useState('card')
-  const [loading, setLoading] = useState(true)
-  const [processing, setProcessing] = useState(false)
+  const location = useLocation()
+
+  // ─── Plan seleccionado viene desde PlansPage ─────────
+  const plan = location.state?.plan as Plan | undefined
+
+  const [gtqRate, setGtqRate] = useState<RateItem | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [cardNumber, setCardNumber] = useState('')
+  const [cardName, setCardName] = useState('')
+  const [expiry, setExpiry] = useState('')
+  const [cvv, setCvv] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
-    let cancelled = false
-
-    async function loadCheckout() {
-      if (!planId) {
-        setError('No se encontró el plan seleccionado.')
-        setLoading(false)
-        return
-      }
-
-      setLoading(true)
-      setError('')
-      try {
-        const [planData, rates] = await Promise.all([
-          subscriptionAPI.getPlanById(planId),
-          subscriptionAPI.getPlansWithRates(currency),
-        ])
-        if (cancelled) return
-        setPlan(planData)
-        setRatedPlan(rates.find((item) => item.plan.id === planId) || null)
-      } catch (err) {
-        if (!cancelled) setError(getApiErrorMessage(err, 'No se pudo cargar el detalle del pago.'))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+    if (!plan) {
+      navigate('/plans')
+      return
     }
+    fxAPI.getRate('GTQ').then(setGtqRate).catch(console.error)
+  }, [])
 
-    loadCheckout()
+  const priceGTQ = gtqRate
+    ? (plan?.priceUsd ?? 0) * gtqRate.rate
+    : null
 
-    return () => {
-      cancelled = true
+  const handleSubmit = async () => {
+    if (!cardNumber || !cardName || !expiry || !cvv) {
+      setError('Por favor completá todos los campos')
+      return
     }
-  }, [planId])
-
-  const handleConfirmPayment = async () => {
-    if (!plan) return
-
-    setProcessing(true)
+    setLoading(true)
     setError('')
     try {
-      await subscriptionAPI.subscribe(plan.id, ratedPlan?.currency || currency, paymentMethod)
-      navigate('/account')
+      await subscriptionAPI.subscribe(
+        parseInt(plan!.id),
+        'GTQ',
+        'card'
+      )
+      navigate('/home', { state: { subscribed: true } })
     } catch (err) {
-      setError(getApiErrorMessage(err, 'No se pudo confirmar el pago. Intentá de nuevo.'))
+      setError('No se pudo procesar el pago, intentá de nuevo')
     } finally {
-      setProcessing(false)
+      setLoading(false)
     }
   }
 
-  const localCurrency = ratedPlan?.currency || 'USD'
-  const localPrice = ratedPlan?.localPrice || plan?.priceUsd || 0
+  if (!plan) return null
 
   return (
     <MainLayout>
-      <div className="px-8 py-16 max-w-5xl mx-auto">
-        <button
-          onClick={() => navigate('/plans')}
-          className="flex items-center gap-2 text-silver/70 hover:text-spotlight font-mono text-xs tracking-widest uppercase mb-8"
-        >
-          <ArrowLeft size={14} />
-          Volver a planes
-        </button>
+      <div className="px-8 py-16 max-w-4xl mx-auto">
 
-        <div className="text-center mb-12">
-          <div className="flex items-center gap-3 justify-center mb-4">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent to-spotlight/40" />
-            <span className="text-spotlight text-xs font-mono tracking-widest uppercase">
-              Pago de suscripción
-            </span>
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-spotlight/40" />
-          </div>
-          <h1 className="font-display text-4xl font-bold text-parchment mb-3">
-            Revisá antes de confirmar
+        {/* Encabezado */}
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-1 h-8 bg-spotlight" />
+          <h1 className="font-display text-3xl font-bold text-parchment">
+            Finalizar suscripción
           </h1>
-          <p className="text-silver font-mono text-sm">
-            El pago se registra hasta presionar Confirmar pago.
-          </p>
         </div>
 
-        {error && (
-          <div className="mb-6 bg-curtain/20 border border-curtain/50 text-red-300 px-4 py-3 rounded font-mono text-sm">
-            {error}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-        {loading && (
-          <div className="flex items-center justify-center gap-3 text-silver font-mono text-sm py-16">
-            <RefreshCw size={16} className="animate-spin text-spotlight" />
-            Cargando detalle de pago...
-          </div>
-        )}
-
-        {!loading && plan && (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_0.9fr] gap-6">
-            <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-1 h-6 bg-spotlight" />
-                <div>
-                  <h2 className="font-display text-2xl font-bold text-parchment">Plan {plan.name}</h2>
-                  <p className="text-silver/50 font-mono text-xs mt-1">Resumen técnico de la suscripción</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="border border-[#3a2e1a] bg-[#0f0b04] p-4">
-                  <p className="text-silver/40 font-mono text-[11px] tracking-widest uppercase">Precio USD</p>
-                  <p className="text-parchment font-display text-2xl mt-1">{formatMoney(plan.priceUsd, 'USD')}</p>
-                </div>
-                <div className="border border-[#3a2e1a] bg-[#0f0b04] p-4">
-                  <p className="text-silver/40 font-mono text-[11px] tracking-widest uppercase">Precio visible</p>
-                  <p className="text-parchment font-display text-2xl mt-1">{formatMoney(localPrice, localCurrency)}</p>
-                </div>
-                <div className="border border-[#3a2e1a] bg-[#0f0b04] p-4">
-                  <p className="text-silver/40 font-mono text-[11px] tracking-widest uppercase">Tasa FX</p>
-                  <p className="text-parchment font-display text-2xl mt-1">{(ratedPlan?.exchangeRate || 1).toFixed(2)}</p>
-                </div>
-              </div>
-
-              <ul className="space-y-3">
-                {planFeatures(plan).map((feature) => (
-                  <li key={feature} className="flex items-center gap-3 text-silver font-mono text-sm">
-                    <Check size={14} className="text-spotlight shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+          {/* Formulario de pago */}
+          <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-5">
+            <div className="flex items-center gap-3 mb-2">
+              <CreditCard size={18} className="text-spotlight" />
+              <h2 className="font-display text-lg text-parchment">
+                Información de pago
+              </h2>
             </div>
 
-            <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-6">
-              <div className="flex items-center gap-3">
-                <ReceiptText size={18} className="text-spotlight" />
-                <h2 className="font-display text-xl font-bold text-parchment">Detalle de pago</h2>
+            {error && (
+              <div className="bg-curtain/20 border border-curtain/50 text-red-300 px-4 py-2 rounded text-sm font-mono">
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="text-silver/60 text-xs font-mono tracking-widest uppercase">
+                Nombre en la tarjeta
+              </label>
+              <Input
+                placeholder="NOMBRE APELLIDO"
+                value={cardName}
+                onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11 tracking-wider"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-silver/60 text-xs font-mono tracking-widest uppercase">
+                Número de tarjeta
+              </label>
+              <Input
+                placeholder="0000 0000 0000 0000"
+                value={cardNumber}
+                maxLength={19}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 16)
+                  setCardNumber(val.replace(/(.{4})/g, '$1 ').trim())
+                }}
+                className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11 tracking-widest"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-silver/60 text-xs font-mono tracking-widest uppercase">
+                  Vencimiento
+                </label>
+                <Input
+                  placeholder="MM/AA"
+                  value={expiry}
+                  maxLength={5}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 4)
+                    setExpiry(val.length > 2 ? `${val.slice(0, 2)}/${val.slice(2)}` : val)
+                  }}
+                  className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11 tracking-widest"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-silver/60 text-xs font-mono tracking-widest uppercase">
+                  CVV
+                </label>
+                <Input
+                  placeholder="000"
+                  value={cvv}
+                  maxLength={3}
+                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                  className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11 tracking-widest"
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full h-11 bg-spotlight hover:bg-spotlight/80 text-film font-mono tracking-widest uppercase text-sm mt-2"
+            >
+              {loading ? (
+                <Loader2 size={16} className="animate-spin mr-2" />
+              ) : (
+                <Lock size={16} className="mr-2" />
+              )}
+              {loading ? 'Procesando...' : 'Confirmar pago'}
+            </Button>
+
+            <p className="text-silver/40 font-mono text-xs text-center flex items-center justify-center gap-1">
+              <Lock size={10} />
+              Pago seguro — tus datos están protegidos
+            </p>
+          </div>
+
+          {/* Resumen del plan */}
+          <div className="space-y-4">
+            <div className="bg-[#1e1810] border border-spotlight rounded p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-5 bg-spotlight" />
+                <h2 className="font-display text-lg text-parchment">
+                  Resumen
+                </h2>
               </div>
 
               <div className="space-y-3">
-                <p className="text-silver/60 text-xs font-mono tracking-widest uppercase">Método de pago</p>
-                <div className="grid grid-cols-1 gap-2">
-                  {paymentMethods.map((method) => {
-                    const Icon = method.icon
-                    const active = paymentMethod === method.value
-                    return (
-                      <button
-                        key={method.value}
-                        onClick={() => setPaymentMethod(method.value)}
-                        className={`flex items-center gap-3 border p-3 font-mono text-sm transition-colors ${
-                          active
-                            ? 'border-spotlight bg-spotlight/10 text-spotlight'
-                            : 'border-[#3a2e1a] bg-[#0f0b04] text-silver hover:border-spotlight/60'
-                        }`}
-                      >
-                        <Icon size={16} />
-                        {method.label}
-                      </button>
-                    )
-                  })}
+                <div className="flex justify-between">
+                  <span className="text-silver font-mono text-sm">Plan</span>
+                  <span className="text-parchment font-mono text-sm font-bold">
+                    {plan.name}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-silver font-mono text-sm">Calidad</span>
+                  <span className="text-parchment font-mono text-sm">
+                    {plan.videoQuality}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-silver font-mono text-sm">Pantallas</span>
+                  <span className="text-parchment font-mono text-sm">
+                    {plan.maxStreams}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-silver font-mono text-sm">Perfiles</span>
+                  <span className="text-parchment font-mono text-sm">
+                    {plan.maxProfiles}
+                  </span>
+                </div>
+
+                <div className="h-px bg-[#3a2e1a] my-2" />
+
+                <div className="flex justify-between">
+                  <span className="text-silver font-mono text-sm">Precio USD</span>
+                  <span className="text-spotlight font-display text-lg font-bold">
+                    ${plan.priceUsd}
+                  </span>
+                </div>
+
+                {priceGTQ && (
+                  <div className="flex justify-between">
+                    <span className="text-silver font-mono text-sm">Precio GTQ</span>
+                    <span className="text-spotlight/70 font-mono text-sm">
+                      Q{priceGTQ.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between">
+                  <span className="text-silver font-mono text-sm">Facturación</span>
+                  <span className="text-parchment font-mono text-sm">Mensual</span>
                 </div>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 gap-3">
-                <Input
-                  disabled
-                  value="Pago simulado de suscripción"
-                  className="bg-[#0f0b04] border-[#3a2e1a] text-silver font-mono h-11"
-                />
-                <Input
-                  disabled
-                  value="No se almacena tarjeta, CVV ni datos bancarios"
-                  className="bg-[#0f0b04] border-[#3a2e1a] text-silver font-mono h-11"
-                />
-              </div>
-
-              <div className="border border-[#3a2e1a] bg-[#0f0b04] p-4 space-y-2 font-mono text-sm">
-                <div className="flex justify-between text-silver/60">
-                  <span>Plan</span>
-                  <span>{plan.name}</span>
-                </div>
-                <div className="flex justify-between text-silver/60">
-                  <span>Período</span>
-                  <span>1 mes</span>
-                </div>
-                <div className="flex justify-between text-parchment pt-3 border-t border-[#3a2e1a]">
-                  <span>Total</span>
-                  <span>{formatMoney(localPrice, localCurrency)}</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleConfirmPayment}
-                disabled={processing}
-                className="w-full bg-spotlight hover:bg-spotlight/80 text-film font-mono tracking-widest uppercase text-sm h-11"
-              >
-                {processing ? 'Confirmando...' : 'Confirmar pago'}
-              </Button>
-
-              <p className="text-silver/40 font-mono text-xs leading-relaxed">
-                Al confirmar se creará la suscripción, se registrará un pago COMPLETED en PostgreSQL y se generará una referencia TXN.
+            <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-4">
+              <p className="text-silver/50 font-mono text-xs leading-relaxed">
+                Al confirmar aceptás los términos de servicio. Tu suscripción se renovará automáticamente cada mes hasta que la canceles.
               </p>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </MainLayout>
   )

@@ -90,6 +90,216 @@ CREATE INDEX idx_watch_progress_incomplete  ON watch_progress(profile_id)
 CREATE INDEX idx_episode_progress_parent    ON watch_progress_episode(progress_id);
 CREATE INDEX idx_episode_progress_episode   ON watch_progress_episode(episode_id);
 
+--
+-- ============================================================
+-- AUDITORÍA TRANSACCIONAL - HISTORY SERVICE
+-- ============================================================
+-- Esta tabla registra automáticamente los INSERT y UPDATE
+-- realizados sobre las tablas principales de historial.
+--
+-- NOTA:
+-- En historial, el actor operativo principal es el profile_id,
+-- porque el progreso se registra por perfil activo.
+-- responsible_user_id queda preparado para cuando el API Gateway
+-- inyecte el usuario autenticado mediante una variable de sesión.
+-- ============================================================
+
+CREATE TABLE audit_log (
+    audit_id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- Usuario autenticado, si el API Gateway o servicio lo define en sesión.
+    responsible_user_id    UUID NULL,
+
+    -- Perfil responsable del progreso de reproducción.
+    responsible_profile_id UUID NULL,
+
+    -- Operación realizada: INSERT o UPDATE.
+    action                 VARCHAR(10) NOT NULL CHECK (action IN ('INSERT', 'UPDATE')),
+
+    -- Tabla afectada.
+    table_name             VARCHAR(100) NOT NULL,
+
+    -- ID del registro afectado.
+    record_id              UUID NULL,
+
+    -- Estado anterior y nuevo del registro.
+    old_state              JSONB NULL,
+    new_state              JSONB NULL,
+
+    -- Momento exacto del cambio.
+    created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_audit_log_table
+    ON audit_log(table_name, created_at DESC);
+
+CREATE INDEX idx_audit_log_action
+    ON audit_log(action, created_at DESC);
+
+CREATE INDEX idx_audit_log_profile
+    ON audit_log(responsible_profile_id, created_at DESC);
+
+CREATE INDEX idx_audit_log_created
+    ON audit_log(created_at DESC);
+
+
+-- ============================================================
+-- FUNCIÓN AUXILIAR: obtiene usuario desde variable de sesión
+-- ============================================================
+-- Permite que en el futuro el API Gateway o el servicio ejecute:
+-- SELECT set_config('app.user_id', '<uuid>', true);
+-- y el trigger lo registre como responsible_user_id.
+-- Si no existe, deja NULL.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION fn_get_session_user_id()
+RETURNS UUID
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_user_id_text TEXT;
+BEGIN
+    v_user_id_text := current_setting('app.user_id', true);
+
+    IF v_user_id_text IS NULL OR v_user_id_text = '' THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN v_user_id_text::UUID;
+
+EXCEPTION
+    WHEN invalid_text_representation THEN
+        RETURN NULL;
+END;
+$$;
+
+
+-- ============================================================
+-- TRIGGER FUNCTION: auditoría para watch_progress
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION fn_audit_watch_progress()
+RETURNS TRIGGER
+LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO audit_log (
+        responsible_user_id,
+        responsible_profile_id,
+        action,
+        table_name,
+        record_id,
+        old_state,
+        new_state
+    )
+    VALUES (
+        fn_get_session_user_id(),
+        COALESCE(NEW.profile_id, OLD.profile_id),
+        TG_OP,
+        TG_TABLE_NAME,
+        COALESCE(NEW.progress_id, OLD.progress_id),
+        CASE WHEN TG_OP = 'UPDATE' THEN to_jsonb(OLD) ELSE NULL END,
+        to_jsonb(NEW)
+    );
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_audit_watch_progress
+    AFTER INSERT OR UPDATE ON watch_progress
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_watch_progress();
+
+
+-- ============================================================
+-- TRIGGER FUNCTION: auditoría para watch_progress_episode
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION fn_audit_watch_progress_episode()
+RETURNS TRIGGER
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_profile_id UUID;
+BEGIN
+    SELECT wp.profile_id
+    INTO v_profile_id
+    FROM watch_progress wp
+    WHERE wp.progress_id = COALESCE(NEW.progress_id, OLD.progress_id)
+    LIMIT 1;
+
+    INSERT INTO audit_log (
+        responsible_user_id,
+        responsible_profile_id,
+        action,
+        table_name,
+        record_id,
+        old_state,
+        new_state
+    )
+    VALUES (
+        fn_get_session_user_id(),
+        v_profile_id,
+        TG_OP,
+        TG_TABLE_NAME,
+        COALESCE(NEW.ep_progress_id, OLD.ep_progress_id),
+        CASE WHEN TG_OP = 'UPDATE' THEN to_jsonb(OLD) ELSE NULL END,
+        to_jsonb(NEW)
+    );
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_audit_watch_progress_episode
+    AFTER INSERT OR UPDATE ON watch_progress_episode
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_watch_progress_episode();
+
+
+-- ============================================================
+-- FUNCIÓN DE CONSULTA: logs de auditoría de historial
+-- ============================================================
+-- Esta función será consumida por el historial-service y luego
+-- expuesta en el API Gateway mediante endpoint administrativo.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION fn_get_history_audit_logs(
+    p_table_name VARCHAR DEFAULT NULL,
+    p_action     VARCHAR DEFAULT NULL,
+    p_limit      INT DEFAULT 100,
+    p_offset     INT DEFAULT 0
+)
+RETURNS TABLE (
+    audit_id               UUID,
+    responsible_user_id    UUID,
+    responsible_profile_id UUID,
+    action                 VARCHAR,
+    table_name             VARCHAR,
+    record_id              UUID,
+    old_state              JSONB,
+    new_state              JSONB,
+    created_at             TIMESTAMPTZ
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        al.audit_id,
+        al.responsible_user_id,
+        al.responsible_profile_id,
+        al.action,
+        al.table_name,
+        al.record_id,
+        al.old_state,
+        al.new_state,
+        al.created_at
+    FROM audit_log al
+    WHERE (p_table_name IS NULL OR al.table_name = p_table_name)
+      AND (p_action IS NULL OR al.action = UPPER(p_action))
+    ORDER BY al.created_at DESC
+    LIMIT LEAST(GREATEST(p_limit, 1), 500)
+    OFFSET GREATEST(p_offset, 0);
+END;
+$$;
 
 --                                                  FUNCIONES
 

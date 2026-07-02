@@ -13,14 +13,50 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+
   const handleLogin = async () => {
     setLoading(true)
     setError('')
+
     try {
-      const data = await authAPI.login(email, password)
-      setUser(data.user, data.token)
-      navigate('/profiles')
-    } catch {
+      const data = await authAPI.login(
+        email,
+        password,
+      )
+
+      console.log(data.accessToken)
+        console.log('===== LOGIN RESPONSE =====')
+  console.log(data)
+
+  console.log('===== USER =====')
+  console.log(data.user)
+
+  console.log('===== ROLE =====')
+  console.log(data.user?.role)
+
+  console.log('===== PROFILES =====')
+  console.log(data.profiles)
+
+      setUser(
+        {
+          id: data.user.userId,
+          email: data.user.email,
+          name: 'Mi perfil',
+          subscriptionPlan: null,
+          role: data.user.role,
+        },
+        data.accessToken,
+      )
+
+       if (data.user.role === 'admin') {
+    console.log('REDIRECT -> /admin')
+    navigate('/admin')
+  } else {
+    console.log('REDIRECT -> /profiles')
+    navigate('/profiles')
+  }
+    } catch (err) {
+      console.error(err)
       setError('Correo o contraseña incorrectos')
     } finally {
       setLoading(false)
@@ -43,7 +79,7 @@ export default function LoginPage() {
           <div className="text-center mb-8">
             <div className="inline-block border-2 border-spotlight px-6 py-2 mb-3">
               <h1 className="font-display text-3xl font-bold text-spotlight tracking-widest">
-                QUETXAL TV
+                QUETXAL TV calificacion
               </h1>
             </div>
             <div className="flex items-center gap-2 justify-center mt-3">

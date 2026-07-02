@@ -12,6 +12,10 @@ service SubscriptionService {
   rpc CancelSubscription(CancelSubscriptionRequest) returns (CancelSubscriptionResponse);
   rpc GetUserSubscription(GetUserSubscriptionRequest) returns (UserSubscriptionResponse);
   rpc GetPaymentHistory(GetPaymentHistoryRequest) returns (GetPaymentHistoryResponse);
+
+  // Auditoría transaccional (Fase 2). Solo para administradores.
+  rpc GetAuditLogs(GetAuditLogsRequest) returns (GetAuditLogsResponse);
+  rpc ExportAuditLog(ExportAuditLogRequest) returns (ExportAuditLogResponse);
 }
 
 message Plan {
@@ -57,6 +61,7 @@ message SubscribeRequest {
   string plan_id = 2;
   string currency = 3;
   string payment_method = 4;
+  string user_email = 5; 
 }
 
 message SubscribeResponse {
@@ -118,4 +123,47 @@ message GetPaymentHistoryRequest {
 message GetPaymentHistoryResponse {
   repeated Payment payments = 1;
   int32 total = 2;
+}
+
+// ----- Auditoría transaccional (Fase 2) -----
+
+// Una entrada de la tabla audit_log poblada por los triggers de la BD.
+message AuditLogEntry {
+  int64 id = 1;
+  string table_name = 2;   // tabla afectada: plans | subscriptions | payments
+  string operation = 3;    // INSERT | UPDATE | DELETE
+  string changed_by = 4;   // usuario responsable
+  string changed_at = 5;   // timestamp ISO 8601
+  string old_data = 6;     // snapshot anterior (JSON serializado)
+  string new_data = 7;     // snapshot nuevo (JSON serializado)
+}
+
+message GetAuditLogsRequest {
+  string table_name = 1;   // filtro opcional por tabla
+  string operation = 2;    // filtro opcional por operación
+  string from = 3;         // filtro opcional desde (ISO 8601)
+  string to = 4;           // filtro opcional hasta (ISO 8601)
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message GetAuditLogsResponse {
+  repeated AuditLogEntry entries = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ExportAuditLogRequest {
+  string format = 1;       // "csv" | "pdf"
+  string table_name = 2;
+  string operation = 3;
+  string from = 4;
+  string to = 5;
+}
+
+message ExportAuditLogResponse {
+  bytes content = 1;          // archivo generado
+  string content_type = 2;    // text/csv | application/pdf
+  string filename = 3;        // nombre sugerido de descarga
 }

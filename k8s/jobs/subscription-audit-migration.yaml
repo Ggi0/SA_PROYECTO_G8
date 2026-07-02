@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # Nombre estático: el pipeline borra el Job previo antes de aplicarlo, de modo
+  # que se re-ejecute en cada release con el SQL actualizado del ConfigMap.
+  # ttlSecondsAfterFinished lo limpia solo tras completar.
+  name: subscription-audit-migration
+  namespace: quetxal-tv-prod
+  labels: { app: subscription-audit-migration }
+spec:
+  backoffLimit: 5
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels: { app: subscription-audit-migration }
+    spec:
+      restartPolicy: Never
+      # Espera a la BD externa en Compute Engine antes de migrar.
+      initContainers:
+        - name: wait-db
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - 'until pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER"; do echo "esperando subscription-db externo..."; sleep 3; done'
+          env:
+            - name: PGHOST
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_HOST } }
+            - name: PGPORT
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_PORT } }
+            - name: PGUSER
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_USER } }
+      containers:
+        - name: migrate
+          image: postgres:16-alpine
+          command: ["psql"]
+          args: ["-v", "ON_ERROR_STOP=1", "-f", "/sql/002_audit_upgrade.sql"]
+          env:
+            - name: PGHOST
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_HOST } }
+            - name: PGPORT
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_PORT } }
+            - name: PGUSER
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_USER } }
+            - name: PGPASSWORD
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_PASSWORD } }
+            - name: PGDATABASE
+              valueFrom: { secretKeyRef: { name: quetxal-tv-secrets, key: SUBSCRIPTION_DB_NAME } }
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits: { cpu: "200m", memory: "128Mi" }
+          volumeMounts:
+            - { name: sql, mountPath: /sql }
+      volumes:
+        - name: sql
+          configMap: { name: subscription-audit-migration-sql }

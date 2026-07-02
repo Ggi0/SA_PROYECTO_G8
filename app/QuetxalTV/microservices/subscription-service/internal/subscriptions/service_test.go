@@ -6,8 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"subscription-service/internal/clients"
 	"subscription-service/internal/plans"
+	pb "subscription-service/proto/subscription"
 )
 
 type fakeSubscriptionRepo struct {
@@ -83,7 +86,7 @@ func TestSubscribeProcessesPaymentWithFXRate(t *testing.T) {
 		fakeNotificationClient{called: notifications},
 	)
 
-	result, err := service.Subscribe(context.Background(), "user-1", "plan-1", "GTQ", "credit_card")
+	result, err := service.Subscribe(context.Background(), "user-1", "plan-1", "GTQ", "credit_card", "")
 	if err != nil {
 		t.Fatalf("Subscribe returned error: %v", err)
 	}
@@ -113,7 +116,7 @@ func TestSubscribeFallsBackToUSDWhenFXFails(t *testing.T) {
 		clients.NewNoopNotificationClient(),
 	)
 
-	_, err := service.Subscribe(context.Background(), "user-1", "plan-1", "GTQ", "paypal")
+	_, err := service.Subscribe(context.Background(), "user-1", "plan-1", "GTQ", "paypal", "")
 	if err != nil {
 		t.Fatalf("Subscribe returned error: %v", err)
 	}
@@ -130,7 +133,7 @@ func TestSubscribeRejectsInvalidPlan(t *testing.T) {
 		clients.NewNoopNotificationClient(),
 	)
 
-	_, err := service.Subscribe(context.Background(), "user-1", "missing", "USD", "paypal")
+	_, err := service.Subscribe(context.Background(), "user-1", "missing", "USD", "paypal", "")
 	if err == nil {
 		t.Fatal("expected invalid plan error")
 	}
@@ -146,5 +149,93 @@ func TestGetUserSubscriptionReturnsPresenceFlag(t *testing.T) {
 	}
 	if !hasActive || sub.ID != "sub-1" {
 		t.Fatalf("unexpected subscription response: hasActive=%v sub=%#v", hasActive, sub)
+	}
+}
+
+func TestCancelDelegatesToRepository(t *testing.T) {
+	repo := &fakeSubscriptionRepo{}
+	service := NewService(repo, fakePlansRepo{}, fakeFXClient{rate: 1}, clients.NewNoopNotificationClient())
+
+	if err := service.Cancel(context.Background(), "user-1", "requested"); err != nil {
+		t.Fatalf("Cancel returned error: %v", err)
+	}
+}
+
+func TestSubscribeReturnsRepositoryErrorsAndFailures(t *testing.T) {
+	service := NewService(
+		&fakeSubscriptionRepo{processError: errors.New("db down")},
+		fakePlansRepo{plan: &plans.Plan{ID: "plan-1", Name: "Basic", PriceUSD: 5.99}},
+		fakeFXClient{rate: 1},
+		clients.NewNoopNotificationClient(),
+	)
+	if _, err := service.Subscribe(context.Background(), "user-1", "plan-1", "", "", ""); err == nil {
+		t.Fatal("expected repository error")
+	}
+
+	service = NewService(
+		&fakeSubscriptionRepo{result: &ProcessResult{Status: "FAILED", ErrorMessage: "card rejected"}},
+		fakePlansRepo{plan: &plans.Plan{ID: "plan-1", Name: "Basic", PriceUSD: 5.99}},
+		fakeFXClient{rate: 1},
+		clients.NewNoopNotificationClient(),
+	)
+	if _, err := service.Subscribe(context.Background(), "user-1", "plan-1", "", "", ""); err == nil || err.Error() != "card rejected" {
+		t.Fatalf("expected business failure, got %v", err)
+	}
+}
+
+func TestGetUserSubscriptionHandlesMissingAndErrors(t *testing.T) {
+	service := NewService(&fakeSubscriptionRepo{}, fakePlansRepo{}, fakeFXClient{rate: 1}, clients.NewNoopNotificationClient())
+	sub, hasActive, err := service.GetUserSubscription(context.Background(), "user-1")
+	if err != nil || hasActive || sub != nil {
+		t.Fatalf("expected no active subscription, got sub=%#v has=%v err=%v", sub, hasActive, err)
+	}
+}
+
+func TestSubscriptionHandlerSubscribeCancelAndLookup(t *testing.T) {
+	repo := &fakeSubscriptionRepo{result: &ProcessResult{SubscriptionID: "sub-1", PaymentID: "pay-1", Status: "SUCCESS"}, active: &Subscription{ID: "sub-1", PlanID: "plan-1", PlanName: "Premium", Status: "active"}}
+	handler := NewHandler(NewService(
+		repo,
+		fakePlansRepo{plan: &plans.Plan{ID: "plan-1", Name: "Premium", PriceUSD: 15.99}},
+		fakeFXClient{rate: 1},
+		clients.NewNoopNotificationClient(),
+	))
+
+	subscribeResp, err := handler.Subscribe(context.Background(), &pb.SubscribeRequest{UserId: "user-1", PlanId: "plan-1"})
+	if err != nil || !subscribeResp.Success || subscribeResp.SubscriptionId != "sub-1" {
+		t.Fatalf("unexpected subscribe response=%#v err=%v", subscribeResp, err)
+	}
+
+	cancelResp, err := handler.CancelSubscription(context.Background(), &pb.CancelSubscriptionRequest{UserId: "user-1", Reason: "requested"})
+	if err != nil || !cancelResp.Success {
+		t.Fatalf("unexpected cancel response=%#v err=%v", cancelResp, err)
+	}
+
+	lookupResp, err := handler.GetUserSubscription(context.Background(), &pb.GetUserSubscriptionRequest{UserId: "user-1"})
+	if err != nil || !lookupResp.HasActiveSubscription || lookupResp.SubscriptionId != "sub-1" {
+		t.Fatalf("unexpected lookup response=%#v err=%v", lookupResp, err)
+	}
+}
+
+func TestSubscriptionHandlerValidationAndBusinessFailures(t *testing.T) {
+	handler := NewHandler(NewService(&fakeSubscriptionRepo{}, fakePlansRepo{}, fakeFXClient{rate: 1}, clients.NewNoopNotificationClient()))
+	if _, err := handler.Subscribe(context.Background(), &pb.SubscribeRequest{}); status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("expected InvalidArgument, got %v", err)
+	}
+	if _, err := handler.CancelSubscription(context.Background(), &pb.CancelSubscriptionRequest{}); status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("expected InvalidArgument, got %v", err)
+	}
+	if _, err := handler.GetUserSubscription(context.Background(), &pb.GetUserSubscriptionRequest{}); status.Code(err) != codes.InvalidArgument {
+		t.Fatalf("expected InvalidArgument, got %v", err)
+	}
+
+	failingHandler := NewHandler(NewService(
+		&fakeSubscriptionRepo{result: &ProcessResult{Status: "FAILED"}},
+		fakePlansRepo{plan: &plans.Plan{ID: "plan-1", Name: "Basic", PriceUSD: 5.99}},
+		fakeFXClient{rate: 1},
+		clients.NewNoopNotificationClient(),
+	))
+	resp, err := failingHandler.Subscribe(context.Background(), &pb.SubscribeRequest{UserId: "user-1", PlanId: "plan-1"})
+	if err != nil || resp.Success {
+		t.Fatalf("expected unsuccessful response, got %#v err=%v", resp, err)
 	}
 }

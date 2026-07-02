@@ -51,13 +51,13 @@ CREATE TABLE payments (
 );
 
 CREATE TABLE audit_log (
-    log_id BIGSERIAL PRIMARY KEY,
-    user_id UUID,
-    subscription_id UUID,
-    event_type VARCHAR(100) NOT NULL,
-    old_data JSONB,
-    new_data JSONB,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    log_id      BIGSERIAL    PRIMARY KEY,
+    table_name  VARCHAR(100) NOT NULL,
+    operation   VARCHAR(10)  NOT NULL CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE')),
+    changed_by  TEXT         NOT NULL DEFAULT 'system',
+    old_data    JSONB,
+    new_data    JSONB,
+    changed_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_subscriptions_user ON subscriptions(user_id);
@@ -66,8 +66,10 @@ CREATE INDEX idx_subscriptions_expiry ON subscriptions(current_period_end) WHERE
 CREATE INDEX idx_payments_subscription ON payments(subscription_id);
 CREATE INDEX idx_payments_user ON payments(user_id);
 CREATE INDEX idx_payments_status ON payments(status);
-CREATE INDEX idx_audit_log_user ON audit_log(user_id);
-CREATE INDEX idx_audit_log_created ON audit_log(created_at DESC);
+CREATE INDEX idx_audit_log_table ON audit_log(table_name);
+CREATE INDEX idx_audit_log_operation ON audit_log(operation);
+CREATE INDEX idx_audit_log_changed_by ON audit_log(changed_by);
+CREATE INDEX idx_audit_log_changed_at ON audit_log(changed_at DESC);
 
 CREATE OR REPLACE FUNCTION fn_get_active_subscription(p_user_id UUID)
 RETURNS TABLE (
@@ -149,44 +151,44 @@ CREATE TRIGGER trg_one_active_subscription
     FOR EACH ROW
     EXECUTE FUNCTION fn_one_active_subscription();
 
-CREATE OR REPLACE FUNCTION fn_audit_subscription_change()
+CREATE OR REPLACE FUNCTION fn_subscription_audit()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+    v_changed_by TEXT;
 BEGIN
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO audit_log(user_id, subscription_id, event_type, old_data, new_data)
-        VALUES (
-            NEW.user_id,
-            NEW.subscription_id,
-            'SUBSCRIPTION_CREATED',
-            NULL,
-            jsonb_build_object('status', NEW.status, 'plan_id', NEW.plan_id)
-        );
-        RETURN NEW;
+    v_changed_by := COALESCE(current_setting('app.changed_by', true), 'system');
+    IF v_changed_by = '' THEN
+        v_changed_by := 'system';
     END IF;
 
-    IF OLD.status IS DISTINCT FROM NEW.status OR OLD.plan_id IS DISTINCT FROM NEW.plan_id THEN
-        INSERT INTO audit_log(user_id, subscription_id, event_type, old_data, new_data)
-        VALUES (
-            NEW.user_id,
-            NEW.subscription_id,
-            CASE
-                WHEN OLD.status = 'ACTIVE' AND NEW.status = 'CANCELLED' THEN 'SUBSCRIPTION_CANCELLED'
-                WHEN OLD.plan_id != NEW.plan_id THEN 'PLAN_CHANGED'
-                WHEN NEW.status = 'EXPIRED' THEN 'SUBSCRIPTION_EXPIRED'
-                ELSE 'SUBSCRIPTION_UPDATED'
-            END,
-            jsonb_build_object('status', OLD.status, 'plan_id', OLD.plan_id),
-            jsonb_build_object('status', NEW.status, 'plan_id', NEW.plan_id)
-        );
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log(table_name, operation, changed_by, old_data, new_data)
+        VALUES (TG_TABLE_NAME, 'INSERT', v_changed_by, NULL, row_to_json(NEW)::JSONB);
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO audit_log(table_name, operation, changed_by, old_data, new_data)
+        VALUES (TG_TABLE_NAME, 'UPDATE', v_changed_by, row_to_json(OLD)::JSONB, row_to_json(NEW)::JSONB);
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO audit_log(table_name, operation, changed_by, old_data, new_data)
+        VALUES (TG_TABLE_NAME, 'DELETE', v_changed_by, row_to_json(OLD)::JSONB, NULL);
+        RETURN OLD;
     END IF;
-    RETURN NEW;
+    RETURN NULL;
 END;
 $$;
 
-CREATE TRIGGER trg_audit_subscription_change
-    AFTER INSERT OR UPDATE ON subscriptions
-    FOR EACH ROW
-    EXECUTE FUNCTION fn_audit_subscription_change();
+CREATE TRIGGER trg_audit_plans
+    AFTER INSERT OR UPDATE OR DELETE ON plans
+    FOR EACH ROW EXECUTE FUNCTION fn_subscription_audit();
+
+CREATE TRIGGER trg_audit_subscriptions
+    AFTER INSERT OR UPDATE OR DELETE ON subscriptions
+    FOR EACH ROW EXECUTE FUNCTION fn_subscription_audit();
+
+CREATE TRIGGER trg_audit_payments
+    AFTER INSERT OR UPDATE OR DELETE ON payments
+    FOR EACH ROW EXECUTE FUNCTION fn_subscription_audit();
 
 CREATE TRIGGER trg_subscriptions_updated_at
     BEFORE UPDATE ON subscriptions

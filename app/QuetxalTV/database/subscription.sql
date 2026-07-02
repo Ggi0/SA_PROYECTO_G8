@@ -89,16 +89,19 @@ CREATE TABLE payments (
 
 
 -- TABLA: audit_log
--- Registro de cambios importantes: upgrades, downgrades, cancelaciones.
--- Poblado por triggers.
+-- Auditoría transaccional genérica (Fase 2). Poblada automáticamente por el
+-- trigger fn_subscription_audit ante cualquier INSERT/UPDATE/DELETE sobre las
+-- tablas relacionales del servicio. Registra: tabla afectada, operación,
+-- usuario responsable, timestamp, estado anterior y estado nuevo (snapshots).
 CREATE TABLE audit_log (
-    log_id          BIGSERIAL PRIMARY KEY,
-    user_id         UUID,
-    subscription_id UUID,
-    event_type      VARCHAR(100) NOT NULL,
-    old_data        JSONB,   -- Estado anterior (snapshot)
-    new_data        JSONB,   -- Estado nuevo (snapshot)
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    log_id      BIGSERIAL    PRIMARY KEY,
+    table_name  VARCHAR(100) NOT NULL,                       -- tabla afectada
+    operation   VARCHAR(10)  NOT NULL
+                CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE')),
+    changed_by  TEXT         NOT NULL DEFAULT 'system',       -- usuario responsable (app.changed_by)
+    old_data    JSONB,                                        -- estado anterior (snapshot completo)
+    new_data    JSONB,                                        -- estado nuevo (snapshot completo)
+    changed_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()           -- timestamp exacto
 );
 
 
@@ -109,8 +112,10 @@ CREATE INDEX idx_subscriptions_expiry   ON subscriptions(current_period_end) WHE
 CREATE INDEX idx_payments_subscription  ON payments(subscription_id);
 CREATE INDEX idx_payments_user          ON payments(user_id);
 CREATE INDEX idx_payments_status        ON payments(status);
-CREATE INDEX idx_audit_log_user         ON audit_log(user_id);
-CREATE INDEX idx_audit_log_created      ON audit_log(created_at DESC);
+CREATE INDEX idx_audit_log_table        ON audit_log(table_name);
+CREATE INDEX idx_audit_log_operation    ON audit_log(operation);
+CREATE INDEX idx_audit_log_changed_by   ON audit_log(changed_by);
+CREATE INDEX idx_audit_log_changed_at   ON audit_log(changed_at DESC);
 
 
 --                                              FUNCIONES
@@ -229,58 +234,50 @@ CREATE TRIGGER trg_one_active_subscription
     EXECUTE FUNCTION fn_one_active_subscription();
 
 
--- TRIGGER: trg_audit_subscription_change
--- TABLA:   subscriptions | EVENTO: AFTER INSERT OR UPDATE
--- Registra en audit_log altas, cancelaciones y cambios de plan/estado.
-CREATE OR REPLACE FUNCTION fn_audit_subscription_change()
+-- TRIGGER: fn_subscription_audit (auditoría transaccional genérica - Fase 2)
+-- TABLAS:  plans, subscriptions, payments | EVENTO: AFTER INSERT OR UPDATE OR DELETE
+-- Cualquier INSERT/UPDATE/DELETE queda registrado automáticamente en audit_log
+-- con la tabla afectada, la operación, el usuario responsable (leído de la
+-- variable de sesión app.changed_by que el backend setea antes de cada write),
+-- el timestamp y los snapshots completos de estado anterior y nuevo.
+CREATE OR REPLACE FUNCTION fn_subscription_audit()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+    v_changed_by TEXT;
 BEGIN
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO audit_log(user_id, subscription_id, event_type, old_data, new_data)
-        VALUES (
-            NEW.user_id,
-            NEW.subscription_id,
-            'SUBSCRIPTION_CREATED',
-            NULL,
-            jsonb_build_object(
-                'status', NEW.status,
-                'plan_id', NEW.plan_id
-            )
-        );
-        RETURN NEW;
+    v_changed_by := COALESCE(current_setting('app.changed_by', true), 'system');
+    IF v_changed_by = '' THEN
+        v_changed_by := 'system';
     END IF;
 
-    -- Solo auditamos si cambia algo relevante
-    IF OLD.status IS DISTINCT FROM NEW.status
-    OR OLD.plan_id IS DISTINCT FROM NEW.plan_id THEN
-        INSERT INTO audit_log(user_id, subscription_id, event_type, old_data, new_data)
-        VALUES (
-            NEW.user_id,
-            NEW.subscription_id,
-            CASE
-                WHEN OLD.status = 'ACTIVE' AND NEW.status = 'CANCELLED' THEN 'SUBSCRIPTION_CANCELLED'
-                WHEN OLD.plan_id != NEW.plan_id THEN 'PLAN_CHANGED'
-                WHEN NEW.status = 'EXPIRED' THEN 'SUBSCRIPTION_EXPIRED'
-                ELSE 'SUBSCRIPTION_UPDATED'
-            END,
-            jsonb_build_object(
-                'status',  OLD.status,
-                'plan_id', OLD.plan_id
-            ),
-            jsonb_build_object(
-                'status',  NEW.status,
-                'plan_id', NEW.plan_id
-            )
-        );
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log(table_name, operation, changed_by, old_data, new_data)
+        VALUES (TG_TABLE_NAME, 'INSERT', v_changed_by, NULL, row_to_json(NEW)::JSONB);
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO audit_log(table_name, operation, changed_by, old_data, new_data)
+        VALUES (TG_TABLE_NAME, 'UPDATE', v_changed_by, row_to_json(OLD)::JSONB, row_to_json(NEW)::JSONB);
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO audit_log(table_name, operation, changed_by, old_data, new_data)
+        VALUES (TG_TABLE_NAME, 'DELETE', v_changed_by, row_to_json(OLD)::JSONB, NULL);
+        RETURN OLD;
     END IF;
-    RETURN NEW;
+    RETURN NULL;
 END;
 $$;
 
-CREATE TRIGGER trg_audit_subscription_change
-    AFTER INSERT OR UPDATE ON subscriptions
-    FOR EACH ROW
-    EXECUTE FUNCTION fn_audit_subscription_change();
+CREATE TRIGGER trg_audit_plans
+    AFTER INSERT OR UPDATE OR DELETE ON plans
+    FOR EACH ROW EXECUTE FUNCTION fn_subscription_audit();
+
+CREATE TRIGGER trg_audit_subscriptions
+    AFTER INSERT OR UPDATE OR DELETE ON subscriptions
+    FOR EACH ROW EXECUTE FUNCTION fn_subscription_audit();
+
+CREATE TRIGGER trg_audit_payments
+    AFTER INSERT OR UPDATE OR DELETE ON payments
+    FOR EACH ROW EXECUTE FUNCTION fn_subscription_audit();
 
 -- Trigger updated_at
 CREATE TRIGGER trg_subscriptions_updated_at
@@ -384,7 +381,7 @@ BEGIN
         cancel_at     = v_period_end,  -- Acceso hasta fin del período
         auto_renew    = FALSE
     WHERE subscription_id = v_sub_id;
-    -- El trigger trg_audit_subscription_change registra esto automáticamente
+    -- El trigger trg_audit_subscriptions registra esto automáticamente en audit_log
 END;
 $$;
 

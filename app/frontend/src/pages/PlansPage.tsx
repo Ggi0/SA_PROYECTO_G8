@@ -1,85 +1,65 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
-import { subscriptionAPI, SubscriptionPlan, SubscriptionPlanWithRate } from '@/api/subscription'
-import { useAuth } from '@/context/AuthContext'
-import { Check, RefreshCw } from 'lucide-react'
-
-const currency = 'GTQ'
-
-function planFeatures(plan: SubscriptionPlan) {
-  if (plan.description) {
-    try {
-      const parsed = JSON.parse(plan.description)
-      if (Array.isArray(parsed) && parsed.every((item) => typeof item === 'string')) {
-        return parsed
-      }
-    } catch {
-      return [plan.description]
-    }
-  }
-
-  return [
-    `${plan.maxProfiles} ${plan.maxProfiles === 1 ? 'perfil' : 'perfiles'}`,
-    `${plan.maxStreams} ${plan.maxStreams === 1 ? 'pantalla simultánea' : 'pantallas simultáneas'}`,
-    `Calidad ${plan.videoQuality}`,
-  ]
-}
-
-function formatMoney(value: number, code: string) {
-  return new Intl.NumberFormat('es-GT', {
-    style: 'currency',
-    currency: code,
-  }).format(value)
-}
+import { fxAPI, RateItem } from '@/services/api/fxService'
+import { mockPlans } from '@/services/mock/mockData'
+import { subscriptionAPI, Plan } from '@/services/api/subscriptionService'
+import { Check, Loader2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export default function PlansPage() {
-  const navigate = useNavigate()
-  const { token } = useAuth()
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([])
-  const [rates, setRates] = useState<Record<string, SubscriptionPlanWithRate>>({})
+  const [plans, setPlans] = useState<Plan[]>([])
+  const [gtqRate, setGtqRate] = useState<RateItem | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadPlans() {
-      setLoading(true)
-      setError('')
+// ─── Estado ──────────────────────────────────────────────
+const [subscribing, setSubscribing] = useState<string | null>(null)
+const navigate = useNavigate()
+const handleSubscribe = (plan: Plan) => {
+  navigate('/checkout', { state: { plan } })
+}
+ useEffect(() => {
+  const fetchData = async () => {
+    try{
+      const [plansData, rateData] = await Promise.all([
+        subscriptionAPI.getPlans(),
+        fxAPI.getRate('GTQ'),
+      ])
+      setPlans(plansData)
+      setGtqRate(rateData)
+    } catch (error) {
+      console.error('Subscription service no disponible, usando mock:', error)
+      // Fallback a mock mientras el servicio no está listo
+     setPlans(mockPlans.map((p, i) => ({
+      id: String(i + 1),
+      name: p.name,
+      slug: p.name.toLowerCase(),
+      priceUsd: p.priceUSD,
+      maxProfiles: i + 1,
+      maxStreams: i + 1,
+      videoQuality: ['SD', 'HD', 'UHD'][i] ?? 'HD',
+      description: JSON.stringify(p.features),
+      isActive: true,
+    })))
+      // Igual intentamos obtener el tipo de cambio
       try {
-        const data = await subscriptionAPI.getPlans()
-        if (cancelled) return
-        setPlans(data)
-
-        if (token) {
-          const ratedPlans = await subscriptionAPI.getPlansWithRates(currency)
-          if (cancelled) return
-          setRates(Object.fromEntries(ratedPlans.map((item) => [item.plan.id, item])))
-        }
-      } catch {
-        if (!cancelled) setError('No se pudieron cargar los planes de suscripción.')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+        const rateData = await fxAPI.getRate('GTQ')
+        setGtqRate(rateData)
+      } catch {}
+    } finally {
+      setLoading(false)
     }
+  }
+   fetchData()
+  }, [])
 
-    loadPlans()
-
-    return () => {
-      cancelled = true
-    }
-  }, [token])
-
-  const handleChoosePlan = (planId: string) => {
-    if (!token) {
-      setError('Iniciá sesión para contratar o cambiar tu suscripción.')
-      navigate('/login')
-      return
-    }
-
-    navigate(`/checkout/${planId}`)
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 size={32} className="text-spotlight animate-spin" />
+        </div>
+      </MainLayout>
+    )
   }
 
   return (
@@ -87,7 +67,7 @@ export default function PlansPage() {
       <div className="px-8 py-16 max-w-5xl mx-auto">
 
         {/* Encabezado */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-10">
           <div className="flex items-center gap-3 justify-center mb-4">
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-spotlight/40" />
             <span className="text-spotlight text-xs font-mono tracking-widest uppercase">
@@ -101,27 +81,36 @@ export default function PlansPage() {
           <p className="text-silver font-mono text-sm">
             Elegí el plan que mejor se adapte a vos
           </p>
+          {gtqRate && (
+            <p className="text-silver/40 font-mono text-xs mt-2">
+              1 USD = {gtqRate.symbol}{gtqRate.rate} GTQ
+            </p>
+          )}
         </div>
 
-        {error && (
-          <div className="mb-6 bg-curtain/20 border border-curtain/50 text-red-300 px-4 py-3 rounded font-mono text-sm">
-            {error}
-          </div>
-        )}
+    
 
         {loading && (
-          <div className="flex items-center justify-center gap-3 text-silver font-mono text-sm py-16">
-            <RefreshCw size={16} className="animate-spin text-spotlight" />
-            Cargando planes desde Subscription Service...
+          <div className="text-center text-silver/50 font-mono text-sm py-10">
+            Cargando planes...
           </div>
         )}
 
         {/* Cards */}
-        {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => {
-            const isPopular = plan.name === 'Estándar'
-            const ratedPlan = rates[plan.id]
+           const isPopular = plan.name === 'Estándar'
+            const priceGTQ = gtqRate
+               ? (plan.priceUsd * gtqRate.rate).toFixed(2)
+            : null
+                  let features: string[] = []
+            try {
+              features = typeof plan.description === 'string'
+                ? JSON.parse(plan.description)
+                : []
+            } catch {
+              features = []
+            }
 
             return (
               <div
@@ -139,7 +128,7 @@ export default function PlansPage() {
                   </div>
                 )}
 
-                {/* Nombre del plan */}
+                {/* Nombre */}
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-1 h-5 bg-spotlight" />
                   <h2 className="font-display text-xl font-bold text-parchment">
@@ -147,24 +136,30 @@ export default function PlansPage() {
                   </h2>
                 </div>
 
-                {/* Precio */}
-                <div className="mb-2">
+                {/* Precio USD */}
+                <div className="mb-1">
                   <span className="font-display text-5xl font-bold text-spotlight">
                     ${plan.priceUsd.toFixed(2)}
                   </span>
                   <span className="text-silver/60 font-mono text-sm"> /mes</span>
                 </div>
-                <p className="text-silver/40 font-mono text-xs mb-8">
-                  {ratedPlan
-                    ? `${formatMoney(ratedPlan.localPrice, ratedPlan.currency)} aprox. · tasa ${ratedPlan.exchangeRate.toFixed(2)}`
-                    : token
-                      ? 'Precio local no disponible por el momento'
-                      : 'Iniciá sesión para ver precio en GTQ'}
-                </p>
+
+                {/* Precio GTQ */}
+                <div className="mb-8 h-5">
+                  {priceGTQ ? (
+                    <p className="text-spotlight/70 font-mono text-sm">
+                      Q{priceGTQ} GTQ/mes
+                    </p>
+                  ) : (
+                    <p className="text-silver/40 font-mono text-xs">
+                      Precio en GTQ no disponible
+                    </p>
+                  )}
+                </div>
 
                 {/* Features */}
                 <ul className="space-y-3 flex-1 mb-8">
-                  {planFeatures(plan).map((feature) => (
+                  {features.map((feature: string) => (
                     <li key={feature} className="flex items-center gap-3 text-silver font-mono text-sm">
                       <Check size={14} className="text-spotlight shrink-0" />
                       {feature}
@@ -172,18 +167,34 @@ export default function PlansPage() {
                   ))}
                 </ul>
 
-                <Button
-                  onClick={() => handleChoosePlan(plan.id)}
-                  disabled={!plan.isActive}
-                  className={`w-full font-mono tracking-widest uppercase text-sm h-11 ${
-                    isPopular
-                      ? 'bg-spotlight hover:bg-spotlight/80 text-film'
-                      : 'bg-transparent border border-[#3a2e1a] hover:border-spotlight text-silver hover:text-spotlight'
-                  }`}
-                  variant={isPopular ? 'default' : 'outline'}
-                >
-                  Continuar al pago
-                </Button>
+                {/* Detalles técnicos */}
+                <div className="flex gap-3 mb-6 flex-wrap">
+                  <span className="text-xs font-mono border border-[#3a2e1a] text-silver/60 px-2 py-1">
+                    {plan.videoQuality}
+                  </span>
+                  <span className="text-xs font-mono border border-[#3a2e1a] text-silver/60 px-2 py-1">
+                    {plan.maxStreams} pantalla{plan.maxStreams > 1 ? 's' : ''}
+                  </span>
+                  <span className="text-xs font-mono border border-[#3a2e1a] text-silver/60 px-2 py-1">
+                    {plan.maxProfiles} perfil{plan.maxProfiles > 1 ? 'es' : ''}
+                  </span>
+                </div>
+
+                          <Button
+                onClick={() => handleSubscribe(plan)}
+                disabled={subscribing === plan.id}
+                className={`w-full font-mono tracking-widest uppercase text-sm h-11 ${
+                  isPopular
+                    ? 'bg-spotlight hover:bg-spotlight/80 text-film'
+                    : 'bg-transparent border border-[#3a2e1a] hover:border-spotlight text-silver hover:text-spotlight'
+                }`}
+                variant={isPopular ? 'default' : 'outline'}
+              >
+                {subscribing === plan.id ? (
+                  <Loader2 size={14} className="animate-spin mr-2" />
+                ) : null}
+                Elegir {plan.name}
+              </Button>
               </div>
             )
           })}

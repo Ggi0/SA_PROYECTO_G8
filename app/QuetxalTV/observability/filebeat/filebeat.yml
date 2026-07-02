@@ -1,0 +1,19 @@
+filebeat.inputs:
+  - type: filestream
+    id: quetxal-tv-docker-logs
+    enabled: true
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    parsers:
+      - container: ~
+    fields_under_root: true
+    fields:
+      project: quetxal-tv
+
+processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - add_host_metadata: ~
+
+output.logstash:
+  hosts: ["logstash:5044"]

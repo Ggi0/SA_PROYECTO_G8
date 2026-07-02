@@ -1,97 +1,112 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import MainLayout from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/AuthContext'
-import { getApiErrorMessage, Payment, subscriptionAPI, UserSubscription } from '@/api/subscription'
-import { CreditCard, LogOut, RefreshCw, ReceiptText } from 'lucide-react'
-
-function formatDate(value: string) {
-  if (!value) return 'Sin fecha disponible'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('es-GT', { dateStyle: 'medium' }).format(date)
-}
-
-function formatMoney(value: number, currency = 'USD') {
-  return new Intl.NumberFormat('es-GT', {
-    style: 'currency',
-    currency,
-  }).format(value)
-}
+import { subscriptionAPI } from '@/services/api/subscriptionService'
+import { LogOut, Play, Loader2, Download, Trash2 } from 'lucide-react'
+import { downloadAPI, type DownloadItem } from '@/api/download'
+import { getAllProgress } from '@/lib/progress'
+import type { SavedProgress } from '@/lib/progress'
+import { gateway } from '@/api/client'
 
 export default function AccountPage() {
-  const { user, token, logout } = useAuth()
+  const { user, currentProfile, logout,setCurrentProfile } = useAuth()
   const navigate = useNavigate()
-  const [subscription, setSubscription] = useState<UserSubscription | null>(null)
-  const [payments, setPayments] = useState<Payment[]>([])
-  const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState(false)
-  const [confirmingCancel, setConfirmingCancel] = useState(false)
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
-
+  const [history, setHistory] = useState<SavedProgress[]>([])
   useEffect(() => {
-    let cancelled = false
+    setHistory(getAllProgress())
+  }, [])
+    // ─── Estado de descargas ─────────────────────────────
+  const [downloads, setDownloads] = useState<DownloadItem[]>([])
+  const [loadingDownloads, setLoadingDownloads] = useState(true)
+  const [isPremium, setIsPremium] = useState(false)
+ 
 
-    async function loadSubscriptionData() {
-      if (!token) {
-        setLoading(false)
-        return
+  // ─── Estado de suscripción ───────────────────────────
+  const [subscription, setSubscription] = useState<any>(null)
+  const [paymentHistory, setPaymentHistory] = useState<any[]>([])
+  const [loadingSub, setLoadingSub] = useState(true)
+  const [cancelling, setCancelling] = useState(false)
+
+const [profileName, setProfileName] = useState(
+  currentProfile?.name || user?.name || user?.email?.split('@')[0] || 'Usuario'
+)
+const [savingProfile, setSavingProfile] = useState(false)
+
+const handleSaveProfile = async () => {
+  if (!currentProfile?.id) return
+  setSavingProfile(true)
+  try {
+    await gateway.patch(`/auth/profiles/${currentProfile.id}`, {
+      display_name: profileName
+    })
+    setCurrentProfile({ ...currentProfile, name: profileName })
+  } catch (error) {
+    console.error('Error al guardar perfil:', error)
+  } finally {
+    setSavingProfile(false)
+  }
+}
+ useEffect(() => {
+  const fetchSubscriptionData = async () => {
+    try {
+      const [subData, paymentsData] = await Promise.all([
+        subscriptionAPI.getMySubscription(),
+        subscriptionAPI.getPaymentHistory(),
+      ])
+      setSubscription(subData)
+      setPaymentHistory(paymentsData)
+
+      const premium = subData?.status === 'ACTIVE' && subData?.planName === 'Premium'
+      console.log('isPremium:', premium, 'planName:', subData?.planName)
+      setIsPremium(premium)
+
+      // ← esto faltaba
+      if (premium) {
+        try {
+          const dlData = await downloadAPI.listDownloads(3)
+          console.log('downloads:', dlData)
+          setDownloads(dlData.downloads || [])
+        } catch (err) {
+          console.log('error downloads:', err)
+          setDownloads([])
+        }
       }
 
-      setLoading(true)
-      setError('')
-      try {
-        const [subscriptionData, paymentsData] = await Promise.all([
-          subscriptionAPI.getCurrentSubscription(),
-          subscriptionAPI.getPayments(10, 0),
-        ])
-        if (cancelled) return
-        setSubscription(subscriptionData)
-        setPayments(paymentsData.payments)
-      } catch (err) {
-        if (!cancelled) setError(getApiErrorMessage(err, 'No se pudo cargar la información de suscripción.'))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+    } catch (error) {
+      console.error('Subscription service no disponible:', error)
+      setSubscription({
+        plan_name: 'Estándar',
+        status: 'ACTIVE',
+        current_period_end: '2026-07-01',
+        days_remaining: 22,
+      })
+    } finally {
+      setLoadingSub(false)
+      setLoadingDownloads(false)  // ← esto también faltaba
     }
-
-    loadSubscriptionData()
-
-    return () => {
-      cancelled = true
-    }
-  }, [token])
+  }
+  fetchSubscriptionData()
+}, [])
 
   const handleLogout = () => {
     logout()
+    localStorage.removeItem('auth_token')
     navigate('/login')
   }
 
   const handleCancelSubscription = async () => {
-    if (!subscription?.hasActiveSubscription) return
-
-    if (!confirmingCancel) {
-      setConfirmingCancel(true)
-      setError('')
-      setMessage('Revisá la advertencia y confirmá si realmente querés cancelar la suscripción.')
-      return
-    }
-
-    setActionLoading(true)
-    setError('')
-    setMessage('')
+    if (!confirm('¿Estás segura que querés cancelar tu suscripción?')) return
+    setCancelling(true)
     try {
-      await subscriptionAPI.cancel('Cancelado desde el panel de cuenta')
-      setSubscription({ ...subscription, hasActiveSubscription: false, status: 'CANCELLED' })
-      setMessage('Suscripción cancelada. El acceso queda sujeto al período pagado registrado.')
-      setConfirmingCancel(false)
-    } catch (err) {
-      setError(getApiErrorMessage(err, 'No se pudo cancelar la suscripción. Intentá de nuevo.'))
+      await subscriptionAPI.cancelSubscription()
+      setSubscription((prev: any) => ({ ...prev, status: 'CANCELLED' }))
+    } catch (error) {
+      console.error('Error al cancelar:', error)
     } finally {
-      setActionLoading(false)
+      setCancelling(false)
     }
   }
 
@@ -128,7 +143,8 @@ export default function AccountPage() {
                 Nombre
               </label>
               <Input
-                defaultValue={user?.name ?? 'Usuario'}
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
                 className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11"
               />
             </div>
@@ -141,19 +157,15 @@ export default function AccountPage() {
                 className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-silver/60 text-xs font-mono tracking-widest uppercase">
-                Contraseña
-              </label>
-              <Input
-                type="password"
-                defaultValue="••••••••"
-                className="bg-[#0f0b04] border-[#3a2e1a] text-parchment focus:border-spotlight font-mono h-11"
-              />
-            </div>
+           
           </div>
 
-          <Button className="bg-spotlight hover:bg-spotlight/80 text-film font-mono tracking-widest uppercase text-xs h-10 px-6">
+          <Button 
+            onClick={handleSaveProfile}
+            disabled={savingProfile}
+            className="bg-spotlight hover:bg-spotlight/80 text-film font-mono tracking-widest uppercase text-xs h-10 px-6"
+          >
+            {savingProfile ? <Loader2 size={14} className="animate-spin mr-2" /> : null}
             Guardar cambios
           </Button>
           <p className="text-silver/40 font-mono text-xs">
@@ -202,116 +214,247 @@ export default function AccountPage() {
             <h2 className="font-display text-lg text-parchment">Suscripción actual</h2>
           </div>
 
-          <div className="flex items-center justify-between p-4 border border-[#3a2e1a] bg-[#0f0b04]">
-            <div>
-              <p className="text-parchment font-mono font-medium">
-                {subscription?.hasActiveSubscription ? `Plan ${subscription.planName}` : 'Sin suscripción activa'}
-              </p>
-              <p className="text-silver/50 font-mono text-xs mt-1">
-                {subscription?.hasActiveSubscription
-                  ? `Renovación: ${formatDate(subscription.renewalDate)} · ${subscription.daysRemaining} días restantes`
-                  : 'Elegí un plan para activar el acceso a la plataforma'}
-              </p>
+          {loadingSub ? (
+            <div className="flex items-center gap-2 text-silver/50 font-mono text-sm">
+              <Loader2 size={14} className="animate-spin" />
+              Cargando suscripción...
             </div>
-            <span className={`text-xs font-mono px-3 py-1 tracking-widest uppercase ${subscription?.hasActiveSubscription ? 'bg-green-900/40 border border-green-700/50 text-green-400' : 'bg-[#3a2e1a] border border-[#4a3b22] text-silver/60'}`}>
-              {subscription?.hasActiveSubscription ? subscription.status : 'Inactivo'}
-            </span>
-          </div>
+          ) : subscription ? (
+            <>
+              <div className="flex items-center justify-between p-4 border border-[#3a2e1a] bg-[#0f0b04]">
+                <div>
+                  <p className="text-parchment font-mono font-medium">
+                  Plan {subscription.planName ?? subscription.plan_name}
+                </p>
+                  <p className="text-silver/50 font-mono text-xs mt-1">
+                  {subscription.daysRemaining ?? subscription.days_remaining} días restantes · vence {new Date(subscription.renewalDate ?? subscription.current_period_end).toLocaleDateString('es-GT')}
+                </p>
+                </div>
+                <span className={`text-xs font-mono border px-3 py-1 tracking-widest uppercase ${
+                  subscription.status === 'ACTIVE'
+                    ? 'bg-green-900/40 border-green-700/50 text-green-400'
+                    : 'bg-red-900/40 border-red-700/50 text-red-400'
+                }`}>
+                  {subscription.status === 'ACTIVE' ? 'Activo' : 'Cancelado'}
+                </span>
+              </div>
 
-          {subscription?.hasActiveSubscription && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="border border-[#3a2e1a] bg-[#0f0b04] p-3">
-                <p className="text-silver/40 font-mono text-[11px] tracking-widest uppercase">Precio USD</p>
-                <p className="text-parchment font-display text-xl mt-1">{formatMoney(subscription.planPriceUsd, 'USD')}</p>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => navigate('/plans')}
+                  variant="outline"
+                  className="border-[#3a2e1a] hover:border-spotlight text-silver hover:text-spotlight font-mono text-xs tracking-widest uppercase bg-transparent h-10"
+                >
+                  Cambiar plan
+                </Button>
+                {subscription.status === 'ACTIVE' && (
+                  <Button
+                    onClick={handleCancelSubscription}
+                    disabled={cancelling}
+                    variant="outline"
+                    className="border-[#3a2e1a] hover:border-curtain text-silver hover:text-red-400 font-mono text-xs tracking-widest uppercase bg-transparent h-10"
+                  >
+                    {cancelling ? (
+                      <Loader2 size={14} className="animate-spin mr-2" />
+                    ) : null}
+                    Cancelar suscripción
+                  </Button>
+                )}
               </div>
-              <div className="border border-[#3a2e1a] bg-[#0f0b04] p-3">
-                <p className="text-silver/40 font-mono text-[11px] tracking-widest uppercase">Pantallas</p>
-                <p className="text-parchment font-display text-xl mt-1">{subscription.maxStreams}</p>
-              </div>
-              <div className="border border-[#3a2e1a] bg-[#0f0b04] p-3">
-                <p className="text-silver/40 font-mono text-[11px] tracking-widest uppercase">Calidad</p>
-                <p className="text-parchment font-display text-xl mt-1">{subscription.videoQuality}</p>
-              </div>
-            </div>
-          )}
-
-          {confirmingCancel && subscription?.hasActiveSubscription && (
-            <div className="border border-curtain/50 bg-curtain/10 p-4 space-y-3">
-              <p className="text-red-300 font-mono text-sm font-medium">
-                Confirmación requerida
-              </p>
-              <p className="text-silver/60 font-mono text-xs leading-relaxed">
-                Al confirmar, la suscripción se desactivará junto con la renovación automática y no se generará un nuevo pago. El historial de pagos se conservará para auditoría.
-              </p>
+            </>
+          ) : (
+            <div className="p-4 border border-dashed border-[#3a2e1a] text-center">
+              <p className="text-silver/50 font-mono text-sm mb-3">No tenés una suscripción activa</p>
               <Button
-                onClick={() => setConfirmingCancel(false)}
-                variant="outline"
-                className="border-[#3a2e1a] hover:border-spotlight text-silver hover:text-spotlight font-mono text-xs tracking-widest uppercase bg-transparent h-9"
+                onClick={() => navigate('/plans')}
+                className="bg-spotlight hover:bg-spotlight/80 text-film font-mono text-xs tracking-widest uppercase h-10"
               >
-                Mantener suscripción
+                Ver planes
               </Button>
             </div>
           )}
-
-          <div className="flex gap-3">
-            <Button
-              onClick={() => navigate('/plans')}
-              variant="outline"
-              className="border-[#3a2e1a] hover:border-spotlight text-silver hover:text-spotlight font-mono text-xs tracking-widest uppercase bg-transparent h-10"
-            >
-              Cambiar plan
-            </Button>
-            <Button
-              onClick={handleCancelSubscription}
-              disabled={!subscription?.hasActiveSubscription || actionLoading}
-              variant="outline"
-              className={`${confirmingCancel ? 'border-curtain text-red-300 hover:border-red-400' : 'border-[#3a2e1a] hover:border-curtain text-silver hover:text-red-400'} font-mono text-xs tracking-widest uppercase bg-transparent h-10`}
-            >
-              {actionLoading ? 'Cancelando...' : confirmingCancel ? 'Confirmar cancelación' : 'Cancelar suscripción'}
-            </Button>
-          </div>
         </div>
         )}
 
         {/* Historial de pagos */}
-        {!loading && token && (
+        {paymentHistory.length > 0 && (
+          <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-1 h-5 bg-spotlight" />
+              <h2 className="font-display text-lg text-parchment">Historial de pagos</h2>
+            </div>
+            {paymentHistory.map((payment: any) => (
+              <div key={payment.payment_id} className="flex items-center justify-between p-3 border border-[#3a2e1a] bg-[#0f0b04]">
+                <div>
+                  <p className="text-parchment font-mono text-sm">{payment.plan_name}</p>
+                  <p className="text-silver/50 font-mono text-xs mt-0.5">
+                    {new Date(payment.paid_at).toLocaleDateString('es-GT')}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-spotlight font-mono text-sm">${payment.amount_usd}</p>
+                  {payment.display_currency && (
+                    <p className="text-silver/50 font-mono text-xs">
+                      {payment.display_currency} {payment.display_amount}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Mis Descargas — solo Plan Premium */}
+        {isPremium && (
+          <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-1 h-5 bg-spotlight" />
+              <h2 className="font-display text-lg text-parchment">Mis Descargas</h2>
+              <span className="text-xs font-mono border border-spotlight/40 text-spotlight px-2 py-0.5 tracking-widest uppercase">
+                Premium
+              </span>
+            </div>
+
+            {loadingDownloads ? (
+              <div className="flex items-center gap-2 text-silver/50 font-mono text-sm">
+                <Loader2 size={14} className="animate-spin" />
+                Cargando descargas...
+              </div>
+            ) : downloads.length === 0 ? (
+              <div className="p-4 border border-dashed border-[#3a2e1a] text-center">
+                <p className="text-silver/40 font-mono text-sm">
+                  Aún no tenés contenido descargado.
+                </p>
+                <p className="text-silver/30 font-mono text-xs mt-1">
+                  Descargá películas o series desde su página de detalle.
+                </p>
+              </div>
+            ) : (
+              downloads.map((dl: any) => {
+        const expiresMs = typeof dl.expires_at === 'object'
+          ? dl.expires_at.low * 1000
+          : (dl.expires_at || 0) * 1000
+        const daysLeft = Math.ceil((expiresMs - Date.now()) / (1000 * 60 * 60 * 24))
+        const sizeMB = dl.size_bytes > 0 ? `${(dl.size_bytes / (1024 * 1024)).toFixed(1)} MB` : null
+
+        // status viene como número del proto: 1=QUEUED, 2=PENDING, 3=COMPLETED, 4=FAILED, 5=DELETED
+        const statusLabel: Record<number, string> = {
+          1: 'En cola', 2: 'Pendiente', 3: 'Listo', 4: 'Fallido', 5: 'Eliminado'
+        }
+        const isCompleted = dl.status === 3
+
+  return (
+    <div
+      key={dl.download_id}
+      className="flex items-center gap-4 p-3 border border-[#3a2e1a] bg-[#0f0b04] group"
+    >
+      <div className="w-10 h-10 flex items-center justify-center border border-[#3a2e1a] shrink-0">
+        <Download size={14} className="text-spotlight/60" />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-parchment font-mono text-sm font-medium truncate">
+          {dl.title || `Contenido ${(dl.content_id || '').slice(0, 8)}...`}
+        </p>
+        <div className="flex items-center gap-3 mt-0.5">
+          {sizeMB && (
+            <span className="text-silver/40 font-mono text-xs">{sizeMB}</span>
+          )}
+          <span className={`font-mono text-xs ${daysLeft <= 3 ? 'text-red-400' : 'text-silver/40'}`}>
+            {daysLeft <= 0 ? 'Expirado' : `Expira en ${daysLeft} días`}
+          </span>
+          <span className={`font-mono text-xs border px-2 py-0.5 ${
+            isCompleted
+              ? 'border-green-700/50 text-green-400'
+              : 'border-[#3a2e1a] text-silver/40'
+          }`}>
+            {statusLabel[dl.status] || 'Desconocido'}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        {isCompleted && (
+          <button
+            onClick={() => navigate(`/movie/${dl.content_id}?autoplay=1`)}
+            className="flex items-center gap-1 border border-[#3a2e1a] hover:border-spotlight px-3 py-2 text-silver hover:text-spotlight transition-colors"
+          >
+            <Play size={12} />
+            <span className="font-mono text-xs">Ver</span>
+          </button>
+        )}
+        <button
+          onClick={async () => {
+            await downloadAPI.deleteDownload(dl.download_id)
+            setDownloads((prev: any[]) => prev.filter((d) => d.download_id !== dl.download_id))
+          }}
+          className="border border-[#3a2e1a] hover:border-red-500/40 p-2 text-silver/40 hover:text-red-400 transition-colors"
+          title="Eliminar descarga"
+        >
+          <Trash2 size={12} />
+        </button>
+      </div>
+    </div>
+  )
+})
+            )}
+          </div>
+        )}
+
+        {/* Continuar viendo */}
         <div className="bg-[#1e1810] border border-[#3a2e1a] rounded p-6 space-y-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-1 h-5 bg-spotlight" />
             <h2 className="font-display text-lg text-parchment">Historial de pagos</h2>
           </div>
 
-          {payments.length === 0 ? (
-            <div className="border border-[#3a2e1a] bg-[#0f0b04] p-4 text-silver/50 font-mono text-sm">
-              No hay pagos registrados todavía.
-            </div>
-          ) : (
-            payments.map((payment) => (
-              <div
-                key={payment.id}
-                className="flex items-center gap-4 p-3 border border-[#3a2e1a] bg-[#0f0b04]"
-              >
-                <div className="w-10 h-10 border border-[#3a2e1a] flex items-center justify-center text-spotlight">
-                  <ReceiptText size={16} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-parchment font-mono text-sm font-medium">
-                    {payment.planName} · {formatMoney(payment.amountUsd, 'USD')}
-                  </p>
-                  <p className="text-silver/50 font-mono text-xs mt-0.5">
-                    {formatDate(payment.createdAt)} · {payment.paymentMethod || 'card'} · {payment.transactionRef}
-                  </p>
-                  <p className="text-silver/40 font-mono text-xs mt-0.5">
-                    Mostrado: {formatMoney(payment.amountLocal, payment.currency || 'USD')} · tasa {payment.exchangeRate.toFixed(2)}
-                  </p>
-                </div>
-                <span className="text-xs font-mono bg-green-900/30 border border-green-700/40 text-green-300 px-3 py-1 tracking-widest uppercase">
-                  {payment.status}
-                </span>
-                <CreditCard size={14} className="text-silver/40" />
-              </div>
-            ))
+          {history.length === 0 && (
+            <p className="text-silver/40 font-mono text-sm py-4">
+              Aún no hay contenido en progreso.
+            </p>
           )}
+
+          {history.map((item) => {
+            const totalMin = item.totalDuration || 90
+            const pct = Math.min((item.minuteReached / totalMin) * 100, 100)
+
+            return (
+              <div
+                key={item.contentId}
+                onClick={() => navigate(`/movie/${item.contentId}`)}
+                className="flex items-center gap-4 p-3 border border-[#3a2e1a] hover:border-spotlight bg-[#0f0b04] cursor-pointer transition-all group"
+              >
+                <img
+                  src={item.posterUrl || 'https://i.pinimg.com/originals/8d/e8/d7/8de8d761d3b5ab6321856c3ec71858b1.gif'}
+                  alt={item.title}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://i.pinimg.com/originals/8d/e8/d7/8de8d761d3b5ab6321856c3ec71858b1.gif'
+                  }}
+                  className="w-16 h-10 object-cover filter sepia-[0.3] group-hover:sepia-0 transition-all rounded"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-parchment font-mono text-sm font-medium truncate">
+                    {item.title}
+                  </p>
+                  {item.seasonNum ? (
+                    <p className="text-silver/50 font-mono text-xs mt-0.5">
+                      Temp. {item.seasonNum} · Ep. {item.episodeNum} · {item.minuteReached} min
+                    </p>
+                  ) : (
+                    <p className="text-silver/50 font-mono text-xs mt-0.5">
+                      {item.minuteReached} min vistos
+                    </p>
+                  )}
+                </div>
+
+                <div className="w-24 h-1 bg-[#3a2e1a] rounded-full overflow-hidden shrink-0">
+                  <div className="h-full bg-spotlight" style={{ width: `${pct}%` }} />
+                </div>
+
+                <Play size={14} className="text-silver/40 group-hover:text-spotlight transition-colors shrink-0" />
+              </div>
+            )
+          })}
         </div>
         )}
 

@@ -1,0 +1,161 @@
+services:
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    ports:
+      - "${AUTH_DB_PUBLIC_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+      - ./database/auth/auth.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./database/auth/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - quetxal-db-network
+
+  subscription-db:
+    image: postgres:16-alpine
+    container_name: subscription-db
+    ports:
+      - "${SUBSCRIPTION_DB_PUBLIC_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: ${SUBSCRIPTION_DB_USER}
+      POSTGRES_PASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
+      POSTGRES_DB: ${SUBSCRIPTION_DB_NAME}
+    volumes:
+      - subscription_db_data:/var/lib/postgresql/data
+      - ./database/subscription.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - quetxal-db-network
+
+  # Migración idempotente de auditoría (Fase 2). Se ejecuta una sola vez por
+  # despliegue cuando subscription-db está saludable; aplica el esquema nuevo
+  # sobre volúmenes ya existentes sin perder datos. No es manual: lo dispara el
+  # pipeline de CD al hacer `docker compose up`.
+  subscription-db-migrate:
+    image: postgres:16-alpine
+    depends_on:
+      subscription-db:
+        condition: service_healthy
+    environment:
+      PGHOST: subscription-db
+      PGPORT: 5432
+      PGUSER: ${SUBSCRIPTION_DB_USER}
+      PGPASSWORD: ${SUBSCRIPTION_DB_PASSWORD}
+      PGDATABASE: ${SUBSCRIPTION_DB_NAME}
+    volumes:
+      - ./microservices/subscription-service/internal/database/migrations/002_audit_upgrade.sql:/sql/002_audit_upgrade.sql:ro
+    command: ["psql", "-v", "ON_ERROR_STOP=1", "-f", "/sql/002_audit_upgrade.sql"]
+    restart: "no"
+    networks:
+      - quetxal-db-network
+
+  catalogo-db:
+    image: postgres:16-alpine
+    container_name: catalogo-db
+    ports:
+      - "${CATALOGO_DB_PUBLIC_PORT:-5434}:5432"
+    environment:
+      POSTGRES_USER: ${CATALOGO_DB_USER}
+      POSTGRES_PASSWORD: ${CATALOGO_DB_PASSWORD}
+      POSTGRES_DB: ${CATALOGO_DB_NAME}
+    volumes:
+      - catalogo_db_data:/var/lib/postgresql/data
+      - ./database/catalogo.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - quetxal-db-network
+
+  fx-db:
+    image: postgres:16-alpine
+    container_name: fx-db
+    ports:
+      - "${FX_DB_PUBLIC_PORT:-5435}:5432"
+    environment:
+      POSTGRES_USER: ${FX_DB_USER}
+      POSTGRES_PASSWORD: ${FX_DB_PASSWORD}
+      POSTGRES_DB: ${FX_DB_NAME}
+    volumes:
+      - fx_db_data:/var/lib/postgresql/data
+      - ./database/fx.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - quetxal-db-network
+
+  notification-db:
+    image: postgres:16-alpine
+    container_name: notification-db
+    ports:
+      - "${NOTIFICATION_DB_PUBLIC_PORT:-5436}:5432"
+    environment:
+      POSTGRES_USER: ${NOTIFICATION_DB_USER}
+      POSTGRES_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      POSTGRES_DB: ${NOTIFICATION_DB_NAME}
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+      - ./database/notificacion.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - quetxal-db-network
+
+  historial-db:
+    image: postgres:16-alpine
+    container_name: historial-db
+    ports:
+      - "${HISTORIAL_DB_PUBLIC_PORT:-5437}:5432"
+    environment:
+      POSTGRES_USER: ${HISTORIAL_DB_USER}
+      POSTGRES_PASSWORD: ${HISTORIAL_DB_PASSWORD}
+      POSTGRES_DB: ${HISTORIAL_DB_NAME}
+    volumes:
+      - historial_db_data:/var/lib/postgresql/data
+      - ./database/historial.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - quetxal-db-network
+
+volumes:
+  auth_db_data:
+  subscription_db_data:
+  catalogo_db_data:
+  fx_db_data:
+  notification_db_data:
+  historial_db_data:
+
+networks:
+  quetxal-db-network:
+    driver: bridge

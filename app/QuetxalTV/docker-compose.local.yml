@@ -1,17 +1,228 @@
 services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3001
+        VITE_GATEWAY_URL: http://localhost:3001
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - quetxal-network
+
   api-gateway:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       NODE_ENV: development
       PORT: 3000
-      JWT_SECRET: local_dev_secret
+      FX_SERVICE_HOST: fx-service:50055
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       SUBSCRIPTION_SERVICE_URL: subscription-service:50053
+      AUTH_SERVICE_HOST: auth-service:50051
+      AUTH_SERVICE_URL: auth-service:50051
+      NOTIFICATION_SERVICE_HOST: notification-service:50056
+      CATALOG_SERVICE_URL: catalog-service:50052
+      CATALOG_HTTP_URL: http://catalog-service:8082
+      HISTORIAL_SERVICE_URL: historial-service:50054
+      SUBSCRIPTION_HTTP_URL: http://subscription-service:8083
+      NOTIFICATION_HTTP_URL: http://notification-service:8084
+      FX_HTTP_URL: http://fx-service:8085
+      DOWNLOAD_SERVICE_URL: download-service:50057
+      DOWNLOAD_SERVICE_HOST: download-service:50057
     depends_on:
+      - auth-service
       - subscription-service
+      - notification-service
+      - download-service
+    networks:
+      - quetxal-network
+
+  # ──────────────────────────────────────────────
+  # AUTH
+  # ──────────────────────────────────────────────
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: auth_db
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+      - ./database/auth/auth.sql:/docker-entrypoint-initdb.d/01_auth.sql
+      - ./database/auth/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+  auth-service:
+    build:
+      context: ./microservices/auth-service/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    env_file:
+      - path: ./microservices/auth-service/auth-service/.env
+        required: false
+    environment:
+      GRPC_PORT: 50051
+      NOTIFICATION_SERVICE_HOST: notification-service
+      NOTIFICATION_SERVICE_PORT: 50056
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USER: auth_user
+      DB_PASSWORD: admin
+      DB_NAME: auth_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: auth
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
+    networks:
+      - quetxal-network
+
+  # ──────────────────────────────────────────────
+  # NOTIFICATION
+  # ──────────────────────────────────────────────
+  notification-db:
+    image: postgres:16-alpine
+    container_name: notification-db
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: notificacion_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: notificacion_db
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+      - ./database/notificacion.sql:/docker-entrypoint-initdb.d/01_init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notificacion_user -d notificacion_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+  notification-service:
+    build:
+      context: ./microservices/notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "50056:50056"
+      - "8084:8084"
+    environment:
+      GRPC_PORT: 50056
+      AUDIT_HTTP_PORT: 8084
+      DB_HOST: notification-db
+      DB_PORT: 5432
+      DB_USER: notificacion_user
+      DB_PASSWORD: admin
+      DB_NAME: notificacion_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: notification
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+    depends_on:
+      notification-db:
+        condition: service_healthy
+    networks:
+      - quetxal-network
+
+  # ──────────────────────────────────────────────
+  # CATALOG
+  # ──────────────────────────────────────────────
+  catalog-db:
+    image: postgres:16-alpine
+    container_name: catalog-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+      - ./microservices/catalogo-service/database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./microservices/catalogo-service/database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+      - ./microservices/catalogo-service/database/audit.sql:/docker-entrypoint-initdb.d/03_audit.sql
+      - ./microservices/catalogo-service/database/schedule.sql:/docker-entrypoint-initdb.d/04_schedule.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+  catalog-service:
+    build:
+      context: ./microservices/catalogo-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    ports:
+      - "50052:50052"
+      - "8082:8082"
+    environment:
+      DB_HOST: catalog-db
+      DB_PORT: 5432
+      DB_USER: catalog_user
+      DB_PASSWORD: catalog_pass
+      DB_NAME: catalog_db
+      DB_SSLMODE: disable
+      GRPC_PORT: 50052
+      AUDIT_HTTP_PORT: 8082
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+    networks:
+      - quetxal-network
+
+  # ──────────────────────────────────────────────
+  # SUBSCRIPTION
+  # ──────────────────────────────────────────────
+  subscription-db:
+    image: postgres:16-alpine
+    container_name: subscription-db
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: subscription_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: subscription_db
+    volumes:
+      - subscription_db_data:/var/lib/postgresql/data
+      - ./database/subscription.sql:/docker-entrypoint-initdb.d/01_init.sql
+     
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U subscription_user -d subscription_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - quetxal-network
 
@@ -19,39 +230,190 @@ services:
     build:
       context: ./microservices/subscription-service
       dockerfile: Dockerfile
-    env_file:
-      - path: ./microservices/subscription-service/.env
-        required: false
     ports:
       - "50053:50053"
+      - "8083:8083"
     environment:
       GRPC_PORT: 50053
       FX_SERVICE_HOST: fx-service:50055
+      AUDIT_HTTP_PORT: 8083
       NOTIFICATION_SERVICE_HOST: notification-service:50056
+      DB_HOST: subscription-db
+      DB_PORT: 5432
+      DB_USER: subscription_user
+      DB_PASSWORD: admin
+      DB_NAME: subscription_db
+    depends_on:
+      subscription-db:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
     networks:
       - quetxal-network
 
-  subscription-db:
+  # ──────────────────────────────────────────────
+  # FX
+  # ──────────────────────────────────────────────
+  fx-db:
     image: postgres:16-alpine
+    container_name: fx-db
     ports:
-      - "5435:5432"
+      - "5437:5432"
     environment:
-      POSTGRES_USER: subscription_user
-      POSTGRES_PASSWORD: subscription_pass
-      POSTGRES_DB: subscription_db
+      POSTGRES_USER: fx_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: fx_db
     volumes:
-      - subscription_db_data:/var/lib/postgresql/data
-      - ./database/subscription.sql:/docker-entrypoint-initdb.d/001_subscription.sql:ro
+      - fx_db_data:/var/lib/postgresql/data
+      - ./database/fx.sql:/docker-entrypoint-initdb.d/01_init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U subscription_user -d subscription_db"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U fx_user -d fx_db"]
+      interval: 5s
       timeout: 5s
       retries: 5
     networks:
       - quetxal-network
 
+  fx-service:
+    build:
+      context: ./microservices/fx-service
+      dockerfile: Dockerfile
+    ports:
+      - "50055:50055"
+      - "8085:8085"
+    environment:
+      AUDIT_HTTP_PORT: 8085
+      GRPC_PORT: 50055
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_TTL: 3600
+      EXCHANGE_API_KEY: ${EXCHANGE_API_KEY}
+      EXCHANGE_API_URL: https://v6.exchangerate-api.com/v6
+      DB_HOST: fx-db
+      DB_PORT: 5432
+      DB_USER: fx_user
+      DB_PASSWORD: admin
+      DB_NAME: fx_db
+    depends_on:
+      fx-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - quetxal-network
+
+  # ──────────────────────────────────────────────
+  # HISTORIAL
+  # ──────────────────────────────────────────────
+  historial-db:
+    image: postgres:16-alpine
+    container_name: historial-db
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_USER: historial_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: historial_db
+    volumes:
+      - historial_db_data:/var/lib/postgresql/data
+      - ./database/historial.sql:/docker-entrypoint-initdb.d/01_init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U historial_user -d historial_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+  historial-service:
+    build:
+      context: ./microservices/historial-service
+      dockerfile: Dockerfile
+    container_name: quetxaltv-historial-service
+    ports:
+      - "50054:50054"
+    environment:
+      DB_HOST: historial-db
+      DB_PORT: 5432
+      DB_USER: historial_user
+      DB_PASSWORD: admin
+      DB_NAME: historial_db
+      DB_SSLMODE: disable
+      DB_SCHEMA: playback
+    depends_on:
+      historial-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+# ──────────────────────────────────────────────
+  # DOWNLOAD
+  # ──────────────────────────────────────────────
+  download-db:
+    image: postgres:16-alpine
+    container_name: download-db
+    ports:
+      - "5439:5432"
+    environment:
+      POSTGRES_USER: download_user
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: download_db
+    volumes:
+      - download_db_data:/var/lib/postgresql/data
+      - ./database/download.sql:/docker-entrypoint-initdb.d/01_init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U download_user -d download_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quetxal-network
+
+  download-service:
+    build:
+      context: ./microservices/download-service
+      dockerfile: Dockerfile
+    container_name: download-service
+    ports:
+      - "50057:50057"
+    environment:
+      GRPC_PORT: 50057
+      DB_HOST: download-db
+      DB_PORT: 5432
+      DB_USER: download_user
+      DB_PASSWORD: admin
+      DB_NAME: download_db
+      DB_SSLMODE: disable
+      JWT_SECRET: ${JWT_SECRET}
+      GCS_BUCKET: ${GCS_BUCKET:-}                    # ← vacío en local
+      LOCAL_VIDEO_URL: ${LOCAL_VIDEO_URL:-http://localhost:5173/BigBuckBunny.mp4}
+      GCS_SERVICE_ACCOUNT_EMAIL: ${GCS_SERVICE_ACCOUNT_EMAIL:-}
+      DOWNLOAD_EXPIRY_DAYS: 30
+    depends_on:
+      download-db:
+        condition: service_healthy
+    networks:
+      - quetxal-network
+
+  # ──────────────────────────────────────────────
+  # REDIS
+  # ──────────────────────────────────────────────
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - quetxal-network
+
 volumes:
+  auth_db_data:
+  notification_db_data:
+  catalog_db_data:
   subscription_db_data:
+  fx_db_data:
+  historial_db_data:
+  download_db_data:
 
 networks:
   quetxal-network:

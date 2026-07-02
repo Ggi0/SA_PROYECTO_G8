@@ -1,0 +1,345 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Página-1" id="1QlRAYOPdrED1b4auiLI">
+    <mxGraphModel dx="3125" dy="803" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Onu891SawI3-nKJyKs4R-1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#1A2C4A;" value="Vista de Escenarios — Quetxal TV" vertex="1">
+          <mxGeometry height="44" width="1654" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#555555;fontStyle=2;" value="Autenticación JWT · OAuth · FX + Redis · Historial por perfil · Catálogo Admin (GCS · ListAllContent)" vertex="1">
+          <mxGeometry height="20" width="1654" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-3" parent="1" style="text;html=1;strokeColor=none;fillColor=#2C3E50;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#FFFFFF;" value="Quetxal TV — Escenarios Críticos (CDU-001 · CDU-003 · CDU-006 · CDU-007)" vertex="1">
+          <mxGeometry height="36" width="1634" x="10" y="68" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;" value="" vertex="1">
+          <mxGeometry height="330" width="790" x="10" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-5" parent="1" style="text;html=1;strokeColor=none;fillColor=#EEEEEE;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#1A2C4A;" value="2 — Escenario crítico CDU-001★ · Login con JWT y OAuth (flujo principal)" vertex="1">
+          <mxGeometry height="24" width="790" x="10" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-6" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Flujo A — Login normal JWT:" vertex="1">
+          <mxGeometry height="16" width="300" x="20" y="142" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-7" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Cliente → POST /auth/login { email, password } → API Gateway" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="158" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-8" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• API Gateway → AuthMiddleware valida sesión → gRPC Login() [auth.proto] → Auth Service :50051" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="174" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-9" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Auth Service → SELECT * FROM users_db WHERE email = $1" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-10" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Auth Service → bcrypt.compare(password, hash) → válido" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="206" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-11" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Auth Service → jsonwebtoken.sign({ userId, email, exp: 1h })" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-12" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• API Gateway → 200 OK · Set-Cookie: JWT · HttpOnly · Secure · SameSite=Strict" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="238" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-13" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Flujo B — OAuth Google:" vertex="1">
+          <mxGeometry height="16" width="300" x="20" y="262" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-14" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Cliente → GET /auth/google → OAuthHandler redirige a Google OAuth 2.0" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="278" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-15" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Google → callback con authorization_code → OAuthHandler" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="294" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-16" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• OAuthHandler → POST /token (exchange code) → { access_token, id_token, email }" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-17" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Auth Service → INSERT ... ON CONFLICT UPDATE users_db (upsert usuario OAuth)" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="326" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-18" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Auth Service → jsonwebtoken.sign() JWT propio del sistema" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="342" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-19" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• API Gateway → 200 OK · Set-Cookie: JWT HttpOnly · Secure" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="358" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-20" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#555555;" value="Flujo error — Credenciales inválidas: bcrypt.compare() → false → gRPC UNAUTHENTICATED → 401 Unauthorized" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="382" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-21" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="• API Gateway → 401 { error: Credenciales inválidas }" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="398" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-22" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;" value="" vertex="1">
+          <mxGeometry height="330" width="824" x="820" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-23" parent="1" style="text;html=1;strokeColor=none;fillColor=#EEEEEE;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#1A2C4A;" value="3 — Escenario crítico CDU-001 · Expiración de Token JWT" vertex="1">
+          <mxGeometry height="24" width="824" x="820" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-24" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Precondición: usuario hace request con JWT cuyo campo exp ha sido superado." vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="142" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-25" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Cliente → GET /catalog (Bearer token_expirado) → API Gateway" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="158" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-26" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• API Gateway → gRPC ValidateToken(token) [auth.proto · AuthService.ValidateToken()]" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="174" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-27" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Auth Service → jwt.verify() → lanza TokenExpiredError" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-28" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Opción A — Refresh token disponible [opt]:" vertex="1">
+          <mxGeometry height="16" width="400" x="830" y="214" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-29" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Auth Service → SELECT refresh_token FROM sessions WHERE userId = $1" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-30" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• users_db → { refreshToken, expiresAt } válido" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-31" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Auth Service → jsonwebtoken.sign() nuevo JWT { exp: 1h }" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="262" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-32" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• API Gateway → Set-Cookie: nuevo JWT renovado → continúa request original" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="278" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-33" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#555555;" value="Opción B — Sin refresh token [else]:" vertex="1">
+          <mxGeometry height="16" width="400" x="830" y="302" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-34" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="• Auth Service → gRPC UNAUTHENTICATED token_expired" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="318" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-35" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="• API Gateway → 401 { error: Token expirado } + redirect /login" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="334" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-36" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Mecanismo: JWT propaga identidad entre microservicios vía header Authorization: Bearer — stateless, sin consultar users_db en cada request." vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="358" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-37" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="El secret compartido entre API Gateway y Auth Service permite validación local del JWT sin overhead de red adicional." vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="374" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-38" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="Session Cookies HttpOnly · Secure · SameSite=Strict protegen contra XSS y CSRF." vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-39" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;" value="" vertex="1">
+          <mxGeometry height="370" width="790" x="10" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-40" parent="1" style="text;html=1;strokeColor=none;fillColor=#EEEEEE;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#1A2C4A;" value="4 — Escenario crítico CDU-003★ + CDU-006 · Suscripción con FX-Service y Redis Cache-Aside" vertex="1">
+          <mxGeometry height="24" width="790" x="10" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-41" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Precondición: usuario autenticado solicita ver planes de suscripción con precio en moneda local." vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-42" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Cliente → GET /plans (Bearer JWT) → API Gateway" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="506" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-43" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• API Gateway → gRPC GetPlans() [subscription.proto] → Subscription Service :50053" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="522" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-44" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Subscription Service → lee planes base en USD desde subscription_db" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="538" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-45" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Subscription Service → gRPC GetExchangeRate(USD, GTQ) [fx.proto] → FX Service :50055" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="554" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-46" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="  Cache-Aside Redis (patrón obligatorio — enunciado):" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="574" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-47" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="  ├─ FX Service → busca clave fx:USD:GTQ en Redis Memorystore" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-48" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="  ├─ Cache HIT → devuelve tipo de cambio ~1ms (TTL 3600s aún vigente)" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="606" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-49" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="  └─ Cache MISS → llama ExchangeRate API externa (HTTPS) → guarda en Redis con TTL=3600s" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="622" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-50" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Subscription Service → precio_GTQ = precio_USD × tipo_cambio → devuelve planes en GTQ" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="642" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-51" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Usuario selecciona plan → POST /subscribe → API Gateway → gRPC Subscribe()" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="658" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-52" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Subscription Service → sp_process_subscription() [stored procedure PostgreSQL]" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="674" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-53" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="  Transacción atómica: registra pago + activa plan · COMMIT si todo OK / ROLLBACK si falla" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-54" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Subscription Service → gRPC SendReceiptEmail() [notification.proto] → Notification Service" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="706" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-55" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Notification Service → envía recibo.html vía aiosmtplib → SMTP Gmail :587" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="722" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-56" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#555555;" value="Flujo error — pago rechazado: sp_process_subscription() ROLLBACK → { error: Pago rechazado } → 402 · Notification Service → email de pago fallido" vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="746" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-57" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="Mecanismo clave: Redis Memorystore (GCP) con TTL 3600s evita saturar la API externa de divisas con cada request de precios." vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="778" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-58" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="El stored procedure garantiza que nunca quede un pago registrado sin suscripción activa (atomicidad ACID)." vertex="1">
+          <mxGeometry height="16" width="770" x="20" y="794" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-59" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1.5;" value="" vertex="1">
+          <mxGeometry height="370" width="824" x="820" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-60" parent="1" style="text;html=1;strokeColor=none;fillColor=#EEEEEE;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#1A2C4A;" value="5 — Escenario crítico CDU-007★ · Continuar viendo (Historial de Reproducción por perfil)" vertex="1">
+          <mxGeometry height="24" width="824" x="820" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-61" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Precondición: usuario autenticado selecciona una serie previamente vista desde su perfil activo." vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-62" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Cliente → GET /history/progress?contentId=X&amp;profileId=Y → API Gateway" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="506" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-63" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• API Gateway → valida JWT → gRPC GetProgress(profileId, contentId) [history.proto] → History Service :50054" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="522" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-64" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• History Service → SELECT season, episode, minute FROM historial_db" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="538" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-65" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="  WHERE profile_id = $1 AND content_id = $2  (clave compuesta — aislamiento por perfil)" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="554" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-66" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Con progreso guardado:" vertex="1">
+          <mxGeometry height="16" width="300" x="830" y="578" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-67" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• historial_db → { season: 2, episode: 4, minute: 1847 }" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="594" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-68" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Cliente → reproductor reanuda desde S02E04 minuto 30:47 automáticamente" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-69" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Sin progreso (primera vez):" vertex="1">
+          <mxGeometry height="16" width="300" x="830" y="634" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-70" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• historial_db → vacío → History Service devuelve { season:1, episode:1, minute:0 }" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-71" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Cliente → reproductor inicia desde S01E01 minuto 0:00" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="666" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-72" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontColor=#1A2C4A;" value="Guardado automático de progreso (cada 30 segundos):" vertex="1">
+          <mxGeometry height="16" width="500" x="830" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-73" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• Cliente → POST /history/progress (cada 30s automático mientras reproduce)" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="706" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-74" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• gRPC SaveProgress(profileId, contentId, season, episode, minute) [history.proto]" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="722" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-75" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#333333;" value="• History Service → UPDATE historial_db SET season=$3, episode=$4, minute=$5 WHERE profile_id=$1 AND content_id=$2" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="738" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-76" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="Mecanismo clave: clave compuesta (profile_id, content_id) garantiza que cada uno de los 5 perfiles de una cuenta" vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="762" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-77" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="mantiene su historial aislado e independiente — cumple el requisito explícito del enunciado." vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="778" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-78" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontColor=#555555;" value="Películas guardan { minute/total_duration }. Series guardan { season, episode, minute } — enunciado exige los 3 campos." vertex="1">
+          <mxGeometry height="16" width="804" x="830" y="794" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-79" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8F9FA;strokeColor=#2C3E50;strokeWidth=1.5;" value="" vertex="1">
+          <mxGeometry height="200" width="1634" x="10" y="848" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-80" parent="1" style="text;html=1;strokeColor=none;fillColor=#2C3E50;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;fontColor=#FFFFFF;" value="6 — Cómo las 4 vistas técnicas articulan CDU-001★ + CDU-003★ + CDU-006 + CDU-007 (Compra exitosa con historial)" vertex="1">
+          <mxGeometry height="24" width="1634" x="10" y="848" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-81" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="156" width="388" x="20" y="878" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-82" parent="1" style="text;html=1;strokeColor=none;fillColor=#EEEEEE;align=center;verticalAlign=middle;fontSize=10;fontStyle=1;fontColor=#1A2C4A;" value="Vista Lógica" vertex="1">
+          <mxGeometry height="20" width="388" x="20" y="878" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-83" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Auth/Sub/FX/History como paquetes independientes." vertex="1">
+          <mxGeometry height="16" width="372" x="28" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-84" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Contratos .proto definen interfaces entre dominios." vertex="1">
+          <mxGeometry height="16" width="372" x="28" y="916" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-85" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• sp · trigger · views dentro de cada BD dueña." vertex="1">
+          <mxGeometry height="16" width="372" x="28" y="932" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-86" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• RedisCache como módulo de FX Service (Cache-Aside)." vertex="1">
+          <mxGeometry height="16" width="372" x="28" y="948" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-87" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#555555;" value="Diagrama de Paquetes UML" vertex="1">
+          <mxGeometry height="16" width="372" x="28" y="1002" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-88" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="156" width="388" x="418" y="878" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-89" parent="1" style="text;html=1;strokeColor=none;fillColor=#EEEEEE;align=center;verticalAlign=middle;fontSize=10;fontStyle=1;fontColor=#1A2C4A;" value="Vista de Procesos" vertex="1">
+          <mxGeometry height="20" width="388" x="418" y="878" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-90" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Todo gRPC síncrono — no hay broker asíncrono." vertex="1">
+          <mxGeometry height="16" width="372" x="426" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-91" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Cache-Aside muestra decisión hit/miss en flujo." vertex="1">
+          <mxGeometry height="16" width="372" x="426" y="916" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-92" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• JWT propaga identidad sin consultar BD por request." vertex="1">
+          <mxGeometry height="16" width="372" x="426" y="932" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-93" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• SaveProgress cada 30s sin bloquear reproducción." vertex="1">
+          <mxGeometry height="16" width="372" x="426" y="948" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-94" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#555555;" value="Diagrama de Actividades UML" vertex="1">
+          <mxGeometry height="16" width="372" x="426" y="1002" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-95" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="156" width="388" x="816" y="878" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-96" parent="1" style="text;html=1;strokeColor=none;fillColor=#EEEEEE;align=center;verticalAlign=middle;fontSize=10;fontStyle=1;fontColor=#1A2C4A;" value="Vista de Componentes" vertex="1">
+          <mxGeometry height="20" width="388" x="816" y="878" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-97" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• IAuthGRPC · IFXService · IHistoryGRPC como interfaces." vertex="1">
+          <mxGeometry height="16" width="372" x="824" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-98" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Lollipop/socket por cada contrato .proto." vertex="1">
+          <mxGeometry height="16" width="372" x="824" y="916" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-99" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• «Microservice:TypeScript» · «Go» · «Python» visibles." vertex="1">
+          <mxGeometry height="16" width="372" x="824" y="932" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-100" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• sp · trigger · views · fn en rojo dentro de cada servicio." vertex="1">
+          <mxGeometry height="16" width="372" x="824" y="948" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-101" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#555555;" value="Diagrama de Componentes UML" vertex="1">
+          <mxGeometry height="16" width="372" x="824" y="1002" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-102" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2C3E50;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="156" width="420" x="1214" y="878" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-103" parent="1" style="text;html=1;strokeColor=none;fillColor=#EEEEEE;align=center;verticalAlign=middle;fontSize=10;fontStyle=1;fontColor=#1A2C4A;" value="Vista de Despliegue (Física)" vertex="1">
+          <mxGeometry height="20" width="420" x="1214" y="878" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-104" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• 7 contenedores Docker desplegados en GCP." vertex="1">
+          <mxGeometry height="16" width="404" x="1222" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-105" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Cloud SQL con 6 BDs aisladas (Database per Microservice) · GCS bucket quetxal-tv-videos (Object Storage)." vertex="1">
+          <mxGeometry height="16" width="404" x="1222" y="916" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-106" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• Memorystore Redis :6379 — no contenedor efímero." vertex="1">
+          <mxGeometry height="16" width="404" x="1222" y="932" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-107" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;fontColor=#333333;" value="• API Gateway único expuesto · VPC privada interna · GCP · catalog-service Workload Identity (catalogo-service-ksa)." vertex="1">
+          <mxGeometry height="16" width="404" x="1222" y="948" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-108" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#555555;" value="Diagrama de Despliegue UML" vertex="1">
+          <mxGeometry height="16" width="404" x="1222" y="1002" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-109" parent="1" style="text;html=1;strokeColor=none;fillColor=#2C3E50;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=1;fontColor=#FFFFFF;" value="CDU-001★ + CDU-003★ + CDU-006 + CDU-007 — Las 4 vistas garantizan: JWT stateless · gRPC síncrono · Redis Cache-Aside TTL · Database per Microservice · historial aislado por perfil" vertex="1">
+          <mxGeometry height="30" width="1634" x="10" y="1056" as="geometry" />
+        </mxCell>
+        <mxCell id="Onu891SawI3-nKJyKs4R-110" parent="1" style="text;html=1;strokeColor=#CCCCCC;fillColor=#F8F9FA;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontStyle=2;fontColor=#555555;" value="CDU-001★ Autenticación y Gestión de Usuarios  |  CDU-002 Gestión de Perfiles (máx 5/cuenta)  |  CDU-003★ Gestión de Planes y Suscripciones  |  CDU-004 Catálogo, Búsqueda y Detalle  |  CDU-005 Sistema de Calificaciones  |  CDU-006 FX-Service · Redis Cache-Aside  |  CDU-007★ Historial de Reproducción  |  ★ = Caso de uso crítico" vertex="1">
+          <mxGeometry height="24" width="1634" x="10" y="1092" as="geometry" />
+        </mxCell>
+        <UserObject label="&lt;img src=&quot;https://github.com/Ggi0/SA_PROYECTO_G8/raw/develop/Documentation/CasosDeUso/imgs/Primera_descom.png&quot; alt=&quot;Diagrama Alto Nivel&quot;&gt;" id="Onu891SawI3-nKJyKs4R-111">
+          <mxCell parent="1" style="text;whiteSpace=wrap;html=1;" vertex="1">
+            <mxGeometry height="40" width="30" x="-1150" y="130" as="geometry" />
+          </mxCell>
+        </UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

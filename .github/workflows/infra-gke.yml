@@ -1,0 +1,23 @@
+name: Infra GKE - Managed Ingress Check
+on:
+  workflow_call:
+jobs:
+  managed-ingress-check:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+          location: ${{ secrets.GKE_CLUSTER_ZONE }}
+      - name: Check GKE managed Ingress resources
+        run: |
+          kubectl get ingress -n quetxal-tv-prod || true
+          kubectl get backendconfig -n quetxal-tv-prod || true
