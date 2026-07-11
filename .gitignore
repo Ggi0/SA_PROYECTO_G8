@@ -98,3 +98,5 @@ gcloud*.json
 app/QuetxalTV/load-tests/venv/
 app/QuetxalTV/load-tests/__pycache__/
 *.pyc
+
+.claude/launch.json

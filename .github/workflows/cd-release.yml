@@ -372,7 +372,7 @@ jobs:
             sleep 10
           done
           pip install -r tests/smoke/requirements.txt -q
-          python tests/smoke/smoke_test.py
+          python -u tests/smoke/smoke_test.py
 
   locust:
     name: Locust load injection after GKE deploy

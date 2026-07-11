@@ -9,8 +9,27 @@ variable "region" {
 }
 
 variable "zone" {
-  type    = string
-  default = "us-central1-a"
+  type        = string
+  description = "Zona principal para GKE"
+  default     = "us-central1-a"
+}
+
+variable "db_zone" {
+  type        = string
+  description = "Zona para la VM de base de datos"
+  default     = "us-central1-b"
+}
+
+variable "monitor_zone" {
+  type        = string
+  description = "Zona para la VM de observabilidad"
+  default     = "us-central1-c"
+}
+
+variable "dev_zone" {
+  type        = string
+  description = "Zona para la VM de desarrollo"
+  default     = "us-central1-f"
 }
 
 variable "ssh_user" {
@@ -33,6 +52,24 @@ variable "gke_node_count" {
 variable "gke_machine_type" {
   type    = string
   default = "e2-standard-2"
+}
+
+variable "db_machine_type" {
+  type        = string
+  description = "Tipo de maquina para la VM de base de datos"
+  default     = "e2-medium"
+}
+
+variable "monitor_machine_type" {
+  type        = string
+  description = "Tipo de maquina para la VM de observabilidad"
+  default     = "e2-medium"
+}
+
+variable "dev_machine_type" {
+  type        = string
+  description = "Tipo de maquina para la VM de desarrollo"
+  default     = "e2-medium"
 }
 
 variable "github_repo" {
