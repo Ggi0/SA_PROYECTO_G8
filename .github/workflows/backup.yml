@@ -1,8 +1,11 @@
 name: DB Backup - Quetxal TV
 
 on:
-  schedule:
-    - cron: '0 8 * * *'
+  # Backup diario DESACTIVADO: la infraestructura ya fue eliminada al terminar el
+  # proyecto, por lo que el cron solo generaba correos de fallo. Para reactivarlo,
+  # descomenta el bloque schedule. Se mantiene la ejecucion manual y por llamada.
+  # schedule:
+  #   - cron: '0 8 * * *'
   workflow_dispatch:
     inputs:
       target:
