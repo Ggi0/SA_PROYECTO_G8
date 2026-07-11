@@ -34,7 +34,7 @@ resource "google_project_iam_member" "cicd_roles" {
   member   = "serviceAccount:${local.cicd_sa_email}"
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -51,6 +51,6 @@ resource "google_service_account_iam_member" "wif_binding" {
   member             = "principalSet://iam.googleapis.com/projects/${data.google_project.current.number}/locations/global/workloadIdentityPools/github-pool/attribute.repository/${var.github_repo}"
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
